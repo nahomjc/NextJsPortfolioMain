@@ -6,6 +6,7 @@ import { FaGithub, FaLinkedinIn } from 'react-icons/fa';
 import { BsFillPersonLinesFill } from 'react-icons/bs';
 import { useState,useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Logo from '../public/assets/LogNah.png'
 const Navbar = () => {
 
 const [nav , setNav]= useState(false);
@@ -54,7 +55,7 @@ const handelNav=()=>{
     <div className='flex justify-between items-center w-full h-full px-2 2xl:px-16'>
  
  <Link href='/'>
- <Image src='/../public/assets/LogNah.png' alt="/" width='170' height='100'  className='cursor-pointer'/>
+ <Image src={Logo} alt="/" width='170' height='100'  className='cursor-pointer'/>
  </Link>
     
  <div>
