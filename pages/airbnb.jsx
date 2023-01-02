@@ -27,7 +27,7 @@ const airbnb = () => {
            this is the Clone of Airbnb UI This app was built using React JS and is hosted on Firebase, styled using CSS. 
             </p>
             <a
-            href='https://airbnb-clone-e2296.web.app/search'
+            href='https://airbnb-clone-e2296.web.app/'
             target='_blank'
             rel='noreferrer'
           >
