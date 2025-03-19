@@ -18,7 +18,7 @@ const MediumBlog = () => {
       readTime: "10 min read",
       date: "Jan 20, 2024",
       image: "https://miro.medium.com/v2/resize:fit:828/format:webp/1*_KRDj8Ij-cD3sWf3R8QEXQ.png", // Add your blog image
-      link: "https://medium.com/your-post-link"
+      link: "https://medium.com/@aslandjc7/balancing-code-and-faith-a-guide-to-being-an-effective-software-engineer-and-a-good-christian-df8f8ed370f3"
     },
     {
       title: "Exploring Next.js 15",
