@@ -1,27 +1,27 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import AboutImg from '../public/assets/nahomPro.png';
+import AboutImg from '../public/assets/new-image.png';
 const About = () => {
   return (
-    <div id='about' className='w-full md:h-screen p-2 flex itmes-center py-16'>
+    <div id='about' className='w-full md:h-screen p-2 flex itmes-center py-16 dark:bg-gray-900 dark:text-white'>
       <div className='max-w-[1240px] m-auto md:grid grid-cols-3 gap-8'>
         <div className='col-span-2'>
 
-            <p className='py-4 uppercase text-xl tracking-widest text-[#5651e5]'>About</p>
+            <p className='py-4 uppercase text-xl tracking-widest text-[#5651e5] dark:text-white'>About</p>
             <h2 className='py-4'>Who I Am</h2>
-            <p className='py-2 text-gray-600'>I am not your normal developer</p>
-            <p  className='py-2 text-gray-600'>I specialize in building mobile responsive front-end UI applications that connect with API’s and other backend technologies. I’m passionate about learning new technologies and understand there is more than one way to accomplish a task. Though 
-                I am most proficient in building front-end applications using HTML, CSS, Javascript, and React,
-                 I am a quick learner and can pick up new tech stacks as needed. I believe that being a great developer is not using one specific language, but choosing the best tool for the job.
+            <p className='py-2 text-gray-600 dark:text-white'>I am not your typical developer.</p>
+            <p  className='py-2 text-gray-600 dark:text-white'>I specialize in building mobile-responsive front-end UI applications that seamlessly integrate with APIs and backend technologies. Passionate about learning and adopting new technologies, I believe there is always more than one way to solve a problem. While I am most proficient in React, Next.js, HTML, CSS, and JavaScript, I am a fast learner who can adapt to new tech stacks as needed. For me, being a great developer is not about using a single language but selecting the right tool for the job.
+
+
             </p>
-            <p  className='py-2 text-gray-600'>
-            I started web developement in 2016 managing multiple e-commerce websites on CMS platforms such as WordPress, wix. I have experience working directly with clients and taking mock wireframes all the way to deployed applications. 
+            <p  className='py-2 text-gray-600 dark:text-white'>
+            I began my journey in 2016, managing multiple e-commerce websites on CMS platforms. Over the years, I have worked directly with clients, taking mock wireframes all the way to fully deployed applications like Muyalogy and Afriwork
           
           
             </p>
             <Link href='/#projects'>
-            <p className='py-2 text-gray-600 underline cursor-pointer'>
+            <p className='py-2 text-gray-600 dark:text-white  underline cursor-pointer'>
               Check out some of my latest projects.
             </p>
           </Link>

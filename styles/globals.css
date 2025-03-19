@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide default cursor */
+* {
+  cursor: none !important;
+}
+
+/* Ensure custom cursor is visible */
+#__next {
+  cursor: none !important;
+}
+
+/* Optional: Show default cursor on touch devices */
+@media (hover: none) {
+  * {
+    cursor: auto !important;
+  }
+}
 
 @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
@@ -13,7 +29,7 @@ html {
 
 @layer base {
   body {
-    @apply bg-[#ecf0f3] text-[#1f2937] tracking-wide 
+    @apply bg-[#ecf0f3] text-[#1f2937] tracking-wide  dark:bg-gray-900  text-gray-900 dark:text-white transition-colors duration-200;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -33,6 +49,6 @@ html {
   }
 
   button {
-    @apply shadow-xl shadow-gray-400 rounded-xl uppercase bg-gradient-to-r from-[#5651e5] to-[#709dff] text-white
+    @apply shadow-xl shadow-gray-400 rounded-xl uppercase bg-gradient-to-r from-[#5651e5] to-[#709dff] text-white dark:shadow-gray-800
   }
 }

@@ -5,7 +5,7 @@ import { AiOutlineMail } from 'react-icons/ai';
 import { BsFillPersonLinesFill } from 'react-icons/bs';
 import { FaGithub, FaLinkedinIn } from 'react-icons/fa';
 import { HiOutlineChevronDoubleUp ,HiDownload} from 'react-icons/hi';
-import ContactImg from '../public/assets/contact.jpg';
+import ContactImg from '../public/assets/contact-me.jpg';
 
 const Contact = () => {
   return (
@@ -28,7 +28,7 @@ const Contact = () => {
               </div>
               <div>
                 <h2 className='py-2'>Nahom Tesfaye</h2>
-                <p>Front-End Developer</p>
+                <p>Full Stack Developer</p>
                 <p className='py-4'>
                   I am available for freelance or full-time positions. Contact
                   me and let&apos;s talk.
@@ -69,7 +69,7 @@ const Contact = () => {
                   
                 </div>
                 <button className='px-8 py-2 mt-4 mr-8 flex '>
-        <a  className='flex' href='assets/resume.pdf' download>Download My CV <HiDownload className='m-1'/></a> 
+        <a  className='flex' href='assets/NAHOM-TESFAYE-cv777.pdf' download>Download My CV <HiDownload className='m-1'/></a> 
         </button>
               </div>
             </div>

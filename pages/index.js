@@ -6,6 +6,10 @@ import Main from '../components/Main'
 import Navbar from '../components/Navbar'
 import Projects from '../components/Projects'
 import Skills from '../components/Skills'
+import CoursePromo from '../components/CoursePromo'
+import FoxCharacter from '../components/FoxCharacter'
+import TelegramPromo from '../components/TelegramPromo'
+import MediumBlog from '../components/MeduimBlog'
 
 export default function Home() {
   return (
@@ -21,6 +25,9 @@ export default function Home() {
      <About/> 
      <Skills/>
      <Projects/>
+     <CoursePromo/>
+     <TelegramPromo/>
+     <MediumBlog/>
      <Contact/>
     </div>
   )
