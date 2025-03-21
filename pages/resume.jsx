@@ -192,7 +192,7 @@ const resume = () => {
         </div>
 
         <button className='px-8 py-2 mt-4 mr-8'>
-          <a href='assets/resume.pdf' download>Download My CV</a>
+          <a href='assets/NAHOM-TESFAYE-cv777.pdf' download>Download My CV</a>
         </button>
       </div>
     </>

@@ -20,7 +20,7 @@ const certificates = [
     verificationLink: "your-verification-link",
     description: "Advanced certification in React.js development from Meta, covering modern React patterns and best practices.",
     category: "Frontend Development",
-    downloadLink: "/assets/certificates/meta-react.pdf"
+    downloadLink: "/assets/cert1 (2).pdf"
   },
   {
     id: 2,
@@ -32,19 +32,19 @@ const certificates = [
     verificationLink: "your-verification-link",
     description: "Comprehensive data science certification from the United Nations, focusing on data analysis and machine learning.",
     category: "Data Science",
-    downloadLink: "/assets/certificates/un-data.pdf"
+    downloadLink: "/assets/cert1 (3).pdf"
   },
   {
     id: 3,
     title: "BSc in Computer Science - Very Great Distinction",
     issuer: "Admas University",
-    date: "2023",
+    date: "2019",
     image: "/assets/certificate1.jpg", // Make sure to add your certificate image
     skills: ["Computer Science", "Software Engineering", "Programming", "Data Structures", "Algorithms"],
     verificationLink: "your-verification-link",
     description: "Graduated with Very Great Distinction, achieving a 3.9 GPA in Computer Science. The program covered comprehensive computer science fundamentals, software engineering principles, and advanced programming concepts.",
     category: "Education",
-    downloadLink: "/assets/certificate4.jpg"
+    downloadLink: "/assets/cert1 (1).pdf"
   },
 ];
 
