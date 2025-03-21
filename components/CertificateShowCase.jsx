@@ -14,8 +14,8 @@ const certificates = [
     id: 1,
     title: "Meta Advanced React Certification",
     issuer: "Meta (Facebook)",
-    date: "2023",
-    image: "/assets/certificates2.jpg",
+    date: "2022",
+    image: "/assets/certificate2.jpg",
     skills: ["React.js", "Advanced Patterns", "Performance Optimization"],
     verificationLink: "your-verification-link",
     description: "Advanced certification in React.js development from Meta, covering modern React patterns and best practices.",
@@ -26,7 +26,7 @@ const certificates = [
     id: 2,
     title: "UN Data Science Certificate",
     issuer: "United Nations",
-    date: "2023",
+    date: "2020",
     image: "/assets/certificate3.jpg",
     skills: ["Data Analysis", "Machine Learning", "Statistics"],
     verificationLink: "your-verification-link",
@@ -36,15 +36,15 @@ const certificates = [
   },
   {
     id: 3,
-    title: "Web Development Course Instructor",
-    issuer: "Muyalogy",
+    title: "BSc in Computer Science - Very Great Distinction",
+    issuer: "Admas University",
     date: "2023",
-    image: "/assets/certificates1.jpg",
-    skills: ["Web Development", "Teaching", "Course Creation"],
-    verificationLink: "https://www.muyalogy.com/course/1bcd4432-4f5e-4984-8572-c90648d637bb",
-    description: "Created and instructing a comprehensive web development course, teaching modern web technologies to students.",
-    category: "Teaching",
-    downloadLink: "/assets/certificates/muyalogy.pdf"
+    image: "/assets/certificate1.jpg", // Make sure to add your certificate image
+    skills: ["Computer Science", "Software Engineering", "Programming", "Data Structures", "Algorithms"],
+    verificationLink: "your-verification-link",
+    description: "Graduated with Very Great Distinction, achieving a 3.9 GPA in Computer Science. The program covered comprehensive computer science fundamentals, software engineering principles, and advanced programming concepts.",
+    category: "Education",
+    downloadLink: "/assets/certificate4.jpg"
   },
 ];
 
@@ -271,26 +271,7 @@ const CertificateShowcase = () => {
             </select>
 
             <div className="flex gap-2">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`px-4 py-2 rounded-full ${
-                  viewMode === 'grid' 
-                    ? 'bg-[#5651e5] text-white' 
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                }`}
-              >
-                Grid View
-              </button>
-              <button
-                onClick={() => setViewMode('carousel')}
-                className={`px-4 py-2 rounded-full ${
-                  viewMode === 'carousel' 
-                    ? 'bg-[#5651e5] text-white' 
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                }`}
-              >
-                Carousel View
-              </button>
+              
             </div>
           </div>
         </div>
