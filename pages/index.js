@@ -12,15 +12,9 @@ import TelegramPromo from '../components/TelegramPromo'
 import MediumBlog from '../components/MeduimBlog'
 import AIChat from '../components/AIChat'
 import CertificateShowcase from '../components/CertificateShowCase'
-import { useState } from 'react'
-import { motion } from 'framer-motion';
-import FingerPrintLoader from '../components/FingerPrintLoaderProps'
-export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
 
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-  };
+export default function Home() {
+  
   return (
     <div >
       <Head>
@@ -30,24 +24,16 @@ export default function Home() {
       </Head>
 
   
-      {isLoading && <FingerPrintLoader onLoadingComplete={handleLoadingComplete} />}
-      
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoading ? 0 : 1 }}
-        transition={{ duration: 1 }}
-      >
-        <Main />
-        <AIChat />
-        <About />
-        <Skills />
-        <Projects />
-        <CertificateShowcase />
-        <CoursePromo />
-        <TelegramPromo />
-        <MediumBlog />
-        <Contact />
-      </motion.div>
+       <Main/>
+       <AIChat/>
+     <About/> 
+     <Skills/>
+     <Projects/>
+     <CertificateShowcase/>
+     <CoursePromo/>
+     <TelegramPromo/>
+     <MediumBlog/>
+     <Contact/>
     </div>
   )
 }
