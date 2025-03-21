@@ -149,7 +149,7 @@ const CertificateModal = ({ certificate, onClose }) => {
             src={certificate.image}
             alt={certificate.title}
             layout="fill"
-            objectFit="cover"
+            objectFit="contain"
           />
           <button
             onClick={onClose}
