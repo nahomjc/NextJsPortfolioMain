@@ -47,7 +47,7 @@ const AIChat = () => {
           "Comprehensive web development course in Amharic",
           "Covers HTML, CSS, JavaScript fundamentals",
           "Includes responsive design and modern web practices",
-          "Project based learning with practical examples",
+          "Project-based learning with practical examples",
           "43 activities across 8 modules"
         ]
       }
@@ -119,7 +119,7 @@ const AIChat = () => {
   const suggestedQuestions = [
     "What are your main skills?",
     "Tell me about your projects",
-    "What&apos;s your work experience?",
+    "What's your work experience?",
     "Educational background?",
     "Technical interests?"
   ];
@@ -133,11 +133,11 @@ const AIChat = () => {
     setIsTyping(false);
 
     if (lowercaseInput.includes('experience') || lowercaseInput.includes('work')) {
-      return `Here&apos;s Nahom&apos; professional experience:\n\n• ${knowledge.experience.join('\n• ')}`;
+      return `Heres Nahoms professional experience:\n\n• ${knowledge.experience.join('\n• ')}`;
     }
     
     if (lowercaseInput.includes('skill') || lowercaseInput.includes('tech')) {
-      return `Here are Nahom&apos;s technical skills:\n\nFrontend:\n• ${knowledge.skills.frontend.join('\n• ')}\n\nBackend:\n• ${knowledge.skills.backend.join('\n• ')}\n\nDatabase:\n• ${knowledge.skills.database.join('\n• ')}\n\nDevOps:\n• ${knowledge.skills.devops.join('\n• ')}`;
+      return `Here are Nahoms technical skills:\n\nFrontend:\n• ${knowledge.skills.frontend.join('\n• ')}\n\nBackend:\n• ${knowledge.skills.backend.join('\n• ')}\n\nDatabase:\n• ${knowledge.skills.database.join('\n• ')}\n\nDevOps:\n• ${knowledge.skills.devops.join('\n• ')}`;
     }
     
     if (lowercaseInput.includes('project') || lowercaseInput.includes('portfolio')) {
@@ -158,7 +158,7 @@ const AIChat = () => {
       return `You can reach Nahom through:\n\n• GitHub: ${knowledge.quickLinks.github}\n• LinkedIn: ${knowledge.quickLinks.linkedin}\n• Portfolio: ${knowledge.quickLinks.portfolio}`;
     }
     if (lowercaseInput.includes('experience') || lowercaseInput.includes('work')) {
-        return `Here&apos;s Nahom&apos;s detailed professional experience:\n\n• ${knowledge.experience.join('\n• ')}\n\nTeaching:\n• Currently teaching web development on Muyalogy platform\n• Course Link: ${knowledge.teaching.course.link}`;
+        return `Here's Nahoms detailed professional experience:\n\n• ${knowledge.experience.join('\n• ')}\n\nTeaching:\n• Currently teaching web development on Muyalogy platform\n• Course Link: ${knowledge.teaching.course.link}`;
       }
       
       if (lowercaseInput.includes('education') || lowercaseInput.includes('study')) {
@@ -172,7 +172,7 @@ const AIChat = () => {
       return "Nahom is a Full Stack Web Engineer specializing in modern web technologies. He has extensive experience building educational platforms and enterprise applications. His work focuses on creating scalable, user-friendly solutions that make a real impact.";
     }
 
-    return "I can tell you about Nahom&apos;s experience, skills, projects, education, interests, or how to contact him. What would you like to know?";
+    return "I can tell you about Nahoms experience, skills, projects, education, interests, or how to contact him. What would you like to know?";
   };
 
   const handleSubmit = async (e) => {
@@ -311,7 +311,7 @@ const AIChat = () => {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-           placeholder="Ask about Nahom&apos;s experience..."
+                placeholder="Ask about Nahom&apos; sexperience..."
                 className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#5651e5] dark:focus:border-[#5651e5]"
               />
               <button

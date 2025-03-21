@@ -159,16 +159,30 @@
     transform: translateY(-4px);
   }
 }
+@media (min-width: 768px) {
+  /* Only hide default cursor on non-touch devices and larger screens */
+  * {
+    cursor: none !important;
+  }
+
+  #__next {
+    cursor: none !important;
+  }
+}
+
+/* Show default cursor on mobile/touch devices */
+@media (hover: none) {
+  * {
+    cursor: auto !important;
+  }
+
+  #__next {
+    cursor: auto !important;
+  }
+}
 
 /* Hide default cursor */
-* {
-  cursor: none !important;
-}
 
-/* Ensure custom cursor is visible */
-#__next {
-  cursor: none !important;
-}
 
 /* Optional: Show default cursor on touch devices */
 @media (hover: none) {

@@ -5,66 +5,70 @@ const MouseFollower = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const cursorRef = useRef({ x: 0, y: 0 });
+  const mouseRef = useRef({ x: 0, y: 0 });
   const animationFrameRef = useRef(null);
-  const lastPositionRef = useRef({ x: 0, y: 0 });
-  const mousePositionRef = useRef({ x: 0, y: 0 });
 
+  // Check if device is mobile
   useEffect(() => {
-    let currentX = 0;
-    let currentY = 0;
-    let velocityX = 0;
-    let velocityY = 0;
-
-    const animate = () => {
-      // Get current mouse position
-      const targetX = mousePositionRef.current.x;
-      const targetY = mousePositionRef.current.y;
-
-      // Calculate distance to target
-      const dx = targetX - currentX;
-      const dy = targetY - currentY;
-
-      // Apply spring physics for smoother movement
-      const spring = 0.15; // Lower value = smoother movement
-      const damping = 0.8; // Lower value = more damping
-
-      // Update velocity
-      velocityX += dx * spring;
-      velocityY += dy * spring;
-
-      // Apply damping
-      velocityX *= damping;
-      velocityY *= damping;
-
-      // Update position
-      currentX += velocityX;
-      currentY += velocityY;
-
-      // Update position state
-      setPosition({
-        x: currentX,
-        y: currentY,
-      });
-
-      lastPositionRef.current = { x: currentX, y: currentY };
-      animationFrameRef.current = requestAnimationFrame(animate);
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia('(hover: none)').matches);
     };
 
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
+
+    const lerp = (start, end, factor) => start + (end - start) * factor;
+
+    const animate = () => {
+      // Increase smoothing factor for faster response (0.15 -> 0.35)
+      const smoothing = 0.35;
+
+      // Update cursor position with lerp
+      cursorRef.current.x = lerp(cursorRef.current.x, mouseRef.current.x, smoothing);
+      cursorRef.current.y = lerp(cursorRef.current.y, mouseRef.current.y, smoothing);
+
+      // Reduce threshold for more frequent updates (0.01 -> 0.001)
+      const dx = Math.abs(cursorRef.current.x - position.x);
+      const dy = Math.abs(cursorRef.current.y - position.y);
+      
+      if (dx > 0.001 || dy > 0.001) {
+        setPosition({
+          x: cursorRef.current.x,
+          y: cursorRef.current.y
+        });
+      }
+
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
     const handleMouseMove = (e) => {
-      // Update mouse position reference
-      mousePositionRef.current = {
+      mouseRef.current = {
         x: e.clientX,
-        y: e.clientY,
+        y: e.clientY
       };
+
+      // Initialize cursor position on first move
+      if (cursorRef.current.x === 0) {
+        cursorRef.current = {
+          x: e.clientX,
+          y: e.clientY
+        };
+        setPosition({
+          x: e.clientX,
+          y: e.clientY
+        });
+      }
     };
 
     const handleMouseEnter = () => {
       setIsHovering(true);
       setIsVisible(true);
-      // Set initial position to current mouse position
-      currentX = mousePositionRef.current.x;
-      currentY = mousePositionRef.current.y;
-      setPosition({ x: currentX, y: currentY });
     };
 
     const handleMouseLeave = () => {
@@ -74,15 +78,19 @@ const MouseFollower = () => {
 
     // Handle visibility when tab switching
     const handleVisibilityChange = () => {
-      setIsVisible(!document.hidden);
-      if (!document.hidden) {
-        // Reset position when tab becomes visible
-        currentX = mousePositionRef.current.x;
-        currentY = mousePositionRef.current.y;
-        setPosition({ x: currentX, y: currentY });
+      if (document.hidden) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+        // Reset positions when becoming visible
+        if (mouseRef.current.x) {
+          cursorRef.current = { ...mouseRef.current };
+          setPosition({ ...mouseRef.current });
+        }
       }
     };
 
+    // Add event listeners
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseenter', handleMouseEnter);
     window.addEventListener('mouseleave', handleMouseLeave);
@@ -91,6 +99,7 @@ const MouseFollower = () => {
     // Start animation
     animate();
 
+    // Cleanup
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseenter', handleMouseEnter);
@@ -100,11 +109,14 @@ const MouseFollower = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, []);
+  }, [isMobile]);
+
+  // Don't render on mobile
+  if (isMobile) return null;
 
   return (
     <div
-      className={`fixed pointer-events-none z-[9999] transition-opacity duration-300 ease-out ${
+      className={`fixed pointer-events-none z-[9999] transition-opacity duration-300 ease-out hidden md:block ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       style={{
@@ -151,4 +163,4 @@ const MouseFollower = () => {
   );
 };
 
-export default MouseFollower; 
+export default MouseFollower;
