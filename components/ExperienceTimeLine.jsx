@@ -3,30 +3,40 @@ import { motion } from 'framer-motion';
 import { FaBriefcase, FaGraduationCap, FaCode, FaAward } from 'react-icons/fa';
 
 const experiences = [
-  {
-    id: 1,
-    type: 'work',
-    title: 'Full Stack Web Engineer',
-    organization: 'Muyalogy',
-    date: '2023 - Present',
-    description: 'Developed full-stack features using Next.js, created Telegram bot, implemented UI with TailwindCSS and Mantine, integrated Supabase for backend.',
-    skills: ['Next.js', 'TailwindCSS', 'Mantine UI', 'Supabase'],
-    icon: FaBriefcase,
-    color: '#5651e5'
-  },
-  {
-    id: 2,
-    type: 'education',
-    title: 'BSc in Computer Science',
-    organization: 'Admas University',
-    date: '2019',
+    {
+        id: 1,
+        type: 'education',
+        title: 'BSc in Computer Science',
+        organization: 'Admas University',
+        date: '2019',
     description: 'Graduated with Very Great Distinction, achieving a 3.9 GPA. Focused on software engineering and advanced programming concepts.',
     achievements: ['3.9 GPA', 'Very Great Distinction'],
     icon: FaGraduationCap,
     color: '#10B981'
+},
+{
+  id: 2,
+  type: 'work',
+  title: 'Full Stack Web Engineer',
+  organization: 'Muyalogy',
+  date: '2022 - Present',
+  description: 'Developed full-stack features using Next.js, created Telegram bot, implemented UI with TailwindCSS and Mantine, integrated Supabase for backend.',
+  skills: ['Next.js', 'TailwindCSS', 'Mantine UI', 'Supabase'],
+  icon: FaBriefcase,
+  color: '#5651e5'
+},
+{
+    id: 3,
+    type: 'certification',
+    title: 'Meta Advanced React Certification',
+    organization: 'Meta (Facebook)',
+    date: '2022',
+    description: 'Advanced certification in React.js development, covering modern patterns and best practices.',
+    icon: FaAward,
+    color: '#3B82F6'
   },
   {
-    id: 3,
+    id: 4,
     type: 'work',
     title: 'Full Stack Developer',
     organization: 'Jiret LMS',
@@ -35,16 +45,6 @@ const experiences = [
     skills: ['Next.js', 'PostgreSQL', 'Drizzle ORM'],
     icon: FaBriefcase,
     color: '#5651e5'
-  },
-  {
-    id: 4,
-    type: 'certification',
-    title: 'Meta Advanced React Certification',
-    organization: 'Meta (Facebook)',
-    date: '2022',
-    description: 'Advanced certification in React.js development, covering modern patterns and best practices.',
-    icon: FaAward,
-    color: '#3B82F6'
   },
   {
     id: 5,
