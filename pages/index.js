@@ -13,6 +13,7 @@ import MediumBlog from '../components/MeduimBlog'
 import AIChat from '../components/AIChat'
 import CertificateShowcase from '../components/CertificateShowCase'
 import SkillsProgress from '../components/SkillCategory'
+import Timeline from '../components/ExperienceTimeLine'
 
 export default function Home() {
   
@@ -30,6 +31,7 @@ export default function Home() {
      <About/> 
      <Skills/>
      <SkillsProgress/>
+    <Timeline/>
      <Projects/>
      <CertificateShowcase/>
      <CoursePromo/>
