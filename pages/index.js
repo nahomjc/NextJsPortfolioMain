@@ -12,6 +12,7 @@ import TelegramPromo from '../components/TelegramPromo'
 import MediumBlog from '../components/MeduimBlog'
 import AIChat from '../components/AIChat'
 import CertificateShowcase from '../components/CertificateShowCase'
+import SkillsProgress from '../components/SkillCategory'
 
 export default function Home() {
   
@@ -23,11 +24,12 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-  
+
        <Main/>
        <AIChat/>
      <About/> 
      <Skills/>
+     <SkillsProgress/>
      <Projects/>
      <CertificateShowcase/>
      <CoursePromo/>
