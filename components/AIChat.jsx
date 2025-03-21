@@ -8,7 +8,7 @@ const AIChat = () => {
   const [messages, setMessages] = useState([
     {
       type: 'bot',
-      content: "Hi! I'm Nahom's AI assistant. I can tell you about his experience, skills, and projects. What would you like to know?",
+      content: "Hi! I&apos;m Nahom&apos;s AI assistant. I can tell you about his experience, skills, and projects. What would you like to know?",
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
