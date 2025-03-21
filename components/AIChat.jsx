@@ -229,7 +229,7 @@ const AIChat = () => {
           <div className="flex items-center justify-between p-4 border-b dark:border-gray-700 bg-[#5651e5] text-white rounded-t-lg">
             <div className="flex items-center space-x-2">
               <FaRobot size={20} />
-              <h3 className="font-semibold">Nahom&apos;s AI Assistant</h3>
+              <h3 className="font-semibold">Nahoms AI Assistant</h3>
             </div>
             <button
               onClick={() => setIsOpen(false)}
@@ -311,7 +311,7 @@ const AIChat = () => {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ask about Nahom&apos; sexperience..."
+                placeholder="Ask about Nahoms sexperience..."
                 className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#5651e5] dark:focus:border-[#5651e5]"
               />
               <button
