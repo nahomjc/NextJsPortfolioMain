@@ -133,11 +133,11 @@ const AIChat = () => {
     setIsTyping(false);
 
     if (lowercaseInput.includes('experience') || lowercaseInput.includes('work')) {
-      return `Here's Nahom's professional experience:\n\n• ${knowledge.experience.join('\n• ')}`;
+      return `Here&apos;s Nahom&apos; professional experience:\n\n• ${knowledge.experience.join('\n• ')}`;
     }
     
     if (lowercaseInput.includes('skill') || lowercaseInput.includes('tech')) {
-      return `Here are Nahom's technical skills:\n\nFrontend:\n• ${knowledge.skills.frontend.join('\n• ')}\n\nBackend:\n• ${knowledge.skills.backend.join('\n• ')}\n\nDatabase:\n• ${knowledge.skills.database.join('\n• ')}\n\nDevOps:\n• ${knowledge.skills.devops.join('\n• ')}`;
+      return `Here are Nahom&apos;s technical skills:\n\nFrontend:\n• ${knowledge.skills.frontend.join('\n• ')}\n\nBackend:\n• ${knowledge.skills.backend.join('\n• ')}\n\nDatabase:\n• ${knowledge.skills.database.join('\n• ')}\n\nDevOps:\n• ${knowledge.skills.devops.join('\n• ')}`;
     }
     
     if (lowercaseInput.includes('project') || lowercaseInput.includes('portfolio')) {
@@ -158,7 +158,7 @@ const AIChat = () => {
       return `You can reach Nahom through:\n\n• GitHub: ${knowledge.quickLinks.github}\n• LinkedIn: ${knowledge.quickLinks.linkedin}\n• Portfolio: ${knowledge.quickLinks.portfolio}`;
     }
     if (lowercaseInput.includes('experience') || lowercaseInput.includes('work')) {
-        return `Here's Nahom's detailed professional experience:\n\n• ${knowledge.experience.join('\n• ')}\n\nTeaching:\n• Currently teaching web development on Muyalogy platform\n• Course Link: ${knowledge.teaching.course.link}`;
+        return `Here&apos;s Nahom&apos;s detailed professional experience:\n\n• ${knowledge.experience.join('\n• ')}\n\nTeaching:\n• Currently teaching web development on Muyalogy platform\n• Course Link: ${knowledge.teaching.course.link}`;
       }
       
       if (lowercaseInput.includes('education') || lowercaseInput.includes('study')) {
@@ -172,7 +172,7 @@ const AIChat = () => {
       return "Nahom is a Full Stack Web Engineer specializing in modern web technologies. He has extensive experience building educational platforms and enterprise applications. His work focuses on creating scalable, user-friendly solutions that make a real impact.";
     }
 
-    return "I can tell you about Nahom's experience, skills, projects, education, interests, or how to contact him. What would you like to know?";
+    return "I can tell you about Nahom&apos;s experience, skills, projects, education, interests, or how to contact him. What would you like to know?";
   };
 
   const handleSubmit = async (e) => {
