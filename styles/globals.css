@@ -126,9 +126,7 @@
   }
 }
 
-.scanner-progress {
-  box-shadow: 0 0 10px #5651e5;
-}
+
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -223,6 +221,131 @@ html {
   100% {
     box-shadow: 0 0 0 0 rgba(86, 81, 229, 0);
   }
+}
+/* Matrix-style effects */
+@keyframes glitch {
+  0% {
+    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                 0.025em 0.04em 0 #fffc00;
+  }
+  15% {
+    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                 0.025em 0.04em 0 #fffc00;
+  }
+  16% {
+    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                 -0.05em -0.05em 0 #fffc00;
+  }
+  49% {
+    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                 -0.05em -0.05em 0 #fffc00;
+  }
+  50% {
+    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                 0 -0.04em 0 #fffc00;
+  }
+  99% {
+    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                 0 -0.04em 0 #fffc00;
+  }
+  100% {
+    text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff,
+                 -0.04em -0.025em 0 #fffc00;
+  }
+}
+
+/* Matrix-style effects */
+@keyframes glitch {
+  0% {
+    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                 0.025em 0.04em 0 #fffc00;
+  }
+  15% {
+    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                 0.025em 0.04em 0 #fffc00;
+  }
+  16% {
+    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                 -0.05em -0.05em 0 #fffc00;
+  }
+  49% {
+    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                 -0.05em -0.05em 0 #fffc00;
+  }
+  50% {
+    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                 0 -0.04em 0 #fffc00;
+  }
+  99% {
+    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                 0 -0.04em 0 #fffc00;
+  }
+  100% {
+    text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff,
+                 -0.04em -0.025em 0 #fffc00;
+  }
+}
+
+.glitch-text {
+  animation: glitch 725ms infinite;
+  text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+               0.025em 0.04em 0 #fffc00;
+}
+
+.scanner-progress {
+  box-shadow: 0 0 10px #00ff00;
+  background: linear-gradient(90deg, #00ff00, #00ffcc);
+}
+
+/* Keep your existing fingerprint styles */
+.fingerprint-scanner {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.fingerprint {
+  width: 100%;
+  height: 100%;
+}
+
+.scan-path {
+  fill: none;
+  stroke: #00ff00;
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.scan-path.core {
+  stroke-width: 2;
+}
+
+.scan-path.detail {
+  stroke-width: 0.5;
+}
+
+.circuit-path {
+  fill: none;
+  stroke: #00ff00;
+  stroke-width: 0.5;
+  stroke-dasharray: 2, 2;
+}
+
+.scan-area {
+  fill: none;
+  stroke: #00ff00;
+  stroke-width: 1;
+  stroke-dasharray: 4, 4;
+}
+
+.scan-line {
+  stroke: #00ff00;
+  stroke-width: 2;
+}
+
+.data-point {
+  fill: #00ff00;
 }
 /* Optional: Add this if you want to use a noise texture */
 .noise-texture {

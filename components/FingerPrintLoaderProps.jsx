@@ -1,5 +1,66 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
+
+const MatrixRain = () => {
+  const canvasRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      setDimensions({ width: canvas.width, height: canvas.height });
+    };
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%";
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+
+    for (let i = 0; i < columns; i++) {
+      drops[i] = 1;
+    }
+
+    const draw = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0F0';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    };
+
+    const interval = setInterval(draw, 33);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full z-0"
+      style={{ opacity: 0.8 }}
+    />
+  );
+};
 
 const FingerPrintLoader = ({ onLoadingComplete }) => {
   const [scanComplete, setScanComplete] = useState(false);
@@ -21,9 +82,15 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
       initial={{ opacity: 1 }}
       animate={{ opacity: scanComplete ? 0 : 1 }}
       transition={{ duration: 1 }}
-      className="fixed inset-0 flex items-center justify-center bg-black z-50"
+      className="fixed inset-0 flex items-center justify-center bg-black/90 z-50"
     >
-      <div className="relative">
+      {/* Matrix Rain Background */}
+      <MatrixRain />
+      
+      {/* Overlay gradient for better contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50" />
+
+      <div className="relative z-10">
         <motion.div
           initial={{ scale: 1 }}
           animate={{ scale: scanComplete ? 1.5 : 1 }}
@@ -124,7 +191,7 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
             <motion.p
               initial={{ opacity: 1 }}
               animate={{ opacity: scanComplete ? 0 : 1 }}
-              className="text-[#5651e5] text-lg font-mono mb-2 glitch-text"
+              className="text-[#00ff00] text-lg font-mono mb-2 glitch-text"
             >
               {scanComplete ? "IDENTITY CONFIRMED" : "SCANNING BIOMETRICS..."}
             </motion.p>
@@ -132,7 +199,7 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
               initial={{ width: "0%" }}
               animate={{ width: scanComplete ? "100%" : "0%" }}
               transition={{ duration: 3 }}
-              className="h-1 bg-[#5651e5] mx-auto w-48 scanner-progress"
+              className="h-1 bg-[#00ff00] mx-auto w-48 scanner-progress"
             />
           </motion.div>
         )}
