@@ -5,6 +5,7 @@ import ScrollProgress from '../components/ScrollProgress'
 import MouseFollower from '../components/MouseFollower'
 import '../styles/globals.css'
 import { ThemeProvider } from '../components/ThemeProvider'
+import AIChat from '../components/AIChat'
 
 function MyApp({ Component, pageProps }) {
   return <> 
@@ -15,6 +16,7 @@ function MyApp({ Component, pageProps }) {
     <Navbar/>
     <MouseFollower />
     <Component {...pageProps} />
+    <AIChat />
     <StickyPhone />
     </ThemeProvider>
   </>

@@ -116,7 +116,7 @@ const MediumBlog = () => {
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             Get notified when I publish new articles and content.
           </p>
-          <div className="flex max-w-md mx-auto gap-4">
+          <div className="flex max-w-md mx-auto gap-4 md:flex-row flex-col">
             <input
               type="email"
               placeholder="Enter your email"
