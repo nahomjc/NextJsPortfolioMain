@@ -64,7 +64,7 @@ const CertificateCard = ({ certificate, onClick }) => (
         src={certificate.image}
         alt={certificate.title}
         layout="fill"
-        objectFit="cover"
+        objectFit="contain"
         className="transition-transform duration-300 group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -141,10 +141,10 @@ const CertificateModal = ({ certificate, onClose }) => {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full overflow-hidden mt-10"
         onClick={e => e.stopPropagation()}
       >
-        <div className="relative h-64 w-full">
+        <div className="relative h-44 w-full">
           <Image
             src={certificate.image}
             alt={certificate.title}
