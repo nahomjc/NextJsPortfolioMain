@@ -11,7 +11,7 @@ const Logo = ({ size = 'medium' }) => {
 
   return (
     <motion.div 
-      className={`font-bold ${sizeClasses[size]} relative`}
+      className={`font-bold ${sizeClasses[size]} relative ml-11`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
