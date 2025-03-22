@@ -19,7 +19,7 @@ const CoursePromo = () => {
           </div>
           
           <div className='flex flex-col space-y-4'>
-            <h2 className='text-3xl font-bold'>Learn Web Development wit Me on Muyalogy</h2>
+            <h2 className='text-3xl font-bold'>Learn Web Development with Me on Muyalogy</h2>
             <p className='text-xl text-gray-600 dark:text-gray-400'>
               Take your development skills to the next level with my comprehensive course.
             </p>
