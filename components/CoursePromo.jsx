@@ -4,21 +4,10 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlay, FaTimes } from 'react-icons/fa';
 import myCourse from '../public/assets/my-course.png';
-const glowStyles = `
-  @keyframes glow {
-    0% {
-      box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
-    }
-    50% {
-      box-shadow: 0 0 10px #5651e5, 0 0 20px #5651e5, 0 0 25px #5651e5;
-    }
-    100% {
-      box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
-    }
-  }
-`;
+
 const VideoModal = ({ isOpen, onClose }) => {
     const videoUrl = '/assets/my-course-video.mp4';
+    
   return (
     <AnimatePresence>
       {isOpen && (
@@ -86,9 +75,7 @@ const CoursePromo = () => {
       backdropFilter: 'blur(8px)',
     }}
   >
-    <style jsx global>
-      {glowStyles}
-    </style>
+    
     <div className="absolute inset-0 rounded-full bg-[#5651e5]/30"></div>
     <FaPlay className="text-white text-2xl ml-1 relative z-10 drop-shadow-lg" />
   </motion.div>

@@ -421,7 +421,33 @@ body {
   50% { transform: scale(1) rotate(180deg); }
   100% { transform: scale(0) rotate(360deg); }
 }
+/* Modal backdrop blur effect */
+.modal-backdrop {
+  backdrop-filter: blur(5px);
+}
 
+/* Smooth video modal transitions */
+.modal-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 300ms, transform 300ms;
+}
 .fox-container {
   position: relative;
   width: 100%;
@@ -450,6 +476,22 @@ body {
 /* Glow Effect */
 .glow {
   filter: drop-shadow(0 0 8px rgba(86, 81, 229, 0.3));
+}
+
+.glow-button {
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
+  }
+  50% {
+    box-shadow: 0 0 10px #5651e5, 0 0 20px #5651e5, 0 0 25px #5651e5;
+  }
+  100% {
+    box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
+  }
 }
 /* Optional: Add this if you want to use a noise texture */
 .noise-texture {
