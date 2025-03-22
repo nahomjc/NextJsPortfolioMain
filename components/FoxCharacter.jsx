@@ -1,6 +1,27 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
+const SpeechBubble = ({ text }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20, scale: 0 }}
+    animate={{ opacity: 1, y: -80, scale: 1 }} // Changed y from -60 to -80 to make it more visible
+    exit={{ opacity: 0, scale: 0 }}
+    className="absolute top-12 right-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 px-4 py-2 rounded-xl shadow-lg z-[9999]" // Added higher z-index
+    style={{
+      minWidth: '200px',
+      maxWidth: '300px',
+      textAlign: 'center',
+      pointerEvents: 'none' // This ensures the bubble doesn't interfere with clicks
+    }}
+  >
+    <div className="relative">
+      <p className="text-sm whitespace-normal text-black dark:text-white">{text}</p>
+      <div 
+        className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 rotate-45 w-4 h-4 bg-white dark:bg-gray-800"
+        style={{ zIndex: -1 }}
+      />
+    </div>
+  </motion.div>
+);
 const FoxCharacter = () => {
     const [isHovering, setIsHovering] = useState(false);
     const [eyePosition, setEyePosition] = useState({ x: 0, y: 0 });
@@ -8,7 +29,7 @@ const FoxCharacter = () => {
     const [isWinking, setIsWinking] = useState(false);
     const [showEmoji, setShowEmoji] = useState(false);
     const [lastMouseMove, setLastMouseMove] = useState(Date.now());
-    const [mood, setMood] = useState('happy'); // happy, excited, sleepy, surprised
+    const [mood, setMood] = useState('excited'); // happy, excited, sleepy, surprised
     const [clickCount, setClickCount] = useState(0);
     const [showTreat, setShowTreat] = useState(false);
     const [treats, setTreats] = useState([]);
@@ -20,6 +41,23 @@ const FoxCharacter = () => {
   const foxRef = useRef(null);
   const animationFrameRef = useRef(null);
   const idleTimerRef = useRef(null);
+  const messages = [
+    { count: 1, text: "Hi there! i am Nahoms RoboDog! 🐕" },
+    { count: 2, text: "Want to learn about Nahom? Click the chat! 💬" },
+    { count: 3, text: "Hey, that tickles! 😄" },
+    { count: 4, text: "I know all about Nahoms projects! 💻" },
+    { count: 5, text: "Stop poking me! 😅" },
+    { count: 6, text: "I can tell you about his skills in the chat! 🚀" },
+    { count: 7, text: "Okay okay, I am getting dizzy! 😵‍💫" },
+    { count: 8, text: "Seriously, lets talk in the chat box! ➡️" },
+    { count: 9, text: "I have so much to tell you about Nahom! 🤖" },
+    { count: 10, text: "*beep boop* Chat is more comfortable! 📱" },
+    { count: 11, text: "Did you know Nahom got 3.9 GPA? Chat to learn more! 🎓" },
+    { count: 12, text: "I am running out of things to say here! 😅" },
+    { count: 13, text: "The chat box is much better for conversation! 💭" },
+    { count: 14, text: "Click the chat icon, I will tell you everything! 🗨️" },
+    { count: 15, text: "Alright, I am going to take a nap if you dont chat! 😴" }
+  ];
   const moodEmojis = {
     happy: '😊',
     excited: '🤩',
@@ -29,21 +67,68 @@ const FoxCharacter = () => {
   };
 
   const speechBubbles = [
-    "Woof! Wanna play?",
-    "I love belly rubs!",
-    "*wags tail excitedly*",
-    "Ball? BALL? BALL!",
-    "You're my best friend!",
-    "*yawns* Nap time...",
-    "Treats? Did someone say treats?",
-    "Let's go for a walk!",
-    "I'll help you debug! *sniffs code*",
-    "Squirrel! 🐿️"
-  ];
+    "Hi there! 👋",
+    "Hey, that tickles! 😄",
+    "Stop poking me! 😅",
+    "Okay okay, I am awake! 🐕",
+    "Want to know about Nahom? Click the chat! 💬",
+    "I can tell you about his projects! 💻",
+    "Or his skills! 🚀",
+    "Lets chat in the message box! ➡️",
+    "I know everything about Nahom! 🤖",
+    "Seriously, lets talk properly in chat! 📱"
+  ];;
   // Autonomous eye movement when idle
+  const handleInteraction = () => {
+    setClickCount(prev => {
+      const newCount = prev + 1;
+      // Get message index (using modulo to cycle through messages)
+      const messageIndex = (newCount - 1) % messages.length;
+      const messageToShow = messages[messageIndex].text;
+      
+      // Show message
+      setBubbleText(messageToShow);
+      setShowBubble(true);
+
+      // Change mood based on click count
+      if (newCount > 12) {
+        setMood('sleepy');
+      } else if (newCount > 8) {
+        setMood('surprised');
+      } else if (newCount > 4) {
+        setMood('excited');
+      } else {
+        setMood('happy');
+      }
+
+      // Clear any existing timeout
+      if (window.bubbleTimeout) {
+        clearTimeout(window.bubbleTimeout);
+      }
+
+      // Hide bubble after 3 seconds
+      window.bubbleTimeout = setTimeout(() => {
+        setShowBubble(false);
+      }, 3000);
+
+      return newCount;
+    });
+
+    // Jump animation every 4 clicks
+    if (clickCount % 4 === 0) {
+      setIsJumping(true);
+      setTimeout(() => setIsJumping(false), 1000);
+    }
+
+    // Show treat every 7 clicks
+    if (clickCount % 7 === 0) {
+      setShowTreat(true);
+    }
+  };
+  // Eye movement function
   const moveEyesAutonomously = () => {
     const now = Date.now();
-    if (now - lastMouseMove > 2000) { // If mouse hasn't moved for 2 seconds
+    if (now - lastMouseMove > 2000) {
       const angle = Math.random() * Math.PI * 2;
       const distance = 4;
       setEyePosition({
@@ -52,45 +137,9 @@ const FoxCharacter = () => {
       });
     }
   };
-  const handleInteraction = () => {
-    setClickCount(prev => prev + 1);
-    
-    // Every 3 clicks shows a treat
-    if (clickCount % 3 === 0) {
-      setShowTreat(true);
-      setMood('excited');
-      setBubbleText('Yay! A treat! 🍪');
-      setShowBubble(true);
-      setTimeout(() => setShowBubble(false), 2000);
-    }
-
-    // Every 5 clicks makes the fox jump
-    if (clickCount % 5 === 0) {
-      setIsJumping(true);
-      setTimeout(() => setIsJumping(false), 1000);
-      setBubbleText('Wheee! 🎉');
-      setShowBubble(true);
-      setTimeout(() => setShowBubble(false), 2000);
-    }
-
-    // Random mood changes
-    if (Math.random() > 0.7) {
-      const moods = ['happy', 'excited', 'surprised', 'love'];
-      const newMood = moods[Math.floor(Math.random() * moods.length)];
-      setMood(newMood);
-    }
-
-    // Random speech bubble
-    if (Math.random() > 0.5) {
-      const randomSpeech = speechBubbles[Math.floor(Math.random() * speechBubbles.length)];
-      setBubbleText(randomSpeech);
-      setShowBubble(true);
-      setTimeout(() => setShowBubble(false), 2000);
-    }
-  };
-
+console.log(clickCount,bubbleText,showBubble);
   // ... (keep existing useEffect and other functions)
-
+ 
   useEffect(() => {
     let autonomousMovement;
     let winkInterval;
@@ -171,38 +220,27 @@ const FoxCharacter = () => {
   
     return (
       <motion.div
-        ref={foxRef}
-        className="w-full flex justify-center items-center py-8 cursor-pointer z-[9999] overflow-hidden"
-        onHoverStart={() => {
-          setIsHovering(true);
-          setBubbleText('*happy fox noises* 💕');
-          setShowBubble(true);
-        }}
-        onHoverEnd={() => {
-          setIsHovering(false);
-          setShowBubble(false);
-        }}
-        onClick={handleInteraction}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
+      ref={foxRef}
+      className="w-full flex justify-center items-center py-8 cursor-pointer z-[9999] overflow-hidden"
+      onHoverStart={() => {
+        setIsHovering(true);
+        setBubbleText('Hi! Click me or chat with me! 👋');
+        setShowBubble(true);
+      }}
+      onHoverEnd={() => {
+        setIsHovering(false);
+        setShowBubble(false);
+      }}
+      onClick={handleInteraction}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+    >
+      
         <div className="relative">
           {/* Speech Bubble */}
           <AnimatePresence>
-            {showBubble && (
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0 }}
-                animate={{ opacity: 1, y: -60, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 px-4 py-2 rounded-xl shadow-lg"
-              >
-                <div className="relative">
-                  <p className="text-sm whitespace-nowrap">{bubbleText}</p>
-                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 rotate-45 w-4 h-4 bg-white dark:bg-gray-800" />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {showBubble && <SpeechBubble text={bubbleText} />}
+        </AnimatePresence>
   
           {/* Fox Body */}
           <motion.div 
@@ -321,6 +359,31 @@ const FoxCharacter = () => {
             <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full" />
           </motion.div>
         )}
+        <motion.div
+    className="absolute inset-0 bg-gradient-to-b from-transparent via-[#5651e5] to-transparent opacity-10"
+    animate={{
+      y: [-24, 24, -24]
+    }}
+    transition={{
+      duration: 2,
+      repeat: Infinity,
+      ease: "linear"
+    }}
+  />
+
+  {/* Power Indicator */}
+  <motion.div
+    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#5651e5] rounded-full"
+    animate={{
+      opacity: [0.5, 1, 0.5],
+      boxShadow: [
+        '0 0 2px #5651e5',
+        '0 0 4px #5651e5',
+        '0 0 2px #5651e5'
+      ]
+    }}
+    transition={{ duration: 1.5, repeat: Infinity }}
+  />
         {(isSleeping || isWinking) && (
           <div className="absolute top-1/2 w-full h-0.5 bg-[#4B3621] rounded-full" />
         )}
