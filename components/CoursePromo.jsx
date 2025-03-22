@@ -4,7 +4,19 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlay, FaTimes } from 'react-icons/fa';
 import myCourse from '../public/assets/my-course.png';
-
+const glowStyles = `
+  @keyframes glow {
+    0% {
+      box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
+    }
+    50% {
+      box-shadow: 0 0 10px #5651e5, 0 0 20px #5651e5, 0 0 25px #5651e5;
+    }
+    100% {
+      box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
+    }
+  }
+`;
 const VideoModal = ({ isOpen, onClose }) => {
     const videoUrl = '/assets/my-course-video.mp4';
   return (
@@ -63,15 +75,24 @@ const CoursePromo = () => {
                 className='group-hover:scale-105 transition-transform duration-300'
                 />
                 {/* Play button overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
-              >
-                <FaPlay className="text-white text-2xl ml-1" />
-              </motion.div>
-            </div>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+  <motion.div
+    whileHover={{ scale: 1.1 }}
+    whileTap={{ scale: 0.9 }}
+    className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center relative"
+    style={{
+      animation: 'glow 2s ease-in-out infinite',
+      background: 'rgba(255, 255, 255, 0.2)',
+      backdropFilter: 'blur(8px)',
+    }}
+  >
+    <style jsx global>
+      {glowStyles}
+    </style>
+    <div className="absolute inset-0 rounded-full bg-[#5651e5]/30"></div>
+    <FaPlay className="text-white text-2xl ml-1 relative z-10 drop-shadow-lg" />
+  </motion.div>
+</div>
           </div>
           
           <div className='flex flex-col space-y-4'>
