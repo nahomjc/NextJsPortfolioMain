@@ -193,7 +193,7 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
               animate={{ opacity: scanComplete ? 0 : 1 }}
               className="text-[#00ff00] text-lg font-mono mb-2 glitch-text"
             >
-              {scanComplete ? "IDENTITY CONFIRMED" : "SCANNING BIOMETRICS..."}
+              {scanComplete ? "IDENTITY CONFIRMED" : "<Kingdom Code/>"}
             </motion.p>
             <motion.div
               initial={{ width: "0%" }}
