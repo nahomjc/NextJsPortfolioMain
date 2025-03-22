@@ -13,15 +13,15 @@ const CoursePromo = () => {
               src={myCourse}
               alt='Muyalogy Course'
               layout='fill'
-         objectFit='contain'
+              objectFit='contain'
               className='hover:scale-105 transition-transform duration-300'
             />
           </div>
           
           <div className='flex flex-col space-y-4'>
-            <h2 className='text-3xl font-bold'>Master Web Development with Muyalogy</h2>
+            <h2 className='text-3xl font-bold'>Learn Web Development with Nahom on Muyalogy</h2>
             <p className='text-xl text-gray-600 dark:text-gray-400'>
-              Take your development skills to the next level with our comprehensive course.
+              Take your development skills to the next level with my comprehensive course.
             </p>
             
             <div className='space-y-3'>
@@ -45,16 +45,23 @@ const CoursePromo = () => {
               </div>
             </div>
 
-            <Link href="https://www.muyalogy.com/course/1bcd4432-4f5e-4984-8572-c90648d637bb" className='w-fit'>
-              <button className='px-8 py-3 mt-4 text-white bg-[#5651e5] rounded-xl hover:bg-[#4640b3] transition-colors duration-300'>
-                Enroll Now
-              </button>
-            </Link>
+            <div className='flex flex-col sm:flex-row gap-4'>
+              <Link href="https://www.muyalogy.com/course/1bcd4432-4f5e-4984-8572-c90648d637bb" className='w-fit'>
+                <button className='px-8 py-3 text-white bg-[#5651e5] rounded-xl hover:bg-[#4640b3] transition-colors duration-300'>
+                  Enroll Now
+                </button>
+              </Link>
+              <Link href="https://www.muyalogy.com/instructor/261acd41-cf81-465a-9c4f-5fad10d5e7fe" className='w-fit'>
+                <button className='px-8 py-3 text-gray-800 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-100 transition-colors duration-300'>
+                  Check out my Profile
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 };
 
 export default CoursePromo;
