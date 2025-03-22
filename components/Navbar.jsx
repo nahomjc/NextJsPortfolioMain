@@ -6,8 +6,9 @@
   import { BsFillPersonLinesFill } from 'react-icons/bs';
   import { useState,useEffect } from 'react';
   import { useRouter } from 'next/router';
-  import Logo from '../public/assets/LogNah.png'
+  
   import ThemeToggle from './ThemToggle';
+import Logo from './Logo';
   const Navbar = () => {
 
   const [nav , setNav]= useState(false);
@@ -60,7 +61,7 @@
       <div className='flex justify-between items-center w-full h-full px-2 2xl:px-16'>
   
   <Link href='/'>
-  <Image src={Logo} alt="/" width='170' height='100'  className='cursor-pointer'/>
+  <Logo size="small" />
   </Link>
       
   <div>
@@ -95,7 +96,7 @@
               </div>
   <div>
       <div className='flex w-full items-center justify-between'>
-          <Image src={Logo} width='177' height='95' alt='/'/> 
+      <Logo size="small" />
           
       <div onClick={handelNav} className='rounded-full shadow-lg shadow-gray-400 p-3 cursor-pointer '>
       
