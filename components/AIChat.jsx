@@ -311,7 +311,7 @@ const AIChat = () => {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ask about Nahoms sexperience..."
+                placeholder="Ask about Nahoms experience..."
                 className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:border-[#5651e5] dark:focus:border-[#5651e5]"
               />
               <button
