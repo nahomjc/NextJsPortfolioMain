@@ -19,7 +19,7 @@ const CoursePromo = () => {
           </div>
           
           <div className='flex flex-col space-y-4'>
-            <h2 className='text-3xl font-bold'>Learn Web Development with Nahom on Muyalogy</h2>
+            <h2 className='text-3xl font-bold'>Learn Web Development wit Me on Muyalogy</h2>
             <p className='text-xl text-gray-600 dark:text-gray-400'>
               Take your development skills to the next level with my comprehensive course.
             </p>
@@ -52,8 +52,8 @@ const CoursePromo = () => {
                 </button>
               </Link>
               <Link href="https://www.muyalogy.com/instructor/261acd41-cf81-465a-9c4f-5fad10d5e7fe" className='w-fit'>
-                <button className='px-8 py-3 text-gray-800 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-100 transition-colors duration-300'>
-                  Check out my Profile
+                <button className='px-8 py-3 text-white bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-100 transition-colors duration-300'>
+                  Check out My Courses
                 </button>
               </Link>
             </div>
