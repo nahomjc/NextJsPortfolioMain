@@ -127,7 +127,7 @@ const RoboDogButton = ({ onClick }) => {
         <div className="bg-[#1a1a2e] text-white p-2 rounded-lg shadow-lg text-sm">
           <div className="relative">
             <p className="text-center">
-              Hi! I'm RoboDog 🤖🐕<br />
+              Hi! i am Nahoms AI RoboDog assistant 🤖🐕<br />
               <span className="text-xs opacity-80">
                 Ask me anything about Nahoms skills & experience!
               </span>
