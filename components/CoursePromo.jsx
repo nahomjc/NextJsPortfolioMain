@@ -1,21 +1,77 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaPlay, FaTimes } from 'react-icons/fa';
 import myCourse from '../public/assets/my-course.png';
 
+const VideoModal = ({ isOpen, onClose }) => {
+    const videoUrl = '/assets/my-course-video.mp4';
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            className="relative w-full max-w-4xl bg-white dark:bg-gray-800 rounded-xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-10 bg-white/10 backdrop-blur-sm p-2 rounded-full hover:bg-white/20 transition-colors"
+            >
+              <FaTimes className="text-white text-xl" />
+            </button>
+            
+            <div className="relative pt-[56.25%]"> {/* 16:9 aspect ratio */}
+              <iframe
+                src={videoUrl}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const CoursePromo = () => {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  
   return (
     <div className='w-full bg-gradient-to-r from-[#5651e5]/10 to-[#709dff]/10 py-16'>
       <div className='max-w-[1240px] mx-auto px-4'>
         <div className='grid md:grid-cols-2 gap-8 items-center'>
-          <div className='relative w-full h-[200px] md:h-[400px] overflow-hidden rounded-xl shadow-xl'>
+          <div className='relative w-full h-[200px] md:h-[400px] overflow-hidden rounded-xl shadow-xl group cursor-pointer'
+               onClick={() => setIsVideoModalOpen(true)}>
             <Image
               src={myCourse}
               alt='Muyalogy Course'
               layout='fill'
               objectFit='contain'
-              className='hover:scale-105 transition-transform duration-300'
-            />
+                className='group-hover:scale-105 transition-transform duration-300'
+                />
+                {/* Play button overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+              >
+                <FaPlay className="text-white text-2xl ml-1" />
+              </motion.div>
+            </div>
           </div>
           
           <div className='flex flex-col space-y-4'>
@@ -60,8 +116,15 @@ const CoursePromo = () => {
           </div>
         </div>
       </div>
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        
+      />
     </div>
-  )
+  );
 };
 
 export default CoursePromo;
