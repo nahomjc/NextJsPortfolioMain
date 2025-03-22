@@ -360,7 +360,7 @@ console.log(clickCount,bubbleText,showBubble);
           </motion.div>
         )}
         <motion.div
-    className="absolute inset-0 bg-gradient-to-b from-transparent via-[#5651e5] to-transparent opacity-10"
+    className="absolute inset-0 bg-gradient-to-b from-transparent to-transparent opacity-10"
     animate={{
       y: [-24, 24, -24]
     }}
@@ -373,7 +373,7 @@ console.log(clickCount,bubbleText,showBubble);
 
   {/* Power Indicator */}
   <motion.div
-    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#5651e5] rounded-full"
+    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1  rounded-full"
     animate={{
       opacity: [0.5, 1, 0.5],
       boxShadow: [
