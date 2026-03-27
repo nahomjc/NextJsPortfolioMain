@@ -1,67 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --font-sans: 'Outfit', system-ui, sans-serif;
+  --font-display: 'Orbitron', sans-serif;
+  --accent-primary: #22d3ee;
+  --accent-secondary: #8b5cf6;
+  --accent-legacy: #5651e5;
+}
 
 .fingerprint-scanner {
   position: relative;
   width: 200px;
   height: 200px;
+  margin: 0 auto;
   border-radius: 50%;
-  background: rgba(86, 81, 229, 0.05);
-  box-shadow: 
-    0 0 50px rgba(86, 81, 229, 0.3),
-    inset 0 0 30px rgba(86, 81, 229, 0.2);
+  background: rgba(34, 211, 238, 0.06);
+  box-shadow:
+    0 0 50px rgba(34, 211, 238, 0.25),
+    inset 0 0 30px rgba(34, 211, 238, 0.15);
   overflow: hidden;
+}
+
+.fingerprint-scanner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(34, 211, 238, 0.6);
+  animation: pulse 2s infinite;
+  box-shadow:
+    inset 0 0 20px rgba(34, 211, 238, 0.35),
+    0 0 20px rgba(139, 92, 246, 0.25);
 }
 
 .fingerprint {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 5px rgba(86, 81, 229, 0.5));
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.5));
 }
 
 .scan-path {
   fill: none;
-  stroke: #5651e5;
+  stroke: #22d3ee;
   stroke-width: 0.5;
   stroke-dasharray: 10 5;
   animation: dash 2s linear infinite;
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 .scan-path.core {
-  stroke-width: 0.8;
-  stroke: #7a76ff;
-  opacity: 0.9;
+  stroke-width: 0.9;
+  stroke: #a78bfa;
 }
 
 .scan-path.detail {
   stroke-width: 0.3;
   stroke-dasharray: 5 3;
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .circuit-path {
   fill: none;
-  stroke: #5651e5;
+  stroke: rgba(34, 211, 238, 0.45);
   stroke-width: 0.3;
-  opacity: 0.4;
+  stroke-dasharray: 2, 2;
 }
 
 .scan-line {
-  stroke: #5651e5;
+  stroke: #22d3ee;
   stroke-width: 2;
-  filter: drop-shadow(0 0 8px #5651e5);
+  filter: drop-shadow(0 0 8px #22d3ee);
 }
 
 .scan-area {
-  fill: #5651e5;
-  opacity: 0.05;
+  fill: rgba(34, 211, 238, 0.06);
 }
 
 .data-point {
-  fill: #7a76ff;
-  filter: drop-shadow(0 0 2px #5651e5);
+  fill: #a78bfa;
+  filter: drop-shadow(0 0 2px #22d3ee);
 }
 
 @keyframes dash {
@@ -76,8 +97,8 @@
     opacity: 1;
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.7;
+    transform: scale(1.05);
+    opacity: 0.85;
   }
   100% {
     transform: scale(1);
@@ -85,47 +106,17 @@
   }
 }
 
-.fingerprint-scanner::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 50%;
-  border: 2px solid #5651e5;
-  animation: pulse 2s infinite;
-  box-shadow: 
-    inset 0 0 20px rgba(86, 81, 229, 0.5),
-    0 0 20px rgba(86, 81, 229, 0.3);
-}
-
 .glitch-text {
-  text-shadow: 
-    2px 2px 10px rgba(86, 81, 229, 0.5),
-    -2px -2px 10px rgba(86, 81, 229, 0.5);
-  letter-spacing: 2px;
-  animation: glitch 3s infinite;
+  text-shadow:
+    0.04em 0 0 rgba(34, 211, 238, 0.45),
+    -0.02em -0.03em 0 rgba(232, 121, 249, 0.4);
+  letter-spacing: 0.08em;
 }
 
-@keyframes glitch {
-  0% {
-    text-shadow: 2px 2px 10px rgba(86, 81, 229, 0.5);
-  }
-  25% {
-    text-shadow: -2px -2px 10px rgba(86, 81, 229, 0.5);
-  }
-  50% {
-    text-shadow: 2px -2px 10px rgba(86, 81, 229, 0.5);
-  }
-  75% {
-    text-shadow: -2px 2px 10px rgba(86, 81, 229, 0.5);
-  }
-  100% {
-    text-shadow: 2px 2px 10px rgba(86, 81, 229, 0.5);
-  }
+.scanner-progress {
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
+  background: linear-gradient(90deg, #22d3ee, #a78bfa);
 }
-
 
 .typing-indicator {
   display: flex;
@@ -150,15 +141,17 @@
 }
 
 @keyframes typing {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
   }
   30% {
     transform: translateY(-4px);
   }
 }
+
 @media (min-width: 768px) {
-  /* Only hide default cursor on non-touch devices and larger screens */
   * {
     cursor: none !important;
   }
@@ -168,7 +161,6 @@
   }
 }
 
-/* Show default cursor on mobile/touch devices */
 @media (hover: none) {
   * {
     cursor: auto !important;
@@ -179,24 +171,6 @@
   }
 }
 
-/* Hide default cursor */
-
-
-/* Optional: Show default cursor on touch devices */
-@media (hover: none) {
-  * {
-    cursor: auto !important;
-  }
-}
-
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
-html {
-  scroll-behavior: smooth;
-  font-family: 'Raleway', sans-serif;
- 
-}
-/* Add these styles for the shimmer effect */
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
@@ -205,148 +179,23 @@ html {
     transform: translateX(100%);
   }
 }
-/* Add smooth scroll behavior for timeline */
+
 .timeline-scroll {
   scroll-behavior: smooth;
 }
 
-/* Optional: Add hover effect for timeline items */
 @keyframes pulse-border {
   0% {
-    box-shadow: 0 0 0 0 rgba(86, 81, 229, 0.4);
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.35);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(86, 81, 229, 0);
+    box-shadow: 0 0 0 12px rgba(34, 211, 238, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(86, 81, 229, 0);
-  }
-}
-/* Matrix-style effects */
-@keyframes glitch {
-  0% {
-    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
-                 0.025em 0.04em 0 #fffc00;
-  }
-  15% {
-    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
-                 0.025em 0.04em 0 #fffc00;
-  }
-  16% {
-    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
-                 -0.05em -0.05em 0 #fffc00;
-  }
-  49% {
-    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
-                 -0.05em -0.05em 0 #fffc00;
-  }
-  50% {
-    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
-                 0 -0.04em 0 #fffc00;
-  }
-  99% {
-    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
-                 0 -0.04em 0 #fffc00;
-  }
-  100% {
-    text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff,
-                 -0.04em -0.025em 0 #fffc00;
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
   }
 }
 
-/* Matrix-style effects */
-@keyframes glitch {
-  0% {
-    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
-                 0.025em 0.04em 0 #fffc00;
-  }
-  15% {
-    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
-                 0.025em 0.04em 0 #fffc00;
-  }
-  16% {
-    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
-                 -0.05em -0.05em 0 #fffc00;
-  }
-  49% {
-    text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
-                 -0.05em -0.05em 0 #fffc00;
-  }
-  50% {
-    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
-                 0 -0.04em 0 #fffc00;
-  }
-  99% {
-    text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
-                 0 -0.04em 0 #fffc00;
-  }
-  100% {
-    text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff,
-                 -0.04em -0.025em 0 #fffc00;
-  }
-}
-
-.glitch-text {
-  animation: glitch 725ms infinite;
-  text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
-               0.025em 0.04em 0 #fffc00;
-}
-
-.scanner-progress {
-  box-shadow: 0 0 10px #00ff00;
-  background: linear-gradient(90deg, #00ff00, #00ffcc);
-}
-
-/* Keep your existing fingerprint styles */
-.fingerprint-scanner {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  margin: 0 auto;
-}
-
-.fingerprint {
-  width: 100%;
-  height: 100%;
-}
-
-.scan-path {
-  fill: none;
-  stroke: #00ff00;
-  stroke-width: 1;
-  stroke-linecap: round;
-}
-
-.scan-path.core {
-  stroke-width: 2;
-}
-
-.scan-path.detail {
-  stroke-width: 0.5;
-}
-
-.circuit-path {
-  fill: none;
-  stroke: #00ff00;
-  stroke-width: 0.5;
-  stroke-dasharray: 2, 2;
-}
-
-.scan-area {
-  fill: none;
-  stroke: #00ff00;
-  stroke-width: 1;
-  stroke-dasharray: 4, 4;
-}
-
-.scan-line {
-  stroke: #00ff00;
-  stroke-width: 2;
-}
-
-.data-point {
-  fill: #00ff00;
-}/* Logo Styles */
 @keyframes float {
   0% {
     transform: translateY(0px);
@@ -372,9 +221,9 @@ html {
   height: 100%;
   top: 0;
   left: 0;
-  background: linear-gradient(45deg, #5651e5, #709dff);
-  opacity: 0.1;
-  filter: blur(10px);
+  background: linear-gradient(45deg, #22d3ee, #8b5cf6);
+  opacity: 0.08;
+  filter: blur(12px);
   z-index: -1;
   animation: float 3s ease-in-out infinite;
 }
@@ -382,7 +231,8 @@ html {
 .logo-container::after {
   animation-delay: 1.5s;
 }
-@keyframes gradient {
+
+@keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
   }
@@ -396,37 +246,52 @@ html {
 
 .gradient-text {
   background-size: 200% auto;
-  animation: gradient 3s linear infinite;
+  animation: gradient-shift 4s ease infinite;
 }
-/* Prevent horizontal scroll */
+
 body {
   overflow-x: hidden;
 }
 
-/* Container for fox character */
-/* Fox animations */
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @keyframes wiggle {
-  0%, 100% { transform: rotate(0); }
-  25% { transform: rotate(-5deg); }
-  75% { transform: rotate(5deg); }
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
 }
 
 @keyframes sparkle {
-  0% { transform: scale(0) rotate(0deg); }
-  50% { transform: scale(1) rotate(180deg); }
-  100% { transform: scale(0) rotate(360deg); }
-}
-/* Modal backdrop blur effect */
-.modal-backdrop {
-  backdrop-filter: blur(5px);
+  0% {
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+  }
 }
 
-/* Smooth video modal transitions */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+}
+
 .modal-enter {
   opacity: 0;
   transform: scale(0.9);
@@ -448,6 +313,7 @@ body {
   transform: scale(0.9);
   transition: opacity 300ms, transform 300ms;
 }
+
 .fox-container {
   position: relative;
   width: 100%;
@@ -457,10 +323,16 @@ body {
 
 .speech-bubble {
   position: relative;
-  background: white;
-  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0.75rem;
   padding: 0.5rem 1rem;
-  filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07));
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.12));
+  border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+.dark .speech-bubble {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(139, 92, 246, 0.25);
 }
 
 .speech-bubble::after {
@@ -471,55 +343,96 @@ body {
   transform: translateX(-50%) rotate(45deg);
   width: 16px;
   height: 16px;
-  background: white;
+  background: inherit;
+  border-right: 1px solid transparent;
+  border-bottom: 1px solid transparent;
 }
-/* Glow Effect */
+
 .glow {
-  filter: drop-shadow(0 0 8px rgba(86, 81, 229, 0.3));
+  filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.35));
 }
 
 .glow-button {
-  animation: glow 2s ease-in-out infinite;
+  animation: glow-ring 2.5s ease-in-out infinite;
 }
 
-@keyframes glow {
-  0% {
-    box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
+@keyframes glow-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(34, 211, 238, 0.3),
+      0 0 20px rgba(34, 211, 238, 0.2);
   }
   50% {
-    box-shadow: 0 0 10px #5651e5, 0 0 20px #5651e5, 0 0 25px #5651e5;
-  }
-  100% {
-    box-shadow: 0 0 5px #5651e5, 0 0 10px #5651e5, 0 0 15px #5651e5;
+    box-shadow:
+      0 0 0 1px rgba(139, 92, 246, 0.35),
+      0 0 32px rgba(139, 92, 246, 0.25);
   }
 }
-/* Optional: Add this if you want to use a noise texture */
+
 .noise-texture {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.1;
+  opacity: 0.06;
 }
-@layer base {
-  body {
-    @apply bg-[#ecf0f3] text-[#1f2937] tracking-wide  dark:bg-gray-900  text-gray-900 dark:text-white transition-colors duration-200;
+
+@layer components {
+  .glass-panel {
+    @apply rounded-2xl border border-slate-200/80 bg-white/70 shadow-card-light backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/55 dark:shadow-card-dark;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold
+  .section-eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-400;
+  }
+
+  .text-gradient-future {
+    @apply bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent;
+  }
+
+  .icon-ring {
+    @apply flex h-12 w-12 items-center justify-center rounded-full border border-slate-200/90 bg-white/90 text-slate-700 shadow-md transition-all duration-300 hover:border-cyan-400/50 hover:text-cyan-600 hover:shadow-glow dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-cyan-400/40 dark:hover:text-cyan-300;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply bg-slate-100 text-slate-800 antialiased transition-colors duration-300 dark:bg-future-surface dark:text-slate-100;
+    background-image: radial-gradient(ellipse 120% 80% at 50% -30%, rgba(34, 211, 238, 0.08), transparent 55%),
+      radial-gradient(ellipse 80% 50% at 100% 20%, rgba(139, 92, 246, 0.06), transparent 50%);
+  }
+
+  html.dark body {
+    background-image: radial-gradient(ellipse 100% 60% at 50% -20%, rgba(34, 211, 238, 0.12), transparent 50%),
+      radial-gradient(ellipse 70% 50% at 100% 0%, rgba(139, 92, 246, 0.1), transparent 45%),
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(232, 121, 249, 0.08), transparent 50%);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold font-display tracking-tight;
   }
 
   h1 {
-    @apply text-4xl sm:text-5xl md:text-6xl font-[Raleway]
+    @apply text-4xl sm:text-5xl md:text-6xl;
   }
 
   h2 {
-    @apply text-3xl sm:text-4xl
-  }
-  
-  li {
-    @apply cursor-pointer
+    @apply text-3xl sm:text-4xl;
   }
 
-  button {
-    @apply shadow-xl shadow-gray-400 rounded-xl uppercase bg-gradient-to-r from-[#5651e5] to-[#709dff] text-white dark:shadow-gray-800
+  li {
+    @apply cursor-pointer;
+  }
+
+  button:not(.unstyled) {
+    @apply rounded-xl bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-600 font-semibold uppercase tracking-wide text-white shadow-lg shadow-violet-500/25 transition hover:brightness-110 active:scale-[0.98] dark:shadow-violet-900/40;
   }
 }

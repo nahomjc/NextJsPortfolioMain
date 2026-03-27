@@ -31,25 +31,26 @@ const MediumBlog = () => {
   ];
 
   return (
-    <div className="w-full py-16 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-[1240px] mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <FaMedium className="text-4xl text-black dark:text-white" />
-            <h2 className="text-3xl md:text-4xl font-bold">My Blog Posts</h2>
+    <div className="relative w-full px-4 py-20">
+      <div className="mx-auto max-w-[1240px]">
+        <div className="mb-12 text-center">
+          <div className="mb-4 flex items-center justify-center gap-3">
+            <FaMedium className="text-4xl text-slate-800 dark:text-cyan-400" />
+            <h2 className="font-display text-3xl font-bold text-slate-900 md:text-4xl dark:text-white">
+              My Blog Posts
+            </h2>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-slate-600 dark:text-slate-400">
             Sharing insights and experiences about web development, programming, and technology.
           </p>
         </div>
 
         {/* Blog Posts Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.map((post, index) => (
-            <div 
-              key={index}
-              className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col"
+          {blogPosts.map((post) => (
+            <div
+              key={post.link}
+              className="glass-panel flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-glow"
             >
               {/* Post Image */}
               <div className="relative h-48 w-full">
@@ -64,15 +65,15 @@ const MediumBlog = () => {
 
               {/* Post Content */}
               <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-bold mb-3 dark:text-white">
+                <h3 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">
                   {post.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 flex-grow">
+                <p className="mb-4 flex-grow text-slate-600 dark:text-slate-400">
                   {post.excerpt}
                 </p>
 
                 {/* Post Meta */}
-                <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                   <div className="flex items-center gap-2">
                     <FaClock />
                     <span>{post.readTime}</span>
@@ -85,7 +86,7 @@ const MediumBlog = () => {
                   href={post.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 text-[#0088cc] hover:text-[#006699] dark:text-[#00a0e6] dark:hover:text-[#0088cc] font-semibold transition-colors duration-300"
+                  className="mt-4 inline-flex items-center gap-2 font-semibold text-cyan-600 transition-colors hover:text-violet-600 dark:text-cyan-400 dark:hover:text-violet-300"
                 >
                   Read More 
                   <FaArrowRight className="text-sm" />
@@ -96,12 +97,12 @@ const MediumBlog = () => {
         </div>
 
         {/* Follow on Medium Button */}
-        <div className="text-center mt-12">
+        <div className="mt-12 text-center">
           <a
             href="https://medium.com/@aslandjc7"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full font-bold text-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="unstyled inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-4 text-lg font-bold text-white shadow-lg transition hover:brightness-110 dark:from-white dark:via-slate-100 dark:to-white dark:text-slate-900"
           >
             <FaMedium className="text-2xl" />
             Follow Me on Medium
@@ -109,20 +110,23 @@ const MediumBlog = () => {
         </div>
 
         {/* Newsletter Signup */}
-        <div className="mt-16 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-8 text-center">
-          <h3 className="text-2xl font-bold mb-4 dark:text-white">
+        <div className="glass-panel mt-16 p-8 text-center ring-1 ring-cyan-500/15">
+          <h3 className="mb-4 font-display text-2xl font-bold text-slate-900 dark:text-white">
             Subscribe to My Blog
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="mb-6 text-slate-600 dark:text-slate-400">
             Get notified when I publish new articles and content.
           </p>
           <div className="flex max-w-md mx-auto gap-4 md:flex-row flex-col">
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0088cc]"
+              className="flex-1 rounded-xl border border-slate-200/90 bg-white/90 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
             />
-            <button className="px-6 py-3 bg-[#0088cc] text-white rounded-lg hover:bg-[#006699] transition-colors duration-300">
+            <button
+              type="button"
+              className="unstyled rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-6 py-3 font-semibold text-white shadow-md transition hover:brightness-110"
+            >
               Subscribe
             </button>
           </div>

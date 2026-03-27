@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 const Logo = ({ size = 'medium' }) => {
+  const uid = useId().replace(/:/g, '');
+  const strokeId = `logo-stroke-${uid}`;
+  const fillId = `logo-fill-${uid}`;
   const sizeClasses = {
     small: 'text-1xl',
     medium: 'text-4xl',
@@ -27,10 +30,20 @@ const Logo = ({ size = 'medium' }) => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
+          <defs>
+            <linearGradient id={strokeId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#22d3ee" />
+              <stop offset="100%" stopColor="#a78bfa" />
+            </linearGradient>
+            <linearGradient id={fillId} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#22d3ee" />
+              <stop offset="100%" stopColor="#8b5cf6" />
+            </linearGradient>
+          </defs>
           <motion.path
             d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"
             fill="none"
-            stroke="#5651e5"
+            stroke={`url(#${strokeId})`}
             strokeWidth="2"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
@@ -38,7 +51,7 @@ const Logo = ({ size = 'medium' }) => {
           />
           <motion.path
             d="M19 16H5V19H19V16Z"
-            fill="#5651e5"
+            fill={`url(#${fillId})`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5 }}
@@ -66,7 +79,7 @@ const Logo = ({ size = 'medium' }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <span className="bg-gradient-to-br from-[#5651e5] via-[#709dff] to-[#5651e5] text-transparent bg-clip-text">
+            <span className="bg-gradient-to-br from-cyan-400 via-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               Kingdom
             </span>
             <span className="ml-2 text-gray-900 dark:text-white">
@@ -76,7 +89,7 @@ const Logo = ({ size = 'medium' }) => {
 
           {/* Animated Border */}
           <motion.div
-            className="absolute -bottom-2 left-0 h-1 bg-gradient-to-r from-[#5651e5] via-[#709dff] to-[#5651e5] rounded-full"
+            className="absolute -bottom-2 left-0 h-1 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500"
             initial={{ width: 0 }}
             animate={{ width: '100%' }}
             transition={{
@@ -88,11 +101,11 @@ const Logo = ({ size = 'medium' }) => {
 
           {/* Glowing Dots */}
           <motion.div
-            className="absolute -right-4 top-1/2 w-2 h-2 rounded-full bg-[#5651e5]"
+            className="absolute -right-4 top-1/2 h-2 w-2 rounded-full bg-cyan-400"
             animate={{
               boxShadow: [
-                '0 0 0 0 rgba(86, 81, 229, 0.4)',
-                '0 0 0 10px rgba(86, 81, 229, 0)',
+                '0 0 0 0 rgba(34, 211, 238, 0.45)',
+                '0 0 0 12px rgba(34, 211, 238, 0)',
               ]
             }}
             transition={{

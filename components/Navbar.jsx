@@ -1,168 +1,181 @@
-  import Image from 'next/image'
-  import Link from 'next/link'
-  import React from 'react'
-  import { AiOutlineClose, AiOutlineMail, AiOutlineMenu } from 'react-icons/ai';
-  import { FaGithub, FaLinkedinIn } from 'react-icons/fa';
-  import { BsFillPersonLinesFill } from 'react-icons/bs';
-  import { useState,useEffect } from 'react';
-  import { useRouter } from 'next/router';
-  
-  import ThemeToggle from './ThemToggle';
-import Logo from './Logo';
-  const Navbar = () => {
+import Link from "next/link";
+import React from "react";
+import { AiOutlineClose, AiOutlineMail, AiOutlineMenu } from "react-icons/ai";
+import { FaGithub, FaLinkedinIn } from "react-icons/fa";
+import { BsFillPersonLinesFill } from "react-icons/bs";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
-  const [nav , setNav]= useState(false);
-  const[shadow, setShadow]= useState(false)
-  const[navBg, setNavBg]=useState("#ecf0f3")
-  const [linkColor ,setLinkColor]=useState('#1f2937')
-  const router= useRouter()
+import ThemeToggle from "./ThemToggle";
+import Logo from "./Logo";
+import NavItem from "./NavItem";
+import { mainNavItems } from "../config/navItems";
 
-  useEffect(()=>{
-    if( router.asPath==='/property'||
-    router.asPath==='/crypto'||
-    router.asPath==='/netflix'||
-    router.asPath==='/twitch'){
-      setNavBg('transparent')
-      setLinkColor("#ecf0f3")
-    } else{
-      setNavBg("#ecf0f3")
-      setLinkColor('#1f2937')
-    }
-    },[router])
-  const handelNav=()=>{
-      setNav(!nav)
+const navLinkBase =
+	"relative text-xs font-semibold uppercase tracking-[0.12em] transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-gradient-to-r after:from-cyan-400 after:to-violet-500 after:transition-all hover:after:w-full";
+const navLinkOnLight = `${navLinkBase} text-slate-700 hover:text-cyan-600 dark:text-slate-200 dark:hover:text-cyan-300`;
+const navLinkOnDark = `${navLinkBase} text-slate-100/90 hover:text-cyan-200`;
 
-  }
+const mobileNavLinkClass =
+	"w-full py-4 text-sm font-medium text-slate-700 dark:text-slate-200 normal-case tracking-normal";
 
-  useEffect(() => {
-      const handleShadow = () => {
-        if (window.scrollY >= 90) {
-          setShadow(true);
-        } else {
-          setShadow(false);
-        }
-      };
-      window.addEventListener('scroll', handleShadow);
-    }, []);
+const Navbar = () => {
+	const [nav, setNav] = useState(false);
+	const [shadow, setShadow] = useState(false);
+	const router = useRouter();
 
-    return ( 
-    
-      <div
-      className={`fixed w-full h-20 z-[100] transition-all duration-300
-        ${shadow ? 'shadow-xl' : ''}
-        ${router.asPath === '/property' || 
-          router.asPath === '/crypto' || 
-          router.asPath === '/netflix' || 
-          router.asPath === '/twitch' 
-          ? 'bg-transparent'
-          : 'bg-[#ecf0f3] dark:bg-gray-900 dark:text-white'
-        }`}
-    >
-      <div className='flex justify-between items-center w-full h-full px-2 2xl:px-16'>
-  
-  <Link href='/'>
-  <Logo size="small" />
-  </Link>
-      
-  <div>
-          <ul style={{color:`${linkColor}`}} className='hidden md:flex'>
-              <Link href='/'><li className='ml-10 text-sm uppercase hover:border-b dark:text-white'>Home</li></Link>
-        
-              <Link href='/#about'><li className='ml-10 text-sm uppercase hover:border-b dark:text-white'>About</li></Link>
-              <Link href='/#skills'><li className='ml-10 text-sm uppercase hover:border-b dark:text-white'>Skills</li></Link>
-              <Link href='/#projects'><li className='ml-10 text-sm uppercase hover:border-b dark:text-white'>Project</li></Link>
-              <Link href='/#contact'><li className='ml-10 text-sm uppercase hover:border-b dark:text-white'>Contact</li></Link>
-              <Link href='/resume'>
-                  <li onClick={() => setNav(false)} className='ml-10 text-sm uppercase hover:border-b dark:text-white'>
-                    Resume
-                  </li>
-                </Link>
-                <li className='py-4 text-sm flex flex-row items-center'>
-              <ThemeToggle isMobile={false}/>
-            </li>
-              
-          </ul>
-          <div onClick={handelNav} className='md:hidden'>
-              <AiOutlineMenu size={25}/>
-          </div>
-      </div>
+	const isLegacyTransparent =
+		router.asPath === "/property" ||
+		router.asPath === "/crypto" ||
+		router.asPath === "/netflix" ||
+		router.asPath === "/twitch";
 
-      </div>
-      <div className={nav ? 'md:hidden fixed left-0 top-0 w-full h-screen bg-black/70': ''}>
-  <div className={nav ? ' fixed left-0 top-0 w-[75%] sm:w-[60%] md:w-[45%] h-screen bg-[#ecf0f3] dark:bg-gray-900 p-10 ease-in duration-500':
-  'fixed left-[-100%] top-0 p-10 ease-in duration-500'}>
-    <div className='w-full flex justify-center mb-6 mt-2'>
-                <ThemeToggle isMobile={true}/>
-              </div>
-  <div>
-      <div className='flex w-full items-center justify-between'>
-      <Logo size="small" />
-          
-      <div onClick={handelNav} className='rounded-full shadow-lg shadow-gray-400 p-3 cursor-pointer '>
-      
-      <AiOutlineClose size={25}/>
-      </div>
-      </div>
-      <div className='border-b border-gray-300 my-4 dark:border-gray-700'>
-          <p className='w-[85%] md:w-[98%] py-4'>Let&#39;s build something legendary together</p>
-      </div>
+	const handelNav = () => {
+		setNav(!nav);
+	};
 
-  <div className='py-4 flex flex-col dark:text-white'>
-      <ul className='uppercase'>
-        
-          <Link href='/'>
-          
-          <li onClick={()=>setNav(false)}  className='py-4 text-sm'> Home</li>
-          </Link>
-          <Link href='/#about'>
-          <li onClick={()=>setNav(false)}className='py-4 text-sm'> About</li>
-          </Link>
-          <Link href='/#skills'>
-          <li onClick={()=>setNav(false)} className='py-4 text-sm'> Skills</li>
-          </Link>
-          <Link href='/#projects'>
-          <li onClick={()=>setNav(false)}className='py-4 text-sm'> Projects</li>
-          </Link> 
+	useEffect(() => {
+		const handleShadow = () => {
+			setShadow(window.scrollY >= 90);
+		};
+		window.addEventListener("scroll", handleShadow);
+		return () => window.removeEventListener("scroll", handleShadow);
+	}, []);
 
-          <Link href='/#contact'>
-          <li onClick={()=>setNav(false)}className='py-4 text-sm'> Contact</li>
-          </Link>
-          <Link href='/resume'>
-                  <li onClick={() => setNav(false)} className='py-4 text-sm'>
-                    Resume
-                  </li>
-                </Link>
-      </ul>
-      <div className='pt-40'>
-          <p className='uppercase tracking-widest text-[#5651e5]'> Let&#39;s Connect</p>
-      
-      <div className='flex items-center justify-between my-4 w-full sm:w-[80%]'> 
-          <div className='rounded-full shadow-lg shadow-gray-400 p-3 cursor-pointer hover:scale-105 ease-im duration-75'>
-              
-              <FaLinkedinIn/>
-              </div>
-              <div className='rounded-full shadow-lg shadow-gray-400 p-3 cursor-pointer hover:scale-105 ease-in duration-300'>
-              
-              <FaGithub/>
-              </div>
-              <div className='rounded-full shadow-lg shadow-gray-400 p-3 cursor-pointer hover:scale-105 ease-in duration-300'>
-              
-              <AiOutlineMail/>
-              </div>
-              <div className='rounded-full shadow-lg shadow-gray-400 p-3 cursor-pointer hover:scale-105 ease-in duration-300'>
-              
-              <BsFillPersonLinesFill/>
-              </div>
-        
-      </div>
-      </div>
-      </div>
-      </div>
-  </div>
-  
-      </div>
-      </div>
-    )
-  }
+	return (
+		<div
+			className={`fixed top-0 z-[100] w-full transition-all duration-300 ${
+				isLegacyTransparent
+					? "border-b border-transparent bg-transparent"
+					: "border-b border-slate-200/70 bg-white/75 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/75"
+			} ${shadow ? "shadow-card-light dark:shadow-card-dark" : ""}`}
+		>
+			<div className="flex h-16 w-full items-center justify-between px-4 2xl:px-16">
+				<Logo size="small" />
 
-  export default Navbar
+				<div>
+					<ul className="hidden items-center gap-2 md:flex">
+						{mainNavItems.map((item) => (
+							<li key={item.href} className="ml-8">
+								<NavItem
+									href={item.href}
+									label={item.label}
+									icon={item.icon}
+									hasDropdown={item.hasDropdown}
+									className={
+										isLegacyTransparent ? navLinkOnDark : navLinkOnLight
+									}
+								/>
+							</li>
+						))}
+						<li className="ml-6 flex items-center">
+							<ThemeToggle isMobile={false} />
+						</li>
+					</ul>
+					<button
+						type="button"
+						className="unstyled rounded-lg p-2 text-slate-800 shadow-none dark:text-slate-100 md:hidden"
+						onClick={handelNav}
+						aria-label="Open menu"
+					>
+						<AiOutlineMenu size={25} />
+					</button>
+				</div>
+			</div>
+
+			<div
+				className={
+					nav
+						? "fixed left-0 top-0 z-[100] h-screen w-full bg-slate-950/60 backdrop-blur-sm md:hidden"
+						: ""
+				}
+			>
+				<div
+					className={
+						nav
+							? "fixed left-0 top-0 h-screen w-[75%] border-r border-white/10 bg-white/95 p-10 shadow-card-light duration-500 ease-in dark:border-white/10 dark:bg-slate-950/95 sm:w-[60%] md:w-[45%]"
+							: "fixed left-[-100%] top-0 p-10 duration-500 ease-in"
+					}
+				>
+					<div className="mb-6 mt-2 flex w-full justify-center">
+						<ThemeToggle isMobile={true} />
+					</div>
+					<div>
+						<div className="flex w-full items-center justify-between">
+							<Logo size="small" />
+							<button
+								type="button"
+								className="unstyled rounded-full border border-slate-200/80 bg-white/90 p-3 text-slate-800 shadow-md dark:border-white/10 dark:bg-slate-900/90 dark:text-white"
+								onClick={handelNav}
+								aria-label="Close menu"
+							>
+								<AiOutlineClose size={25} />
+							</button>
+						</div>
+						<div className="my-4 border-b border-slate-200 dark:border-white/10">
+							<p className="w-[85%] py-4 text-slate-600 dark:text-slate-400 md:w-[98%]">
+								Let&apos;s build something legendary together
+							</p>
+						</div>
+
+						<div className="flex flex-col py-4 dark:text-white">
+							<ul className="uppercase">
+								{mainNavItems.map((item) => (
+									<li key={item.href}>
+										<NavItem
+											href={item.href}
+											label={item.label}
+											icon={item.icon}
+											hasDropdown={item.hasDropdown}
+											className={mobileNavLinkClass}
+											onClick={() => setNav(false)}
+											iconSize={20}
+										/>
+									</li>
+								))}
+							</ul>
+							<div className="pt-28">
+								<p className="section-eyebrow">Let&apos;s Connect</p>
+
+								<div className="my-4 flex w-full items-center justify-between sm:w-[80%]">
+									<a
+										href="https://www.linkedin.com/in/nahom-tesfaye-35b97420b/"
+										target="_blank"
+										rel="noreferrer"
+										className="icon-ring !h-11 !w-11"
+									>
+										<FaLinkedinIn />
+									</a>
+									<a
+										href="https://github.com/nahomjc"
+										target="_blank"
+										rel="noreferrer"
+										className="icon-ring !h-11 !w-11"
+									>
+										<FaGithub />
+									</a>
+									<Link
+										href="/#contact"
+										className="icon-ring !h-11 !w-11"
+										onClick={() => setNav(false)}
+									>
+										<AiOutlineMail />
+									</Link>
+									<Link
+										href="/resume"
+										className="icon-ring !h-11 !w-11"
+										onClick={() => setNav(false)}
+									>
+										<BsFillPersonLinesFill />
+									</Link>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+};
+
+export default Navbar;

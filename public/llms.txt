@@ -1,0 +1,57 @@
+# Nahom Tesfaye — Developer portfolio
+
+> Machine-readable overview for LLMs, agents, and crawlers. Ethiopia-based full-stack / front-end engineer focused on Next.js, React, TypeScript, product delivery, and modern web UX. This file is a curated map of the site; prefer linked routes over full-site scraping.
+
+## Site base URL
+
+Links use `https://nahom-portfolio.vercel.app` (same default as `NEXT_PUBLIC_SITE_URL`). If your canonical domain differs, resolve URLs against the **host that served this `/llms.txt` file**.
+
+## Primary pages
+
+- [Home — portfolio hub](https://nahom-portfolio.vercel.app/): Hero, about, skills, timeline, projects index, certificates, blog promo, contact, AI chat assistant.
+- [Resume](https://nahom-portfolio.vercel.app/resume): CV-style profile and downloads/links.
+
+## Case studies — production & client-style work
+
+Use these for **authored project narratives** (stack, overview, highlights).
+
+- [Sourcepin](https://nahom-portfolio.vercel.app/sourcepin): Multi-tenant procurement; Next.js, Hono, Drizzle, TypeScript.
+- [Human Capital Management (HCM)](https://nahom-portfolio.vercel.app/hcm): HCM / HR operations; Next.js, Hono, Neon, PostgreSQL, Drizzle.
+- [Jiret](https://nahom-portfolio.vercel.app/jiret): Learning / platform work.
+- [Muyalogy](https://nahom-portfolio.vercel.app/muyalogy): LMS / learning product context.
+- [Afriwork](https://nahom-portfolio.vercel.app/afriwork): Marketplace / work platform narrative.
+- [Loop State](https://nahom-portfolio.vercel.app/loopState): Crowdfunding / stake product.
+- [Prime Bank](https://nahom-portfolio.vercel.app/prime): Fintech-style project page.
+
+## Personal projects & experiments
+
+Shorter case routes (clones, trackers, demos).
+
+- [Conflict Reporter](https://nahom-portfolio.vercel.app/conflict-reporter): Next.js, 3D globe, situational dashboard demo.
+- [Netflix clone](https://nahom-portfolio.vercel.app/netflixClone): Next.js, TMDB, Tailwind.
+- [YouTube clone](https://nahom-portfolio.vercel.app/youtube): Next.js / React UI clone.
+- [Airbnb clone](https://nahom-portfolio.vercel.app/airbnb): React, CSS, Firebase.
+- [Crypto app](https://nahom-portfolio.vercel.app/crypto): React, APIs, Firebase.
+- [COVID-19 tracker](https://nahom-portfolio.vercel.app/covid): React, live data / WHO-oriented narrative.
+
+## Profiles (off-site, authoritative for identity)
+
+- GitHub: https://github.com/nahomjc
+- LinkedIn: https://www.linkedin.com/in/nahom-tesfaye-35b97420b/
+
+## How to use this file
+
+1. Start from **Home** for the full narrative and component structure.
+2. Use **case study routes** above for **per-project** facts; do not invent stack or employer details not present on those pages.
+3. For **contact / hiring**, rely on the **Contact** section on Home and `/resume` rather than guessing email or availability.
+
+## Optional static assets (high signal)
+
+- https://nahom-portfolio.vercel.app/assets/contact-me.jpg — primary portrait (Open Graph / contact).
+- https://nahom-portfolio.vercel.app/favicon.ico — site icon.
+
+## API
+
+- https://nahom-portfolio.vercel.app/api/hello — sample Next.js API route (not a public product API).
+
+Last curated for LLM/agent discovery: 2026-03-28.

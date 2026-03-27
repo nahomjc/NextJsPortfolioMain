@@ -7,14 +7,24 @@ import '../styles/globals.css'
 import { ThemeProvider } from '../components/ThemeProvider'
 import { motion, AnimatePresence } from 'framer-motion';
 import FingerPrintLoader from '../components/FingerPrintLoaderProps'
-import { useState } from 'react'
+import EntranceSmoke from '../components/EntranceSmoke'
+import { useState, useCallback } from 'react'
 
 function MyApp({ Component, pageProps }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true)
+  const [showEntranceSmoke, setShowEntranceSmoke] = useState(false)
 
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-  };
+  const handleLoadingComplete = useCallback(() => {
+    setIsLoading(false)
+    const skipSmoke =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!skipSmoke) setShowEntranceSmoke(true)
+  }, [])
+
+  const handleEntranceSmokeComplete = useCallback(() => {
+    setShowEntranceSmoke(false)
+  }, [])
 
   return (
     <ThemeProvider>
@@ -22,19 +32,24 @@ function MyApp({ Component, pageProps }) {
         {isLoading ? (
           <FingerPrintLoader onLoadingComplete={handleLoadingComplete} />
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-          >
-            <AnimatedBackground />
-            <ScrollProgress />
-            <Navbar />
-            <MouseFollower />
-            <Component {...pageProps} />
-            <StickyPhone />
-          </motion.div>
+          <div className="relative min-h-screen">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+            >
+              <AnimatedBackground />
+              <ScrollProgress />
+              <Navbar />
+              <MouseFollower />
+              <Component {...pageProps} />
+              <StickyPhone />
+            </motion.div>
+            {showEntranceSmoke ? (
+              <EntranceSmoke onComplete={handleEntranceSmokeComplete} />
+            ) : null}
+          </div>
         )}
       </AnimatePresence>
     </ThemeProvider>

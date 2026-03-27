@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { FaBriefcase, FaGraduationCap, FaCode, FaAward } from 'react-icons/fa';
 
@@ -20,10 +21,21 @@ const experiences = [
   title: 'Full Stack Web Engineer',
   organization: 'Muyalogy',
   date: '2022 - Present',
-  description: 'Developed full-stack features using Next.js, created Telegram bot, implemented UI with TailwindCSS and Mantine, integrated Supabase for backend.',
-  skills: ['Next.js', 'TailwindCSS', 'Mantine UI', 'Supabase'],
+  description:
+    'Developed full-stack features with Next.js; built and integrated a Telegram bot wired to AI backends for learner support and automation. Used OpenAI for image-generation flows (server-side API keys only) and OpenRouter for conversational routing. UI with TailwindCSS and Mantine; Supabase for backend.',
+  skills: [
+    'Next.js',
+    'Telegram Bot + AI',
+    'OpenAI API',
+    'OpenRouter',
+    'TailwindCSS',
+    'Mantine UI',
+    'Supabase',
+  ],
   icon: FaBriefcase,
-  color: '#5651e5'
+  color: '#22d3ee',
+  image: '/assets/channel-admin.jpg',
+  imageAlt: 'Telegram channel admin context for Muyalogy bot and community',
 },
 {
     id: 3,
@@ -44,7 +56,7 @@ const experiences = [
     description: 'Built learning management system using Next.js, Drizzle ORM, PostgreSQL, and Supabase.',
     skills: ['Next.js', 'PostgreSQL', 'Drizzle ORM'],
     icon: FaBriefcase,
-    color: '#5651e5'
+    color: '#8b5cf6'
   },
   {
     id: 5,
@@ -55,8 +67,20 @@ const experiences = [
     description: 'Created and teaching comprehensive web development course in Amharic.',
     skills: ['Teaching', 'Web Development', 'Course Creation'],
     icon: FaCode,
-    color: '#5651e5'
-  }
+    color: '#a78bfa'
+  },
+  {
+    id: 6,
+    type: 'work',
+    title: 'Full Stack Developer',
+    organization: 'Peragos Systems',
+    date: '2025 – Present',
+    description:
+      'Working remotely with Peragos Systems on full-stack product work — collaborating with the team across time zones, shipping features, and maintaining quality in production.',
+    skills: ['Remote', 'Full-stack', 'Collaboration'],
+    icon: FaBriefcase,
+    color: '#14b8a6',
+  },
 ];
 
 const TimelineItem = ({ item, index }) => {
@@ -73,12 +97,12 @@ const TimelineItem = ({ item, index }) => {
       {/* Content */}
       <div className="w-full md:w-1/2 relative pb-12">
         {/* Vertical line */}
-        <div className="absolute left-[-5px] md:left-auto md:right-[-5px] top-0 bottom-0 w-[2px] bg-gray-200 dark:bg-gray-700" />
+        <div className="absolute left-[-5px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-500/60 via-violet-500/50 to-fuchsia-500/40 md:left-auto md:right-[-5px]" />
         
         {/* Content card */}
         <motion.div
           whileHover={{ scale: 1.02 }}
-          className="relative ml-6 md:ml-0 md:mr-6 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg"
+          className="glass-panel relative ml-6 p-6 md:ml-0 md:mr-6"
         >
           {/* Icon */}
           <div 
@@ -97,6 +121,18 @@ const TimelineItem = ({ item, index }) => {
           <h3 className="text-xl font-bold dark:text-white mb-1">{item.title}</h3>
           <p className="text-gray-600 dark:text-gray-400 font-medium mb-3">{item.organization}</p>
           <p className="text-gray-600 dark:text-gray-400 mb-4">{item.description}</p>
+
+          {item.image ? (
+            <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-xl border border-slate-200/80 dark:border-white/10">
+              <Image
+                src={item.image}
+                alt={item.imageAlt || `${item.organization} — ${item.title}`}
+                layout="fill"
+                objectFit="cover"
+                sizes="(max-width: 768px) 100vw, 600px"
+              />
+            </div>
+          ) : null}
 
           {/* Skills or Achievements */}
           {item.skills && (
@@ -134,11 +170,16 @@ const TimelineItem = ({ item, index }) => {
 
 const Timeline = () => {
   return (
-    <div className="py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 dark:text-white">Experience & Education</h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+    <div className="relative scroll-mt-24 px-4 py-20">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
+          <div className="flex justify-center">
+            <p className="section-eyebrow">Journey</p>
+          </div>
+          <h2 className="mt-3 font-display text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
+            Experience & Education
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-slate-600 dark:text-slate-400">
             My professional journey, educational background, and key achievements.
           </p>
         </div>
