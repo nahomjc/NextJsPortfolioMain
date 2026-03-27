@@ -9,6 +9,9 @@ import jiretImg from "../public/assets/projects/jiret.png";
 import sourcepinImg from "../public/assets/Screenshot 2026-03-28 004531.png";
 import hcmImg from "../public/assets/Screenshot 2026-03-28 005041.png";
 import conflictReporterImg from "../public/assets/global-conflict.vercel.app_ (1).png";
+import greenbagImg from "../public/assets/Screenshot 2026-03-28 023643.png";
+import arSolutionsImg from "../public/assets/Screenshot 2026-03-28 024007.png";
+import afrocadoImg from "../public/assets/Screenshot 2026-03-28 024200.png";
 
 const panelTransition = {
 	type: "spring",
@@ -127,7 +130,7 @@ const Projects = () => {
 					secLabel="/ 04A"
 					title={"What I've"}
 					titleGradient="Built"
-					description="Real products and partnerships — procurement, HR / human capital, LMS, learning products, fintech experiments, and more."
+					description="Real products and partnerships — e-commerce, export and marketing sites, procurement, HR / human capital, LMS, learning products, fintech experiments, and more."
 				/>
 				<motion.div
 					className="grid gap-6 md:grid-cols-2 md:gap-8"
@@ -146,6 +149,13 @@ const Projects = () => {
 					</motion.div>
 					<motion.div variants={cardItem}>
 						<ProjectItem
+							title="Jiret"
+							backgroundImg={jiretImg}
+							projectUrl="/jiret"
+						/>
+					</motion.div>
+					<motion.div variants={cardItem}>
+						<ProjectItem
 							title="Human Capital Management"
 							backgroundImg={hcmImg}
 							projectUrl="/hcm"
@@ -154,9 +164,26 @@ const Projects = () => {
 					</motion.div>
 					<motion.div variants={cardItem}>
 						<ProjectItem
-							title="Jiret"
-							backgroundImg={jiretImg}
-							projectUrl="/jiret"
+							title="Green Bag Ethiopia"
+							backgroundImg={greenbagImg}
+							projectUrl="/greenbag"
+							tech="E-commerce · Next.js · TypeScript · Telegram bot · OpenRoute · AI commerce"
+						/>
+					</motion.div>
+					<motion.div variants={cardItem}>
+						<ProjectItem
+							title="AR solution trading PLC"
+							backgroundImg={arSolutionsImg}
+							projectUrl="/ar-solutions"
+							tech="Digital marketing & web · Next.js · TypeScript · Brand site — Ethiopia"
+						/>
+					</motion.div>
+					<motion.div variants={cardItem}>
+						<ProjectItem
+							title="Afrocado Exports"
+							backgroundImg={afrocadoImg}
+							projectUrl="/afrocado"
+							tech="Premium produce export · Next.js · TypeScript · Lead generation"
 						/>
 					</motion.div>
 					<motion.div variants={cardItem}>

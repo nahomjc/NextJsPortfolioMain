@@ -132,7 +132,9 @@ function SkillCategory({ title, categoryKey, items, icon: Icon }) {
 									</span>
 									<span className="font-mono text-xs tabular-nums text-cyan-600 dark:text-cyan-400">
 										{skill.level}
-										<span className="text-slate-400 dark:text-slate-500">%</span>
+										<span className="text-slate-400 dark:text-slate-500">
+											%
+										</span>
 									</span>
 								</div>
 							</div>
@@ -206,8 +208,7 @@ const SkillsProgress = () => {
 						</p>
 					</div>
 					<h2 className="mt-4 font-display text-3xl text-slate-900 dark:text-white md:text-4xl">
-						Technical{" "}
-						<span className="text-gradient-future">Skills</span>
+						Technical <span className="text-gradient-future">Skills</span>
 					</h2>
 					<p className="mx-auto mt-4 max-w-2xl text-slate-600 dark:text-slate-400">
 						Depth across the stack — UI, services, data, and auth — with
