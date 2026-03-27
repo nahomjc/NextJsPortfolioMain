@@ -13,6 +13,7 @@ import NextJS from "../public/assets/skills/nextjs.png";
 const skillItems = [
 	{ title: "CSS", image: Css },
 	{ title: "JavaScript", image: Javascript },
+	{ title: "TypeScript", src: "/assets/skills/typescript.svg" },
 	{ title: "React", image: ReactImg },
 	{ title: "Tailwind", image: Tailwind },
 	{ title: "Next.js", image: NextJS },
@@ -23,6 +24,9 @@ const skillItems = [
 	{ title: "Express.js", src: "/assets/skills/express.svg" },
 	{ title: "Hono", src: "/assets/skills/hono.svg" },
 	{ title: "Drizzle ORM", src: "/assets/skills/drizzle.svg" },
+	{ title: "PostgreSQL", src: "/assets/skills/postgresql.svg" },
+	{ title: "MySQL", src: "/assets/skills/mysql.svg" },
+	{ title: "WordPress", src: "/assets/skills/wordpress.svg" },
 ];
 
 function SkillIcon({ item }) {
