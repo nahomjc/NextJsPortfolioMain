@@ -28,15 +28,19 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <ThemeProvider>
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <FingerPrintLoader onLoadingComplete={handleLoadingComplete} />
-        ) : (
-          <div className="relative min-h-screen">
+      <>
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <FingerPrintLoader
+              key="fingerprint-loader"
+              onLoadingComplete={handleLoadingComplete}
+            />
+          ) : (
             <motion.div
+              key="app-shell"
+              className="relative min-h-screen"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               transition={{ duration: 1 }}
             >
               <AnimatedBackground />
@@ -46,12 +50,13 @@ function MyApp({ Component, pageProps }) {
               <Component {...pageProps} />
               <StickyPhone />
             </motion.div>
-            {showEntranceSmoke ? (
-              <EntranceSmoke onComplete={handleEntranceSmokeComplete} />
-            ) : null}
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+        {/* Outside AnimatePresence so smoke isn’t tied to swap timing / stacking quirks (esp. mobile Safari) */}
+        {!isLoading && showEntranceSmoke ? (
+          <EntranceSmoke onComplete={handleEntranceSmokeComplete} />
+        ) : null}
+      </>
     </ThemeProvider>
   )
 }

@@ -93,7 +93,7 @@ class SmokePlume {
 		}
 	}
 
-	draw(ctx, dark) {
+	draw(ctx, dark, useScreenBlend) {
 		const c0 = dark ? [236, 238, 245] : [255, 255, 255];
 		const c1 = dark ? [165, 175, 192] : [248, 250, 252];
 		const c2 = dark ? [95, 105, 125] : [220, 226, 234];
@@ -113,7 +113,9 @@ class SmokePlume {
 		ctx.translate(this.x, this.y);
 		ctx.rotate(this.rot);
 		ctx.translate(-this.x, -this.y);
-		ctx.globalCompositeOperation = dark ? "screen" : "source-over";
+		/* iOS/WebKit often composites canvas "screen" incorrectly — use source-over + stronger alphas on narrow viewports */
+		ctx.globalCompositeOperation =
+			dark && useScreenBlend ? "screen" : "source-over";
 		ctx.fillStyle = g;
 		ctx.beginPath();
 		ctx.ellipse(this.x, this.y, this.rx, this.ry, 0, 0, Math.PI * 2);
@@ -128,17 +130,52 @@ function SmokeCanvas({ phase }) {
 	const startRef = useRef(0);
 	const plumesRef = useRef([]);
 	const phaseRef = useRef(phase);
+	const useScreenBlendRef = useRef(true);
 	phaseRef.current = phase;
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		if (!canvas) return undefined;
-		const ctx = canvas.getContext("2d", { alpha: true });
+		const ctx = canvas.getContext("2d", {
+			alpha: true,
+			desynchronized: true,
+		});
+
+		const viewportCssSize = () => {
+			if (typeof window === "undefined") return { w: 1, h: 1 };
+			const vv = window.visualViewport;
+			const w = Math.max(
+				1,
+				Math.round(
+					vv?.width ??
+						window.innerWidth ??
+						document.documentElement?.clientWidth ??
+						1,
+				),
+			);
+			const h = Math.max(
+				1,
+				Math.round(
+					vv?.height ??
+						window.innerHeight ??
+						document.documentElement?.clientHeight ??
+						1,
+				),
+			);
+			return { w, h };
+		};
 
 		const resize = () => {
 			const dpr = Math.min(window.devicePixelRatio || 1, 2);
-			const w = window.innerWidth;
-			const h = window.innerHeight;
+			const { w, h } = viewportCssSize();
+			const narrow = w < 768;
+			/* WebKit mobile: "screen" on 2d canvas is unreliable; desktop keeps screen in dark mode */
+			const isCoarse =
+				typeof window !== "undefined" &&
+				window.matchMedia("(pointer: coarse)").matches;
+			useScreenBlendRef.current = !isCoarse && !narrow;
+			const alphaBoost = narrow ? 1.55 : isCoarse ? 1.35 : 1;
+
 			canvas.width = Math.floor(w * dpr);
 			canvas.height = Math.floor(h * dpr);
 			canvas.style.width = `${w}px`;
@@ -155,7 +192,7 @@ function SmokeCanvas({ phase }) {
 						sizeMin: 32,
 						sizeMax: 118,
 						buoyancy: 0.92 + Math.random() * 0.2,
-						alphaMul: 1,
+						alphaMul: alphaBoost,
 					}),
 				);
 			}
@@ -166,7 +203,7 @@ function SmokeCanvas({ phase }) {
 						sizeMin: 40,
 						sizeMax: 135,
 						buoyancy: 1.05 + Math.random() * 0.25,
-						alphaMul: 1.12,
+						alphaMul: 1.12 * alphaBoost,
 					}),
 				);
 				plumesRef.current.push(
@@ -175,7 +212,7 @@ function SmokeCanvas({ phase }) {
 						sizeMin: 40,
 						sizeMax: 135,
 						buoyancy: 1.05 + Math.random() * 0.25,
-						alphaMul: 1.12,
+						alphaMul: 1.12 * alphaBoost,
 					}),
 				);
 			}
@@ -186,7 +223,7 @@ function SmokeCanvas({ phase }) {
 						sizeMin: 8,
 						sizeMax: 38,
 						buoyancy: 1.35 + Math.random() * 0.5,
-						alphaMul: 0.42,
+						alphaMul: 0.42 * alphaBoost,
 					}),
 				);
 			}
@@ -194,13 +231,14 @@ function SmokeCanvas({ phase }) {
 
 		resize();
 		window.addEventListener("resize", resize);
+		window.visualViewport?.addEventListener("resize", resize);
+		window.visualViewport?.addEventListener("scroll", resize);
 
 		startRef.current = performance.now();
 
 		const tick = (now) => {
 			if (!canvasRef.current) return;
-			const w = window.innerWidth;
-			const h = window.innerHeight;
+			const { w, h } = viewportCssSize();
 			const t = now - startRef.current;
 			const dark = isDocumentDark();
 
@@ -220,8 +258,9 @@ function SmokeCanvas({ phase }) {
 				plumes[i].update(t, globalFade, w, h);
 			}
 			plumes.sort((a, b) => a.rx * a.ry - b.rx * b.ry);
+			const useScreen = useScreenBlendRef.current;
 			for (let i = 0; i < plumes.length; i++) {
-				plumes[i].draw(ctx, dark);
+				plumes[i].draw(ctx, dark, useScreen);
 			}
 
 			if (t < SMOKE_DURATION_MS + 400) {
@@ -233,6 +272,8 @@ function SmokeCanvas({ phase }) {
 
 		return () => {
 			window.removeEventListener("resize", resize);
+			window.visualViewport?.removeEventListener("resize", resize);
+			window.visualViewport?.removeEventListener("scroll", resize);
 			cancelAnimationFrame(rafRef.current);
 		};
 	}, []);
@@ -275,7 +316,7 @@ const EntranceSmoke = ({ onComplete }) => {
 
 	return (
 		<motion.div
-			className="pointer-events-none fixed inset-0 z-[250] overflow-hidden"
+			className="pointer-events-none fixed inset-0 z-[250] min-h-[100dvh] w-full overflow-hidden"
 			initial={{ opacity: 0 }}
 			animate={{ opacity: phase === "exit" ? 0 : 1 }}
 			transition={{

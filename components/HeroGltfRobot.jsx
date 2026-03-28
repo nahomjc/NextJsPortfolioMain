@@ -107,7 +107,7 @@ const HeroGltfRobot = () => {
 		let lastMouseClientY = 0;
 		let dragYawAcc = 0;
 		let dragPitchAcc = 0;
-		/** Extra rotation / pan from one-finger drag (mobile) */
+		/** Legacy touch offsets — only used after release (damp back to 0); drag uses dragYawAcc like mouse */
 		let touchYawOff = 0;
 		let touchPitchOff = 0;
 		let touchPanXOff = 0;
@@ -229,22 +229,27 @@ const HeroGltfRobot = () => {
 				const dy = e.clientY - lastTouchClientY;
 				lastTouchClientX = e.clientX;
 				lastTouchClientY = e.clientY;
-				const rect = wrap.getBoundingClientRect();
-				const invW = 1 / Math.max(rect.width, 1);
-				const invH = 1 / Math.max(rect.height, 1);
-				const yawGain = 2.35;
-				const pitchGain = 2.35;
-				const panGainX = 0.52;
-				const panGainY = 0.38;
-				touchYawOff += dx * invW * yawGain * 0.72;
-				touchPitchOff += dy * invH * pitchGain * 0.42;
-				touchPanXOff += dx * invW * panGainX * 0.2;
-				touchPanYOff += dy * invH * panGainY * 0.045;
-				touchYawOff = THREE.MathUtils.clamp(touchYawOff, -0.88, 0.88);
-				touchPitchOff = THREE.MathUtils.clamp(touchPitchOff, -0.58, 0.58);
-				touchPanXOff = THREE.MathUtils.clamp(touchPanXOff, -0.32, 0.32);
-				touchPanYOff = THREE.MathUtils.clamp(touchPanYOff, -0.12, 0.12);
-				pingActivity();
+				if (dx !== 0 || dy !== 0) {
+					const rect = wrap.getBoundingClientRect();
+					const invW = 1 / Math.max(rect.width, 1);
+					const invH = 1 / Math.max(rect.height, 1);
+					/* Same direct orbit as mouse — avoids damping lag that felt “slippery” on touch */
+					const yawGain = 6.8;
+					const pitchGain = 4.2;
+					const pitchLimit = 1.35;
+					dragYawAcc += dx * invW * yawGain;
+					dragPitchAcc = THREE.MathUtils.clamp(
+						dragPitchAcc + dy * invH * pitchGain * 0.62,
+						-pitchLimit,
+						pitchLimit,
+					);
+				}
+				if (clickStart && clickStart.pointerType === "touch") {
+					const dx0 = e.clientX - clickStart.x;
+					const dy0 = e.clientY - clickStart.y;
+					if (Math.hypot(dx0, dy0) > 14) clickStart = null;
+				}
+				if (dx !== 0 || dy !== 0) pingActivity();
 				return;
 			}
 			syncNdcLookAtCursor(e);
