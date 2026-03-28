@@ -170,7 +170,7 @@ const Main = () => {
 					initial={{ opacity: 0, scale: 0.96 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ duration: 0.65, delay: 0.08 }}
-					className="relative order-1 flex min-h-[min(280px,48vw)] items-center justify-center pt-3 sm:pt-5 lg:order-2 lg:min-h-0"
+					className="relative order-1 flex min-h-[min(320px,52vw)] items-center justify-center pt-8 sm:pt-10 lg:order-2 lg:min-h-0 lg:pt-8"
 				>
 					<div className="pointer-events-none absolute inset-x-[4%] bottom-[5%] top-[30%] z-0 rounded-[2rem] bg-gradient-to-b from-white/[0.04] to-transparent ring-1 ring-white/10" />
 					<HeroGltfRobot />

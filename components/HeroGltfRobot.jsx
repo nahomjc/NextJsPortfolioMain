@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import HeroRobotIntroModal from "./HeroRobotIntroModal";
 import { HUD_DEFAULT_VARIANT, pickHudVariantKey } from "./heroRobotHudVariants";
 
-const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (8).glb")}`;
+const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (9).glb")}`;
 
 function disposeObject3D(obj) {
 	obj.traverse((child) => {
@@ -26,11 +28,23 @@ const HeroGltfRobot = () => {
 	const [loaded, setLoaded] = useState(false);
 	const [introOpen, setIntroOpen] = useState(false);
 	const [introAnchor, setIntroAnchor] = useState(null);
+	const [hoverRobot, setHoverRobot] = useState(false);
+	const [finePointerHover, setFinePointerHover] = useState(true);
+	const reduceMotionUi = useReducedMotion();
 	const setIntroOpenRef = useRef(setIntroOpen);
 	const setIntroAnchorRef = useRef(setIntroAnchor);
 	setIntroOpenRef.current = setIntroOpen;
 	setIntroAnchorRef.current = setIntroAnchor;
 	const rafRef = useRef(0);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		const mq = window.matchMedia("(hover: hover)");
+		const sync = () => setFinePointerHover(mq.matches);
+		sync();
+		mq.addEventListener("change", sync);
+		return () => mq.removeEventListener("change", sync);
+	}, []);
 
 	useEffect(() => {
 		const wrap = wrapRef.current;
@@ -77,6 +91,7 @@ const HeroGltfRobot = () => {
 		};
 
 		let cancelled = false;
+		let envRenderTarget = null;
 		const rawNdc = { x: 0, y: 0 };
 		let hoverInside = false;
 		/** Mouse/pen has moved at least once — rotation tracks viewport cursor, not “only inside” the GLB box */
@@ -335,10 +350,10 @@ const HeroGltfRobot = () => {
 		wrap.addEventListener("pointercancel", onPointerCancel);
 
 		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 100);
-		camera.position.set(0, 0.07, 3.95);
-		/* Look above model origin so the mesh sits lower in frame — clears navbar / decorative top */
-		camera.lookAt(0, 0.14, 0);
+		const camera = new THREE.PerspectiveCamera(48, 1, 0.05, 100);
+		camera.position.set(0, 0.05, 4.48);
+		/* Look above origin so the GLB sits lower — head clear of canvas top + fixed navbar */
+		camera.lookAt(0, 0.38, 0);
 		rayPickCtx.camera = camera;
 
 		const renderer = new THREE.WebGLRenderer({
@@ -349,31 +364,40 @@ const HeroGltfRobot = () => {
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 		renderer.outputColorSpace = THREE.SRGBColorSpace;
 		renderer.toneMapping = THREE.ACESFilmicToneMapping;
-		renderer.toneMappingExposure = 1.42;
+		renderer.toneMappingExposure = 2.55;
 		renderer.setClearColor(0x000000, 0);
 		rayPickCtx.renderer = renderer;
 
-		const hemi = new THREE.HemisphereLight(0xf5f0ff, 0x2a2038, 0.95);
+		/* IBL so PBR/metallic GLB surfaces get reflections instead of reading as flat black */
+		const pmrem = new THREE.PMREMGenerator(renderer);
+		envRenderTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
+		scene.environment = envRenderTarget.texture;
+		pmrem.dispose();
+
+		const hemi = new THREE.HemisphereLight(0xffffff, 0x6b6288, 1.62);
 		hemi.position.set(0, 1.5, 0);
 		scene.add(hemi);
 
-		scene.add(new THREE.AmbientLight(0xe8e0ff, 0.72));
-		const key = new THREE.DirectionalLight(0xffffff, 1.75);
+		scene.add(new THREE.AmbientLight(0xf8f6ff, 1.38));
+		const key = new THREE.DirectionalLight(0xffffff, 2.85);
 		key.position.set(2.5, 4, 3);
 		scene.add(key);
-		const fillDir = new THREE.DirectionalLight(0xeef2ff, 1.1);
+		const fillDir = new THREE.DirectionalLight(0xf8f9ff, 1.85);
 		fillDir.position.set(-2.2, 2.5, 2.8);
 		scene.add(fillDir);
-		const front = new THREE.DirectionalLight(0xffffff, 0.95);
+		const front = new THREE.DirectionalLight(0xffffff, 1.95);
 		front.position.set(0, 0.2, 4.5);
 		scene.add(front);
-		const rim = new THREE.DirectionalLight(0xf5d0fe, 0.95);
+		const rim = new THREE.DirectionalLight(0xf5d0fe, 1.45);
 		rim.position.set(-3.5, 1.5, -2);
 		scene.add(rim);
-		const magenta = new THREE.PointLight(0xf472f6, 3.2, 11);
+		const bounce = new THREE.DirectionalLight(0xe8f0ff, 1.05);
+		bounce.position.set(0, -2.2, 2.5);
+		scene.add(bounce);
+		const magenta = new THREE.PointLight(0xf472f6, 5.1, 12);
 		magenta.position.set(0.6, 1.1, 1.8);
 		scene.add(magenta);
-		const fill = new THREE.PointLight(0x7dd3fc, 1.35, 10);
+		const fill = new THREE.PointLight(0xc8eeff, 2.55, 11);
 		fill.position.set(-2, 0.3, 2);
 		scene.add(fill);
 
@@ -399,9 +423,21 @@ const HeroGltfRobot = () => {
 				model.position.sub(center);
 				const size = box.getSize(new THREE.Vector3());
 				const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
-				model.scale.setScalar(3.25 / maxDim);
+				model.scale.setScalar(4.35 / maxDim);
 				pivot.add(model);
 				rayPickCtx.modelRoot = model;
+
+				model.traverse((child) => {
+					if (!child.isMesh) return;
+					const mats = Array.isArray(child.material)
+						? child.material
+						: [child.material];
+					for (const m of mats) {
+						if (m && "envMapIntensity" in m) {
+							m.envMapIntensity = (m.envMapIntensity ?? 1) * 1.25;
+						}
+					}
+				});
 
 				if (gltf.animations?.length) {
 					mixer = new THREE.AnimationMixer(model);
@@ -534,6 +570,9 @@ const HeroGltfRobot = () => {
 
 		return () => {
 			cancelled = true;
+			scene.environment = null;
+			envRenderTarget?.dispose();
+			envRenderTarget = null;
 			cancelAnimationFrame(rafRef.current);
 			ro.disconnect();
 			window.removeEventListener("pointermove", onWindowPointerMove);
@@ -553,42 +592,83 @@ const HeroGltfRobot = () => {
 		};
 	}, []);
 
+	const showHoverHint = loaded && finePointerHover && hoverRobot && !introOpen;
+
 	return (
 		<>
 			<div
-				ref={wrapRef}
-				role="button"
-				tabIndex={0}
-				aria-label="Hero robot — drag to rotate, click for a quick introduction"
-				aria-haspopup="dialog"
-				aria-expanded={introOpen}
-				onKeyDown={(e) => {
-					if (e.key === "Enter" || e.key === " ") {
-						e.preventDefault();
-						const el = wrapRef.current;
-						if (el) {
-							const r = el.getBoundingClientRect();
-							const cx = r.left + r.width / 2;
-							const cy = r.top + r.height / 2;
-							setIntroAnchor({
-								x: cx,
-								y: cy,
-								variantKey: pickHudVariantKey(0.5, 0.5),
-							});
-						} else {
-							setIntroAnchor({
-								x: window.innerWidth / 2,
-								y: window.innerHeight / 2,
-								variantKey: HUD_DEFAULT_VARIANT,
-							});
-						}
-						setIntroOpen(true);
-					}
-				}}
-				className={`relative z-20 mx-auto h-[min(440px,70vw)] w-full max-w-2xl cursor-grab touch-none outline-none transition-opacity duration-500 focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030c] active:cursor-grabbing md:h-[min(500px,50vh)] lg:h-[min(520px,52vh)] ${
+				className={`relative z-20 mx-auto h-[min(500px,76vw)] w-full max-w-3xl transition-opacity duration-500 md:h-[min(580px,56vh)] lg:h-[min(620px,60vh)] ${
 					loaded ? "opacity-100" : "opacity-40"
 				}`}
-			/>
+				onPointerEnter={() => setHoverRobot(true)}
+				onPointerLeave={() => setHoverRobot(false)}
+			>
+				<div
+					ref={wrapRef}
+					role="button"
+					tabIndex={0}
+					aria-label="Hero robot — drag to rotate, click for a quick introduction"
+					aria-haspopup="dialog"
+					aria-expanded={introOpen}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault();
+							const el = wrapRef.current;
+							if (el) {
+								const r = el.getBoundingClientRect();
+								const cx = r.left + r.width / 2;
+								const cy = r.top + r.height / 2;
+								setIntroAnchor({
+									x: cx,
+									y: cy,
+									variantKey: pickHudVariantKey(0.5, 0.5),
+								});
+							} else {
+								setIntroAnchor({
+									x: window.innerWidth / 2,
+									y: window.innerHeight / 2,
+									variantKey: HUD_DEFAULT_VARIANT,
+								});
+							}
+							setIntroOpen(true);
+						}
+					}}
+					className="h-full w-full cursor-grab touch-none outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030c] active:cursor-grabbing"
+				/>
+				<AnimatePresence>
+					{showHoverHint ? (
+						<motion.div
+							key="robot-hover-hint"
+							role="tooltip"
+							aria-hidden
+							initial={{ opacity: 0, y: 8, scale: 0.97 }}
+							animate={{ opacity: 1, y: 0, scale: 1 }}
+							exit={{ opacity: 0, y: 6, scale: 0.98 }}
+							transition={
+								reduceMotionUi
+									? { duration: 0.15 }
+									: { type: "spring", stiffness: 420, damping: 28 }
+							}
+							className="pointer-events-none absolute left-1/2 top-[5%] z-30 w-[min(92%,280px)] -translate-x-1/2 px-2"
+						>
+							<div className="relative border border-cyan-400/45 bg-[#05030a]/88 px-3 py-2.5 shadow-[0_0_24px_rgba(34,211,238,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md">
+								<div className="absolute left-2 top-1.5 h-1 w-1 rounded-[1px] bg-fuchsia-400 shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
+								<div className="absolute right-2 top-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-cyan-400/70">
+									UX.HUD
+								</div>
+								<p className="mt-4 font-mono text-[11px] font-medium uppercase leading-snug tracking-[0.12em] text-cyan-100/95 sm:text-xs">
+									<span className="text-fuchsia-400/90">&gt;</span> You can click on
+									me
+								</p>
+								<div className="mt-2 flex items-center gap-1.5 border-t border-white/10 pt-2 font-mono text-[9px] tracking-wider text-slate-500">
+									<span className="inline-block h-px w-3 bg-cyan-400/60" />
+									<span>OPEN_BRIEFING</span>
+								</div>
+							</div>
+						</motion.div>
+					) : null}
+				</AnimatePresence>
+			</div>
 			<HeroRobotIntroModal
 				open={introOpen}
 				anchor={introAnchor}
