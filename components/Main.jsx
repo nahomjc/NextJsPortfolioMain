@@ -54,7 +54,7 @@ const Main = () => {
 	return (
 		<div
 			id="home"
-			className="relative flex min-h-screen w-full items-center overflow-hidden bg-[#06030c] px-4 pt-24 pb-16 text-slate-100 md:pt-28"
+			className="relative flex min-h-screen w-full items-center overflow-x-hidden overflow-y-visible bg-[#06030c] px-4 pt-32 pb-16 text-slate-100 md:pt-36"
 		>
 			<div
 				className="pointer-events-none absolute inset-0 bg-[length:48px_48px] opacity-[0.22]"
@@ -170,9 +170,9 @@ const Main = () => {
 					initial={{ opacity: 0, scale: 0.96 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ duration: 0.65, delay: 0.08 }}
-					className="relative order-1 flex min-h-[min(320px,50vw)] items-center justify-center lg:order-2"
+					className="relative order-1 flex min-h-[min(320px,50vw)] items-center justify-center pt-6 sm:pt-10 lg:order-2"
 				>
-					<div className="pointer-events-none absolute inset-x-[4%] bottom-[8%] top-[12%] z-0 rounded-[2rem] bg-gradient-to-b from-white/[0.07] to-transparent ring-1 ring-white/10" />
+					<div className="pointer-events-none absolute inset-x-[4%] bottom-[5%] top-[30%] z-0 rounded-[2rem] bg-gradient-to-b from-white/[0.04] to-transparent ring-1 ring-white/10" />
 					<HeroGltfRobot />
 				</motion.div>
 			</div>
