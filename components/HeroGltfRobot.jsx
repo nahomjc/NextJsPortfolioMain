@@ -8,6 +8,32 @@ import { HUD_DEFAULT_VARIANT, pickHudVariantKey } from "./heroRobotHudVariants";
 
 const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (9).glb")}`;
 
+const tmpColorB = new THREE.Color();
+
+function thunderPulse(elapsedSec) {
+	const peaks = [0.05, 0.2, 0.42, 0.68, 1.02, 1.38, 1.82, 2.2];
+	let sum = 0;
+	for (const pk of peaks) {
+		const d = elapsedSec - pk;
+		sum += Math.exp(-(d * d) / 0.0042);
+	}
+	return Math.min(1, sum * 0.82);
+}
+
+function randomBoltPoints() {
+	const pts = [];
+	let x = (Math.random() - 0.5) * 2.4;
+	let y = 2.35 + Math.random() * 0.35;
+	let z = 0.5 + Math.random() * 1.2;
+	for (let k = 0; k < 15; k++) {
+		pts.push(new THREE.Vector3(x, y, z));
+		y -= 0.18 + Math.random() * 0.16;
+		x += (Math.random() - 0.5) * 0.52;
+		z += (Math.random() - 0.5) * 0.38;
+	}
+	return pts;
+}
+
 function disposeObject3D(obj) {
 	obj.traverse((child) => {
 		if (child.isMesh) {
@@ -36,6 +62,7 @@ const HeroGltfRobot = () => {
 	setIntroOpenRef.current = setIntroOpen;
 	setIntroAnchorRef.current = setIntroAnchor;
 	const rafRef = useRef(0);
+	const flashOverlayRef = useRef(null);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -201,7 +228,7 @@ const HeroGltfRobot = () => {
 					const yawGain = 6.8;
 					const pitchGain = 4.2;
 					dragYawAcc += dx * invW * yawGain;
-					const pitchLimit = 1.35;
+					const pitchLimit = Math.PI * 0.95;
 					dragPitchAcc = THREE.MathUtils.clamp(
 						dragPitchAcc + dy * invH * pitchGain * 0.62,
 						-pitchLimit,
@@ -236,7 +263,7 @@ const HeroGltfRobot = () => {
 					/* Same direct orbit as mouse — avoids damping lag that felt “slippery” on touch */
 					const yawGain = 6.8;
 					const pitchGain = 4.2;
-					const pitchLimit = 1.35;
+					const pitchLimit = Math.PI * 0.95;
 					dragYawAcc += dx * invW * yawGain;
 					dragPitchAcc = THREE.MathUtils.clamp(
 						dragPitchAcc + dy * invH * pitchGain * 0.62,
@@ -369,7 +396,8 @@ const HeroGltfRobot = () => {
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 		renderer.outputColorSpace = THREE.SRGBColorSpace;
 		renderer.toneMapping = THREE.ACESFilmicToneMapping;
-		renderer.toneMappingExposure = 2.55;
+		const baseExposure = 2.55;
+		renderer.toneMappingExposure = baseExposure;
 		renderer.setClearColor(0x000000, 0);
 		rayPickCtx.renderer = renderer;
 
@@ -379,32 +407,78 @@ const HeroGltfRobot = () => {
 		scene.environment = envRenderTarget.texture;
 		pmrem.dispose();
 
-		const hemi = new THREE.HemisphereLight(0xffffff, 0x6b6288, 1.62);
+		const baseHemiI = 1.62;
+		const hemi = new THREE.HemisphereLight(0xffffff, 0x6b6288, baseHemiI);
 		hemi.position.set(0, 1.5, 0);
 		scene.add(hemi);
 
-		scene.add(new THREE.AmbientLight(0xf8f6ff, 1.38));
-		const key = new THREE.DirectionalLight(0xffffff, 2.85);
+		const baseAmbI = 1.38;
+		const amb = new THREE.AmbientLight(0xf8f6ff, baseAmbI);
+		scene.add(amb);
+		const baseKeyI = 2.85;
+		const key = new THREE.DirectionalLight(0xffffff, baseKeyI);
 		key.position.set(2.5, 4, 3);
 		scene.add(key);
-		const fillDir = new THREE.DirectionalLight(0xf8f9ff, 1.85);
+		const baseFillDirI = 1.85;
+		const fillDir = new THREE.DirectionalLight(0xf8f9ff, baseFillDirI);
 		fillDir.position.set(-2.2, 2.5, 2.8);
 		scene.add(fillDir);
-		const front = new THREE.DirectionalLight(0xffffff, 1.95);
+		const baseFrontI = 1.95;
+		const front = new THREE.DirectionalLight(0xffffff, baseFrontI);
 		front.position.set(0, 0.2, 4.5);
 		scene.add(front);
-		const rim = new THREE.DirectionalLight(0xf5d0fe, 1.45);
+		const baseRimI = 1.45;
+		const rim = new THREE.DirectionalLight(0xf5d0fe, baseRimI);
 		rim.position.set(-3.5, 1.5, -2);
 		scene.add(rim);
-		const bounce = new THREE.DirectionalLight(0xe8f0ff, 1.05);
+		const baseBounceI = 1.05;
+		const bounce = new THREE.DirectionalLight(0xe8f0ff, baseBounceI);
 		bounce.position.set(0, -2.2, 2.5);
 		scene.add(bounce);
-		const magenta = new THREE.PointLight(0xf472f6, 5.1, 12);
+		const baseMagentaI = 5.1;
+		const magenta = new THREE.PointLight(0xf472f6, baseMagentaI, 12);
 		magenta.position.set(0.6, 1.1, 1.8);
 		scene.add(magenta);
-		const fill = new THREE.PointLight(0xc8eeff, 2.55, 11);
+		const baseFillPtI = 2.55;
+		const fill = new THREE.PointLight(0xc8eeff, baseFillPtI, 11);
 		fill.position.set(-2, 0.3, 2);
 		scene.add(fill);
+
+		const boltLight = new THREE.PointLight(0xcffafe, 0, 26, 2);
+		boltLight.position.set(0.9, 2.1, 1.6);
+		scene.add(boltLight);
+		const arcLight = new THREE.PointLight(0xf0abfc, 0, 18, 1.8);
+		arcLight.position.set(-1.1, 1.5, 1.4);
+		scene.add(arcLight);
+
+		const boltGeo = new THREE.BufferGeometry().setFromPoints(randomBoltPoints());
+		const boltMat = new THREE.LineBasicMaterial({
+			color: 0xa5f3fc,
+			transparent: true,
+			opacity: 0,
+			blending: THREE.AdditiveBlending,
+			depthWrite: false,
+		});
+		const boltLine = new THREE.Line(boltGeo, boltMat);
+		boltLine.frustumCulled = false;
+		scene.add(boltLine);
+
+		const boltGeo2 = new THREE.BufferGeometry().setFromPoints(randomBoltPoints());
+		const boltMat2 = new THREE.LineBasicMaterial({
+			color: 0xe879f9,
+			transparent: true,
+			opacity: 0,
+			blending: THREE.AdditiveBlending,
+			depthWrite: false,
+		});
+		const boltLine2 = new THREE.Line(boltGeo2, boltMat2);
+		boltLine2.frustumCulled = false;
+		boltLine2.position.z = -0.15;
+		scene.add(boltLine2);
+
+		let heroRevealT0 = null;
+		let introMaterialsNeedRestore = false;
+		let lastBoltRegen = -1;
 
 		const pivot = new THREE.Group();
 		scene.add(pivot);
@@ -441,8 +515,16 @@ const HeroGltfRobot = () => {
 						if (m && "envMapIntensity" in m) {
 							m.envMapIntensity = (m.envMapIntensity ?? 1) * 1.25;
 						}
+						if (m && (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial)) {
+							m.userData._introEmissive = m.emissive.clone();
+							m.userData._introEmissiveInt = m.emissiveIntensity ?? 1;
+						}
 					}
 				});
+
+				if (!reduceMotion) {
+					heroRevealT0 = performance.now();
+				}
 
 				if (gltf.animations?.length) {
 					mixer = new THREE.AnimationMixer(model);
@@ -459,10 +541,10 @@ const HeroGltfRobot = () => {
 			},
 		);
 
+		/** Cursor follow when not click-dragging; drag adds extra yaw/pitch (unbounded yaw via dragYawAcc) */
 		const maxYaw = 0.72;
 		const maxPitch = 0.42;
 		const maxParallaxX = 0.18;
-		/** Keep small — Y parallax pushes into the top of the frustum when looking up */
 		const maxParallaxY = 0.045;
 
 		const tick = () => {
@@ -470,6 +552,129 @@ const HeroGltfRobot = () => {
 			const dt = clock.getDelta();
 			const t = clock.elapsedTime;
 			if (mixer) mixer.update(dt);
+
+			const revealSec =
+				heroRevealT0 === null
+					? 1e9
+					: (performance.now() - heroRevealT0) / 1000;
+			const inHeroReveal =
+				!reduceMotion && heroRevealT0 !== null && revealSec < 2.8;
+
+			let introShake = 0;
+			const cyanElectric = tmpColorB.setRGB(0.22, 0.98, 0.78);
+
+			if (inHeroReveal) {
+				introMaterialsNeedRestore = true;
+				const thunder = thunderPulse(revealSec);
+				const buzz = Math.sin(t * 88) * 0.1 + Math.sin(t * 131) * 0.07;
+				const flick = Math.abs(buzz);
+
+				renderer.toneMappingExposure =
+					baseExposure + thunder * 1.45 + flick * 0.32;
+
+				amb.intensity = baseAmbI * (1 + thunder * 0.28);
+				hemi.intensity = baseHemiI * (1 + thunder * 0.5);
+				key.intensity = baseKeyI * (1 + thunder * 0.45);
+				fillDir.intensity = baseFillDirI * (1 + thunder * 0.25);
+				front.intensity = baseFrontI * (1 + thunder * 0.35);
+				rim.intensity = baseRimI * (1 + thunder * 0.2);
+				bounce.intensity = baseBounceI * (1 + thunder * 0.15);
+				magenta.intensity =
+					baseMagentaI * (1 + thunder * 0.85 + flick * 2.2);
+				fill.intensity = baseFillPtI * (1 + thunder * 0.55 + flick);
+
+				boltLight.intensity = thunder * 56 + flick * 22;
+				arcLight.intensity =
+					thunder * 32 + (Math.sin(t * 101) * 0.5 + 0.5) * 18;
+
+				boltLight.position.set(
+					0.55 + thunder * 0.85,
+					1.6 + thunder * 0.65,
+					1.1 + flick * 0.4,
+				);
+				arcLight.position.set(
+					-0.9 - thunder * 0.3,
+					1.35 + flick * 0.2,
+					1.3,
+				);
+
+				const linePush = Math.min(1, thunder * 0.88 + flick * 2.8);
+				boltMat.opacity = linePush * 0.85;
+				boltMat2.opacity = linePush * 0.55;
+
+				const pk = Math.floor(revealSec * 5);
+				if (thunder > 0.28 && pk !== lastBoltRegen) {
+					lastBoltRegen = pk;
+					boltGeo.setFromPoints(randomBoltPoints());
+					boltGeo2.setFromPoints(randomBoltPoints());
+				}
+
+				const root = rayPickCtx.modelRoot;
+				if (root) {
+					const emAmt = thunder * 0.42 + flick * 0.14;
+					root.traverse((child) => {
+						if (!child.isMesh) return;
+						const mats = Array.isArray(child.material)
+							? child.material
+							: [child.material];
+						for (const m of mats) {
+							if (m?.userData?._introEmissive) {
+								m.emissive.lerpColors(
+									m.userData._introEmissive,
+									cyanElectric,
+									emAmt,
+								);
+								m.emissiveIntensity =
+									m.userData._introEmissiveInt + emAmt * 3.2;
+							}
+						}
+					});
+				}
+
+				const fo = flashOverlayRef.current;
+				if (fo) {
+					fo.style.opacity = String(
+						Math.min(0.5, thunder * 0.38 + flick * 0.12),
+					);
+				}
+
+				introShake = (Math.random() - 0.5) * 0.05 * thunder;
+			} else {
+				renderer.toneMappingExposure = baseExposure;
+				amb.intensity = baseAmbI;
+				hemi.intensity = baseHemiI;
+				key.intensity = baseKeyI;
+				fillDir.intensity = baseFillDirI;
+				front.intensity = baseFrontI;
+				rim.intensity = baseRimI;
+				bounce.intensity = baseBounceI;
+				magenta.intensity = baseMagentaI;
+				fill.intensity = baseFillPtI;
+				boltLight.intensity = 0;
+				arcLight.intensity = 0;
+				boltMat.opacity = 0;
+				boltMat2.opacity = 0;
+
+				const fo = flashOverlayRef.current;
+				if (fo) fo.style.opacity = "0";
+
+				if (introMaterialsNeedRestore && rayPickCtx.modelRoot) {
+					const root = rayPickCtx.modelRoot;
+					root.traverse((child) => {
+						if (!child.isMesh) return;
+						const mats = Array.isArray(child.material)
+							? child.material
+							: [child.material];
+						for (const m of mats) {
+							if (m?.userData?._introEmissive) {
+								m.emissive.copy(m.userData._introEmissive);
+								m.emissiveIntensity = m.userData._introEmissiveInt;
+							}
+						}
+					});
+					introMaterialsNeedRestore = false;
+				}
+			}
 
 			const touchDragging = captureId !== null && activePointerType === "touch";
 			const mouseOrbiting =
@@ -545,8 +750,9 @@ const HeroGltfRobot = () => {
 					pivotRef.current.rotation.y =
 						baseYaw + cursorYaw + dragYawAcc + idleAutoYaw;
 					pivotRef.current.rotation.x =
-						wigglePitch + cursorPitch + dragPitchAcc;
-					pivotRef.current.rotation.z = wiggleRoll + cursorRoll;
+						wigglePitch + cursorPitch + dragPitchAcc + introShake * 1.8;
+					pivotRef.current.rotation.z =
+						wiggleRoll + cursorRoll + introShake * 2.2;
 				}
 			}
 			renderer.render(scene, camera);
@@ -587,6 +793,12 @@ const HeroGltfRobot = () => {
 			wrap.removeEventListener("pointerdown", onPointerDown);
 			wrap.removeEventListener("pointerup", onPointerUp);
 			wrap.removeEventListener("pointercancel", onPointerCancel);
+			scene.remove(boltLine, boltLine2);
+			boltGeo.dispose();
+			boltMat.dispose();
+			boltGeo2.dispose();
+			boltMat2.dispose();
+			scene.remove(boltLight, arcLight);
 			disposeObject3D(pivot);
 			renderer.dispose();
 			if (wrap.contains(renderer.domElement)) {
@@ -612,7 +824,7 @@ const HeroGltfRobot = () => {
 					ref={wrapRef}
 					role="button"
 					tabIndex={0}
-					aria-label="Hero robot — drag to rotate, click for a quick introduction"
+					aria-label="Hero robot — moves with your pointer; click and drag to orbit, click for a quick introduction"
 					aria-haspopup="dialog"
 					aria-expanded={introOpen}
 					onKeyDown={(e) => {
@@ -639,6 +851,16 @@ const HeroGltfRobot = () => {
 						}
 					}}
 					className="h-full w-full cursor-grab touch-none outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030c] active:cursor-grabbing"
+				/>
+				<div
+					ref={flashOverlayRef}
+					className="pointer-events-none absolute inset-0 z-[5] opacity-0"
+					style={{
+						mixBlendMode: "screen",
+						background:
+							"radial-gradient(ellipse 58% 52% at 50% 40%, rgba(200,245,255,0.5) 0%, rgba(100,200,255,0.15) 38%, transparent 72%)",
+					}}
+					aria-hidden
 				/>
 				<AnimatePresence>
 					{showHoverHint ? (

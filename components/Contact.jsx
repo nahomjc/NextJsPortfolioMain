@@ -179,9 +179,8 @@ const Contact = () => {
 								aria-hidden
 							/>
 							<form
-								action="https://getform.io/f/3541f08d-6ce4-4e35-bc6a-ee35ea66c98e"
+								action="https://formspree.io/f/mjgpgqjd"
 								method="POST"
-								encType="multipart/form-data"
 								className="p-2 md:p-4"
 							>
 								<div className="grid w-full gap-4 py-2 md:grid-cols-2">
