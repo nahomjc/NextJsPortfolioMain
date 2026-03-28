@@ -113,7 +113,7 @@ const RoboDogButton = ({ onClick }) => {
 				animate={{ scale: 1 }}
 				exit={{ scale: 0 }}
 				onClick={onClick}
-				className="relative flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-xl border border-cyan-500/40 bg-white/95 text-cyan-700 shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_8px_28px_rgba(15,23,42,0.12),0_0_36px_rgba(34,211,238,0.15)] backdrop-blur-xl transition-all duration-300 hover:border-fuchsia-500/45 hover:shadow-[0_0_0_1px_rgba(217,70,239,0.2),0_12px_36px_rgba(15,23,42,0.14),0_0_44px_rgba(217,70,239,0.12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-100 dark:border-cyan-400/35 dark:bg-[#0a0718]/95 dark:text-cyan-100 dark:shadow-[0_0_0_1px_rgba(217,70,239,0.15),0_8px_32px_rgba(0,0,0,0.45),0_0_40px_rgba(34,211,238,0.12)] dark:hover:border-fuchsia-400/40 dark:hover:shadow-[0_0_0_1px_rgba(217,70,239,0.35),0_12px_40px_rgba(0,0,0,0.5),0_0_48px_rgba(217,70,239,0.18)] dark:focus-visible:ring-cyan-400/50 dark:focus-visible:ring-offset-[#06030c]"
+				className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/40 bg-white/95 text-cyan-700 shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_6px_22px_rgba(15,23,42,0.12),0_0_28px_rgba(34,211,238,0.15)] backdrop-blur-xl transition-all duration-300 hover:border-fuchsia-500/45 hover:shadow-[0_0_0_1px_rgba(217,70,239,0.2),0_10px_30px_rgba(15,23,42,0.14),0_0_36px_rgba(217,70,239,0.12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-100 dark:border-cyan-400/35 dark:bg-[#0a0718]/95 dark:text-cyan-100 dark:shadow-[0_0_0_1px_rgba(217,70,239,0.15),0_6px_26px_rgba(0,0,0,0.45),0_0_32px_rgba(34,211,238,0.12)] dark:hover:border-fuchsia-400/40 dark:hover:shadow-[0_0_0_1px_rgba(217,70,239,0.35),0_10px_34px_rgba(0,0,0,0.5),0_0_40px_rgba(217,70,239,0.18)] dark:focus-visible:ring-cyan-400/50 dark:focus-visible:ring-offset-[#06030c] sm:h-10 sm:w-10"
 				aria-label="Open AI Assistant"
 			>
 				<span
@@ -125,7 +125,7 @@ const RoboDogButton = ({ onClick }) => {
 					aria-hidden
 				/>
 				<span className="relative z-10">
-					<AnimatedDogIcon size={24} />
+					<AnimatedDogIcon size={18} />
 				</span>
 			</motion.button>
 
@@ -156,7 +156,7 @@ const RoboDogButton = ({ onClick }) => {
 				animate={{
 					boxShadow: [
 						"0 0 0 0 rgba(34, 211, 238, 0.25)",
-						"0 0 0 14px rgba(34, 211, 238, 0)",
+						"0 0 0 8px rgba(34, 211, 238, 0)",
 					],
 				}}
 				transition={{
@@ -433,9 +433,12 @@ const AIChat = () => {
 	return (
 		<AnimatePresence>
 			{!isOpen && (
-				<div className="fixed bottom-20 right-4 z-50 sm:bottom-24 sm:right-6">
-					<RoboDogButton onClick={() => setIsOpen(true)} />
-				</div>
+				<>
+					{/* bottom-14 / sm:bottom-16 = same gap below viewport as between phone & chat */}
+					<div className="fixed bottom-14 right-4 z-50 sm:bottom-16 sm:right-6">
+						<RoboDogButton onClick={() => setIsOpen(true)} />
+					</div>
+				</>
 			)}
 
 			{isOpen && (
