@@ -1,63 +1,197 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
+/** Halfwidth katakana + hex + symbols — reads “Matrix” without extra font files */
+const GLYPHS =
+  'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFﾞﾟ｢｣､･';
+
+function pickGlyph() {
+  return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+}
+
+/** Tight column spacing = dense vertical Matrix rain */
+function buildColumns(cssW, cssH, fontSize, colStep) {
+  const n = Math.max(1, Math.ceil(cssW / colStep));
+  const cols = [];
+  for (let i = 0; i < n; i++) {
+    const len = 22 + Math.floor(Math.random() * 48);
+    cols.push({
+      y: Math.random() * cssH * 1.2 - cssH * 0.15,
+      speed: 0.45 + Math.random() * 1.35,
+      len,
+      headTick: 0,
+      chars: Array.from({ length: len }, pickGlyph),
+      limeBias: Math.random() < 0.1,
+      colStep,
+    });
+  }
+  return cols;
+}
+
 const MatrixRain = () => {
   const canvasRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const rafRef = useRef(0);
+  const colsRef = useRef([]);
+  const reducedRef = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      setDimensions({ width: canvas.width, height: canvas.height });
+    if (!canvas) return undefined;
+
+    const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+    if (!ctx) return undefined;
+
+    reducedRef.current =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const cssSize = () => {
+      const vv = window.visualViewport;
+      const w = Math.max(
+        1,
+        Math.round(vv?.width ?? window.innerWidth),
+      );
+      const h = Math.max(
+        1,
+        Math.round(vv?.height ?? window.innerHeight),
+      );
+      return { w, h };
     };
-    
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
 
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%";
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = [];
+    let fontSize = 15;
+    let lastW = 0;
+    let lastH = 0;
 
-    for (let i = 0; i < columns; i++) {
-      drops[i] = 1;
-    }
+    const applySize = () => {
+      const { w, h } = cssSize();
+      lastW = w;
+      lastH = h;
+      fontSize = w < 480 ? 13 : w < 900 ? 14 : 15;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.textBaseline = 'top';
+      ctx.font = `600 ${fontSize}px ui-monospace, "Cascadia Code", "Segoe UI Mono", "Consolas", monospace`;
+      const colStep = fontSize * 0.56;
+      colsRef.current = buildColumns(w, h, fontSize, colStep);
+    };
 
-    const draw = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    applySize();
 
-      ctx.fillStyle = '#0F0';
-      ctx.font = fontSize + 'px monospace';
+    let last = performance.now();
 
-      for (let i = 0; i < drops.length; i++) {
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    const tick = (now) => {
+      const w = lastW;
+      const h = lastH;
+      const dt = Math.min((now - last) / 16.67, 2.4);
+      last = now;
 
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
+      if (reducedRef.current) {
+        ctx.fillStyle = '#030712';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'rgba(0, 255, 80, 0.035)';
+        const step = fontSize * 2;
+        for (let x = 0; x < w; x += step) {
+          for (let y = 0; y < h; y += step) {
+            if ((x + y) % (step * 2) === 0) ctx.fillRect(x, y, 1, 1);
+          }
         }
-        drops[i]++;
+        return;
+      }
+
+      ctx.fillStyle = 'rgba(0, 8, 2, 0.2)';
+      ctx.fillRect(0, 0, w, h);
+
+      const cols = colsRef.current;
+
+      for (let i = 0; i < cols.length; i++) {
+        const col = cols[i];
+        const colStep = col.colStep ?? fontSize * 0.56;
+        col.y += col.speed * dt * fontSize * 0.42;
+
+        const resetAbove = col.y - col.len * fontSize > h + fontSize * 6;
+        if (resetAbove) {
+          col.y = -Math.random() * h * 0.5 - col.len * fontSize;
+          col.speed = 0.45 + Math.random() * 1.35;
+          col.len = 22 + Math.floor(Math.random() * 48);
+          col.chars = Array.from({ length: col.len }, pickGlyph);
+        }
+
+        col.headTick += dt;
+        if (col.headTick >= 1) {
+          col.headTick = 0;
+          col.chars[0] = pickGlyph();
+        }
+        if (Math.random() < 0.045) {
+          const idx = 1 + Math.floor(Math.random() * Math.min(col.len - 1, 16));
+          col.chars[idx] = pickGlyph();
+        }
+
+        const x = i * colStep;
+
+        for (let r = col.len - 1; r >= 0; r--) {
+          const y = col.y - r * fontSize;
+          if (y < -fontSize || y > h + fontSize) continue;
+
+          const ch = col.chars[r] ?? pickGlyph();
+          const isHead = r === 0;
+          const depth = r / Math.max(col.len - 1, 1);
+
+          ctx.shadowBlur = 0;
+
+          if (isHead) {
+            ctx.shadowColor = 'rgba(120, 255, 140, 0.95)';
+            ctx.shadowBlur = 16;
+            ctx.fillStyle = '#f0fff4';
+            ctx.fillText(ch, x, y);
+            ctx.shadowBlur = 9;
+            ctx.fillStyle = 'rgba(185, 255, 170, 0.45)';
+            ctx.fillText(ch, x, y);
+          } else {
+            const limeFlash =
+              col.limeBias && r > 0 && r < 10 && (r + i * 3) % 4 === 0;
+            if (limeFlash) {
+              ctx.fillStyle = `rgba(200, 255, 140, ${0.2 + (1 - depth) * 0.55})`;
+            } else {
+              const a = 0.1 + (1 - depth) * 0.78;
+              ctx.fillStyle = `rgba(0, 220, 95, ${a * (0.5 + depth * 0.5)})`;
+            }
+            ctx.fillText(ch, x, y);
+          }
+        }
+      }
+
+      ctx.shadowBlur = 0;
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    const onResize = () => {
+      applySize();
+      if (reducedRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = requestAnimationFrame(tick);
       }
     };
+    window.addEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);
 
-    const interval = setInterval(draw, 33);
+    rafRef.current = requestAnimationFrame(tick);
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('resize', onResize);
+      window.visualViewport?.removeEventListener('resize', onResize);
     };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full z-0"
-      style={{ opacity: 0.8 }}
+      className="pointer-events-none fixed inset-0 z-0 h-full w-full min-h-[100dvh]"
+      aria-hidden
     />
   );
 };
@@ -86,9 +220,29 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
     >
       {/* Matrix Rain Background */}
       <MatrixRain />
-      
-      {/* Overlay gradient for better contrast */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50" />
+
+      {/* Vignette + dense green scanlines (Matrix CRT) */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_85%_70%_at_50%_45%,transparent_0%,rgba(0,12,4,0.5)_68%,rgba(0,8,2,0.92)_100%)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] opacity-[0.11]"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(57,255,20,0.14) 1px, rgba(57,255,20,0.14) 2px)',
+        }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] opacity-[0.065]"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,255,100,0.1) 3px, rgba(0,255,100,0.1) 4px)',
+        }}
+        aria-hidden
+      />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/45 via-transparent to-black/70" />
 
       <div className="relative z-10">
         <motion.div
@@ -191,7 +345,7 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
             <motion.p
               initial={{ opacity: 1 }}
               animate={{ opacity: scanComplete ? 0 : 1 }}
-              className="text-[#00ff00] text-lg font-mono mb-2 glitch-text"
+              className="text-lg font-mono mb-2 text-[#7dff9a] glitch-text"
             >
               {scanComplete ? "IDENTITY CONFIRMED" : "<Kingdom Code/>"}
             </motion.p>
