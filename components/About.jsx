@@ -1,11 +1,25 @@
 import React from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import AboutImg from "../public/assets/download.png";
 
-const PORTRAIT_SRC =
-	typeof AboutImg === "string" ? AboutImg : AboutImg.src;
+const AboutWorkspacePly = dynamic(() => import("./AboutWorkspacePly"), {
+	ssr: false,
+	loading: () => (
+		<div
+			className="flex h-[min(58vw,380px)] w-full items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/50 dark:border-white/10 dark:bg-slate-950/30 sm:h-[320px] md:h-[350px] lg:h-[380px]"
+			aria-hidden
+		>
+			<span className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+				Loading workspace…
+			</span>
+		</div>
+	),
+});
+
+const PORTRAIT_SRC = typeof AboutImg === "string" ? AboutImg : AboutImg.src;
 
 const cornerBase =
 	"pointer-events-none absolute z-20 h-10 w-10 border-cyan-400/80 dark:border-cyan-400/70";
@@ -114,7 +128,11 @@ function PortraitScanGlitch({ src, active }) {
 						"repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(34,211,238,0.04) 3px, rgba(34,211,238,0.04) 4px)",
 				}}
 				animate={{ opacity: [0.2, 0.42, 0.28, 0.38, 0.22] }}
-				transition={{ duration: 2.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+				transition={{
+					duration: 2.8,
+					repeat: Number.POSITIVE_INFINITY,
+					ease: "easeInOut",
+				}}
 				aria-hidden
 			/>
 			<motion.div
@@ -413,6 +431,18 @@ const About = () => {
 										websites on CMS platforms. Over the years, I have worked
 										directly with clients, taking mock wireframes all the way to
 										fully deployed applications like Muyalogy and Afriwork.
+									</p>
+								</div>
+
+								<div className="mt-8 space-y-3">
+									<p className="font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-600 dark:text-cyan-400">
+										Workspace / 3D
+									</p>
+									<div className="overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/40 dark:border-white/10 dark:bg-slate-950/25">
+										<AboutWorkspacePly />
+									</div>
+									<p className="text-center font-mono text-[10px] text-slate-400 dark:text-slate-500">
+										Tap the 3D preview · personal projects archive
 									</p>
 								</div>
 
