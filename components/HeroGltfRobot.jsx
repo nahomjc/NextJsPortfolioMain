@@ -585,7 +585,7 @@ const HeroGltfRobot = () => {
 						setIntroOpen(true);
 					}
 				}}
-				className={`relative z-20 mx-auto h-[min(500px,74vw)] w-full max-w-2xl cursor-grab touch-none outline-none transition-opacity duration-500 focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030c] active:cursor-grabbing md:h-[min(580px,60vh)] ${
+				className={`relative z-20 mx-auto h-[min(440px,70vw)] w-full max-w-2xl cursor-grab touch-none outline-none transition-opacity duration-500 focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030c] active:cursor-grabbing md:h-[min(500px,50vh)] lg:h-[min(520px,52vh)] ${
 					loaded ? "opacity-100" : "opacity-40"
 				}`}
 			/>

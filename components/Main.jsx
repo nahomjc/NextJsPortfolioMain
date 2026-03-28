@@ -54,7 +54,7 @@ const Main = () => {
 	return (
 		<div
 			id="home"
-			className="relative flex min-h-screen w-full items-center overflow-x-hidden overflow-y-visible bg-[#06030c] px-4 pt-32 pb-16 text-slate-100 md:pt-36"
+			className="relative flex min-h-screen w-full items-center overflow-x-hidden overflow-y-visible bg-[#06030c] px-4 pb-10 pt-28 text-slate-100 md:pb-12 md:pt-32 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden"
 		>
 			<div
 				className="pointer-events-none absolute inset-0 bg-[length:48px_48px] opacity-[0.22]"
@@ -74,12 +74,12 @@ const Main = () => {
 			/>
 			<HeroSparkles />
 
-			<div className="relative z-10 mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-12">
+			<div className="relative z-10 mx-auto grid w-full min-h-0 max-h-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-10 lg:py-0">
 				<motion.div
 					initial={{ opacity: 0, y: 18 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.55 }}
-					className="order-2 flex flex-col text-center lg:order-1 lg:text-left"
+					className="order-2 flex min-h-0 flex-col text-center lg:order-1 lg:min-h-0 lg:text-left"
 				>
 					<span className="mb-5 inline-flex items-center justify-center gap-2 self-center rounded-full border border-fuchsia-500/35 bg-fuchsia-500/15 px-4 py-1.5 text-xs font-semibold text-fuchsia-100/95 shadow-[0_0_24px_rgba(217,70,239,0.2)] lg:self-start">
 						Lightning-fast UI, solid engineering
@@ -170,7 +170,7 @@ const Main = () => {
 					initial={{ opacity: 0, scale: 0.96 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ duration: 0.65, delay: 0.08 }}
-					className="relative order-1 flex min-h-[min(320px,50vw)] items-center justify-center pt-6 sm:pt-10 lg:order-2"
+					className="relative order-1 flex min-h-[min(280px,48vw)] items-center justify-center pt-3 sm:pt-5 lg:order-2 lg:min-h-0"
 				>
 					<div className="pointer-events-none absolute inset-x-[4%] bottom-[5%] top-[30%] z-0 rounded-[2rem] bg-gradient-to-b from-white/[0.04] to-transparent ring-1 ring-white/10" />
 					<HeroGltfRobot />

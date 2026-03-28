@@ -4,6 +4,9 @@ import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import AboutImg from "../public/assets/download.png";
 
+const PORTRAIT_SRC =
+	typeof AboutImg === "string" ? AboutImg : AboutImg.src;
+
 const cornerBase =
 	"pointer-events-none absolute z-20 h-10 w-10 border-cyan-400/80 dark:border-cyan-400/70";
 
@@ -61,6 +64,88 @@ const itemVariants = {
 		transition: { type: "spring", stiffness: 320, damping: 26 },
 	},
 };
+
+/** Robotic scan / glitch layers over portrait — decorative only */
+function PortraitScanGlitch({ src, active }) {
+	if (!active) return null;
+	return (
+		<>
+			<motion.div
+				className="pointer-events-none absolute inset-0 z-[6] bg-cover opacity-0 mix-blend-screen"
+				style={{
+					backgroundImage: `url(${src})`,
+					backgroundPosition: "center top",
+				}}
+				animate={{
+					x: [0, 0, -6, 5, -3, 0, 0, 0, 4, -5, 0, 0],
+					y: [0, 0, 0, 1, -2, 0, 0, 1, 0, 0],
+					opacity: [0, 0, 0, 0.55, 0.4, 0, 0, 0, 0, 0.5, 0.25, 0, 0],
+				}}
+				transition={{
+					duration: 6.5,
+					repeat: Number.POSITIVE_INFINITY,
+					ease: "linear",
+				}}
+				aria-hidden
+			/>
+			<motion.div
+				className="pointer-events-none absolute inset-0 z-[6] bg-cover opacity-0 mix-blend-screen"
+				style={{
+					backgroundImage: `url(${src})`,
+					backgroundPosition: "center top",
+					filter: "hue-rotate(175deg) saturate(2.8) contrast(1.15)",
+				}}
+				animate={{
+					x: [0, 0, 0, 7, -5, 2, 0, 0, 0, -6, 4, 0],
+					opacity: [0, 0, 0, 0, 0.5, 0.35, 0, 0, 0.45, 0, 0, 0],
+				}}
+				transition={{
+					duration: 6.5,
+					repeat: Number.POSITIVE_INFINITY,
+					ease: "linear",
+					delay: 0.15,
+				}}
+				aria-hidden
+			/>
+			<motion.div
+				className="pointer-events-none absolute inset-0 z-[7] mix-blend-overlay"
+				style={{
+					background:
+						"repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(34,211,238,0.04) 3px, rgba(34,211,238,0.04) 4px)",
+				}}
+				animate={{ opacity: [0.2, 0.42, 0.28, 0.38, 0.22] }}
+				transition={{ duration: 2.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+				aria-hidden
+			/>
+			<motion.div
+				className="pointer-events-none absolute inset-0 z-[8] bg-cover"
+				style={{
+					backgroundImage: `url(${src})`,
+					backgroundPosition: "center top",
+				}}
+				animate={{
+					clipPath: [
+						"inset(38% 0 58% 0)",
+						"inset(38% 0 58% 0)",
+						"inset(62% 0 32% 0)",
+						"inset(62% 0 32% 0)",
+						"inset(15% 0 80% 0)",
+						"inset(100% 0 0% 0)",
+					],
+					x: [0, -4, 4, 0, 0, 0],
+					opacity: [0, 0.85, 0.75, 0, 0, 0],
+				}}
+				transition={{
+					duration: 4.2,
+					repeat: Number.POSITIVE_INFINITY,
+					ease: "linear",
+					times: [0, 0.08, 0.12, 0.2, 0.28, 1],
+				}}
+				aria-hidden
+			/>
+		</>
+	);
+}
 
 const About = () => {
 	const reduceMotion = useReducedMotion();
@@ -156,32 +241,80 @@ const About = () => {
 								/>
 								<div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-100/50 shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_25px_60px_-20px_rgba(15,23,42,0.35)] dark:border-white/12 dark:bg-slate-900/40 dark:shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_28px_70px_-24px_rgba(0,0,0,0.65)]">
 									<HudCorners />
-									<div className="relative aspect-[3/4] w-full">
-										<Image
-											src={AboutImg}
-											alt="Nahom — developer portrait"
-											layout="fill"
-											objectFit="cover"
-											objectPosition="top"
-											priority
-											sizes="(max-width: 1024px) 100vw, 400px"
+									<div className="relative aspect-[3/4] w-full overflow-hidden">
+										<motion.div
+											className="absolute inset-0"
+											animate={
+												reduceMotion
+													? undefined
+													: {
+															x: [0, 0, -1, 1, -2, 2, 0, 0],
+															filter: [
+																"brightness(1) contrast(1)",
+																"brightness(1) contrast(1)",
+																"brightness(1.06) contrast(1.05) drop-shadow(2px 0 0 rgba(255,0,170,0.35)) drop-shadow(-2px 0 0 rgba(0,240,255,0.35))",
+																"brightness(1) contrast(1)",
+																"brightness(1.12) contrast(1.08) drop-shadow(3px 0 0 rgba(255,0,170,0.45)) drop-shadow(-3px 0 0 rgba(0,240,255,0.4))",
+																"brightness(1) contrast(1)",
+																"brightness(1) contrast(1)",
+																"brightness(1) contrast(1)",
+															],
+														}
+											}
+											transition={
+												reduceMotion
+													? undefined
+													: {
+															duration: 5.5,
+															repeat: Number.POSITIVE_INFINITY,
+															ease: "linear",
+														}
+											}
+										>
+											<Image
+												src={AboutImg}
+												alt="Nahom — developer portrait"
+												layout="fill"
+												objectFit="cover"
+												objectPosition="top"
+												priority
+												sizes="(max-width: 1024px) 100vw, 400px"
+											/>
+										</motion.div>
+										<PortraitScanGlitch
+											src={PORTRAIT_SRC}
+											active={!reduceMotion}
 										/>
 										<div
 											className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-slate-900/10 mix-blend-multiply dark:from-future-surface/80 dark:via-transparent dark:to-future-surface/20"
 											aria-hidden
 										/>
 										{!reduceMotion ? (
-											<motion.div
-												className="absolute inset-x-0 z-10 h-[2px] bg-gradient-to-r from-transparent via-cyan-300/80 to-transparent shadow-[0_0_16px_rgba(34,211,238,0.45)] dark:via-cyan-400/70"
-												initial={{ top: "0%" }}
-												animate={{ top: ["0%", "100%", "0%"] }}
-												transition={{
-													duration: 6,
-													repeat: Infinity,
-													ease: "linear",
-												}}
-												aria-hidden
-											/>
+											<>
+												<motion.div
+													className="absolute inset-x-0 z-10 h-[3px] bg-gradient-to-r from-transparent via-cyan-300/90 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.55)] dark:via-cyan-400/85"
+													initial={{ top: "-2%" }}
+													animate={{ top: ["-2%", "102%", "-2%"] }}
+													transition={{
+														duration: 5.2,
+														repeat: Number.POSITIVE_INFINITY,
+														ease: "linear",
+													}}
+													aria-hidden
+												/>
+												<motion.div
+													className="absolute inset-x-[8%] z-10 h-px bg-gradient-to-r from-transparent via-fuchsia-400/70 to-transparent opacity-80 shadow-[0_0_12px_rgba(217,70,239,0.4)]"
+													initial={{ top: "0%" }}
+													animate={{ top: ["0%", "100%", "0%"] }}
+													transition={{
+														duration: 7.5,
+														repeat: Number.POSITIVE_INFINITY,
+														ease: "linear",
+														delay: 0.7,
+													}}
+													aria-hidden
+												/>
+											</>
 										) : null}
 										<div
 											className="pointer-events-none absolute inset-0 opacity-[0.07] dark:opacity-[0.12]"
