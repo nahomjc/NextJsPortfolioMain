@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
@@ -167,6 +167,7 @@ function PortraitScanGlitch({ src, active }) {
 
 const About = () => {
 	const reduceMotion = useReducedMotion();
+	const [bioExpanded, setBioExpanded] = useState(false);
 
 	return (
 		<div
@@ -414,24 +415,73 @@ const About = () => {
 									))}
 								</div>
 
-								<div className="space-y-4 text-[0.95rem] leading-relaxed text-slate-600 dark:text-slate-400">
-									<p>
-										I specialize in building mobile-responsive front-end UI
-										applications that seamlessly integrate with APIs and backend
-										technologies. Passionate about learning and adopting new
-										technologies, I believe there is always more than one way to
-										solve a problem. While I am most proficient in React,
-										Next.js, HTML, CSS, and JavaScript, I am a fast learner who
-										can adapt to new tech stacks as needed. For me, being a
-										great developer is not about using a single language but
-										selecting the right tool for the job.
-									</p>
-									<p>
-										I began my journey in 2016, managing multiple e-commerce
-										websites on CMS platforms. Over the years, I have worked
-										directly with clients, taking mock wireframes all the way to
-										fully deployed applications like Muyalogy and Afriwork.
-									</p>
+								<div>
+									{/* Fade only covers the clipped text — not the button below */}
+									<div className="relative">
+										<div
+											id="about-bio-text"
+											className={`space-y-4 text-[0.95rem] leading-relaxed text-slate-600 transition-[max-height] duration-300 ease-out dark:text-slate-400 motion-reduce:transition-none ${
+												bioExpanded
+													? "max-h-[8000px]"
+													: "max-h-[min(44vh,18.5rem)] overflow-hidden sm:max-h-[min(36vh,16rem)]"
+											}`}
+										>
+											<p>
+												I specialize in building high-performance,
+												mobile-responsive front-end applications that seamlessly
+												integrate with APIs and backend systems. I focus on
+												efficient data handling, optimized server communication,
+												and scalable architecture, ensuring applications remain
+												fast, reliable, and cost-effective as they grow. I am
+												passionate about continuously learning and adopting new
+												technologies, and I approach problem-solving with the
+												mindset that there is always more than one effective
+												solution. My core expertise lies in React, Next.js, and
+												JavaScript, and I am highly adaptable when working with
+												new tools and frameworks. Beyond development, I actively
+												work on improving application performance and reducing
+												operational costs by optimizing API calls, minimizing
+												unnecessary server requests, and implementing efficient
+												state management and caching strategies. I prioritize
+												building solutions that not only function well but also
+												scale efficiently and reduce infrastructure overhead for
+												businesses.
+											</p>
+											<p>
+												I began my journey in 2016 managing multiple e-commerce
+												websites on CMS platforms. Over time, I have expanded my
+												experience by working on procurement platforms and Human
+												Capital Management (HCM) systems, gaining exposure to
+												complex business workflows and enterprise-level
+												requirements. I have also worked directly with clients,
+												transforming wireframes and concepts into fully deployed,
+												production-ready applications such as Muyalogy , Afriwork
+												Lms, Jiret Lms, green bag, Afrocado, ar-solutions,
+												Peragos, Loop State, Bazra E-Wallet, etc.
+											</p>
+										</div>
+										{!bioExpanded ? (
+											<div
+												className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-16 bg-gradient-to-t from-white from-25% via-white/90 to-transparent dark:from-slate-900 dark:from-25% dark:via-slate-900/90 dark:to-transparent"
+												aria-hidden
+											/>
+										) : null}
+									</div>
+									<button
+										type="button"
+										onClick={() => setBioExpanded((v) => !v)}
+										aria-expanded={bioExpanded}
+										aria-controls="about-bio-text"
+										className="unstyled relative z-[2] mt-4 inline-flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-cyan-500/[0.07] px-4 py-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700 shadow-sm transition hover:border-cyan-500/60 hover:bg-cyan-500/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-cyan-400/35 dark:bg-cyan-500/10 dark:text-cyan-300 dark:hover:border-cyan-400/55 dark:hover:bg-cyan-500/15 dark:focus-visible:ring-offset-slate-900"
+									>
+										<span
+											className="text-cyan-500 dark:text-cyan-400"
+											aria-hidden
+										>
+											{bioExpanded ? "−" : "+"}
+										</span>
+										{bioExpanded ? "Show less" : "Show more"}
+									</button>
 								</div>
 
 								<div className="mt-8 space-y-3">
