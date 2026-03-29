@@ -1,197 +1,245 @@
-import React from 'react';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { FaBriefcase, FaGraduationCap, FaCode, FaAward } from 'react-icons/fa';
+import React from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { FaBriefcase, FaGraduationCap, FaCode, FaAward } from "react-icons/fa";
 
 const experiences = [
-    {
-        id: 1,
-        type: 'education',
-        title: 'BSc in Computer Science',
-        organization: 'Admas University',
-        date: '2019',
-    description: 'Graduated with Very Great Distinction, achieving a 3.9 GPA. Focused on software engineering and advanced programming concepts.',
-    achievements: ['3.9 GPA', 'Very Great Distinction'],
-    icon: FaGraduationCap,
-    color: '#10B981'
-},
-{
-  id: 2,
-  type: 'work',
-  title: 'Full Stack Web Engineer',
-  organization: 'Muyalogy',
-  date: '2022 - Present',
-  description:
-    'Developed full-stack features with Next.js; built and integrated a Telegram bot wired to AI backends for learner support and automation. Used OpenAI for image-generation flows (server-side API keys only) and OpenRouter for conversational routing. UI with TailwindCSS and Mantine; Supabase for backend.',
-  skills: [
-    'Next.js',
-    'Telegram Bot + AI',
-    'OpenAI API',
-    'OpenRouter',
-    'TailwindCSS',
-    'Mantine UI',
-    'Supabase',
-  ],
-  icon: FaBriefcase,
-  color: '#22d3ee',
-  image: '/assets/channel-admin.jpg',
-  imageAlt: 'Telegram channel admin context for Muyalogy bot and community',
-},
-{
-    id: 3,
-    type: 'certification',
-    title: 'Meta Advanced React Certification',
-    organization: 'Meta (Facebook)',
-    date: '2022',
-    description: 'Advanced certification in React.js development, covering modern patterns and best practices.',
-    icon: FaAward,
-    color: '#3B82F6'
-  },
-  {
-    id: 4,
-    type: 'work',
-    title: 'Full Stack Developer',
-    organization: 'Jiret LMS',
-    date: '2024',
-    description: 'Built learning management system using Next.js, Drizzle ORM, PostgreSQL, and Supabase.',
-    skills: ['Next.js', 'PostgreSQL', 'Drizzle ORM'],
-    icon: FaBriefcase,
-    color: '#8b5cf6'
-  },
-  {
-    id: 5,
-    type: 'work',
-    title: 'Web Development Instructor',
-    organization: 'Muyalogy',
-    date: '2025',
-    description: 'Created and teaching comprehensive web development course in Amharic.',
-    skills: ['Teaching', 'Web Development', 'Course Creation'],
-    icon: FaCode,
-    color: '#a78bfa'
-  },
-  {
-    id: 6,
-    type: 'work',
-    title: 'Full Stack Developer',
-    organization: 'Peragos Systems',
-    date: '2025 – Present',
-    description:
-      'Working remotely with Peragos Systems on full-stack product work — collaborating with the team across time zones, shipping features, and maintaining quality in production.',
-    skills: ['Remote', 'Full-stack', 'Collaboration'],
-    icon: FaBriefcase,
-    color: '#14b8a6',
-  },
+	{
+		id: 1,
+		type: "education",
+		title: "BSc in Computer Science",
+		organization: "Admas University",
+		date: "2019",
+		description:
+			"Graduated with Very Great Distinction, achieving a 3.9 GPA. Focused on software engineering and advanced programming concepts.",
+		achievements: ["3.9 GPA", "Very Great Distinction"],
+		icon: FaGraduationCap,
+		color: "#10B981",
+	},
+	{
+		id: 8,
+		type: "work",
+		title: "Front-End Developer",
+		organization: "Bazra Motors",
+		date: "2021",
+		description:
+			"Worked on Bazra’s e-wallet product — shipping features and UI with React.js and Spring boot, focused on reliable money movement and a clear user experience.",
+		skills: ["React.js", "Sprint Bot", "E-wallet"],
+		icon: FaBriefcase,
+		color: "#6366f1",
+	},
+	{
+		id: 2,
+		type: "work",
+		title: "Full Stack Web Engineer",
+		organization: "Muyalogy",
+		date: "2022 - Present",
+		description:
+			"Full Stack Engineer & Tech Lead — Muyalogy Led development of a scalable platform using Next.js, TypeScript, and Supabase. Focused on performance optimization, API efficiency, and cost reduction. Implemented automation with Trigger.dev and integrated a Telegram bot for real-time user interaction.",
+		skills: [
+			"Next.js",
+			"Telegram Bot + AI",
+			"OpenAI API",
+			"OpenRouter",
+			"TailwindCSS",
+			"Mantine UI",
+			"Supabase",
+		],
+		icon: FaBriefcase,
+		color: "#22d3ee",
+		image: "/assets/channel-admin.jpg",
+		imageAlt: "Telegram channel admin context for Muyalogy bot and community",
+	},
+	{
+		id: 3,
+		type: "certification",
+		title: "Meta Advanced React Certification",
+		organization: "Meta (Facebook)",
+		date: "2022",
+		description:
+			"Advanced certification in React.js development, covering modern patterns and best practices.",
+		icon: FaAward,
+		color: "#3B82F6",
+	},
+	{
+		id: 4,
+		type: "work",
+		title: "Full Stack Developer",
+		organization: "Jiret LMS",
+		date: "2024",
+		description:
+			"Built learning management system using Next.js, Drizzle ORM, PostgreSQL, and Supabase.",
+		skills: ["Next.js", "PostgreSQL", "Drizzle ORM"],
+		icon: FaBriefcase,
+		color: "#8b5cf6",
+	},
+	{
+		id: 5,
+		type: "work",
+		title: "Web Development Instructor",
+		organization: "Muyalogy",
+		date: "2025",
+		description:
+			"Created and teaching comprehensive web development course in Amharic.",
+		skills: ["Teaching", "Web Development", "Course Creation"],
+		icon: FaCode,
+		color: "#a78bfa",
+	},
+	{
+		id: 6,
+		type: "work",
+		title: "Full Stack Developer",
+		organization: "Peragos Systems",
+		date: "2025 – Present",
+		description:
+			"Working remotely with Peragos Systems on full-stack product work — collaborating with the team across time zones, shipping features, and maintaining quality in production.",
+		skills: ["Remote", "Full-stack", "Collaboration"],
+		icon: FaBriefcase,
+		color: "#14b8a6",
+	},
+	{
+		id: 7,
+		type: "work",
+		title: "Full Stack Developer",
+		organization: "Green Bag Ethiopia",
+		date: "2025 – Present",
+		description:
+			"Developed full-stack features with Next.js; built and integrated a Telegram bot wired to AI backends for learner support and automation. Used OpenAI for image-generation flows (server-side API keys only) and OpenRouter for conversational routing. UI with Tailwind CSS and Mantine; Supabase for backend.",
+		skills: [
+			"Next.js",
+			"Telegram Bot",
+			"OpenAI",
+			"OpenRouter",
+			"Tailwind CSS",
+			"Mantine",
+			"Supabase",
+		],
+		icon: FaBriefcase,
+		color: "#22c55e",
+	},
 ];
 
 const TimelineItem = ({ item, index }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className={`flex gap-8 relative ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
-    >
-      {/* Timeline line */}
-      <div className="hidden md:block w-1/2" />
-      
-      {/* Content */}
-      <div className="w-full md:w-1/2 relative pb-12">
-        {/* Vertical line */}
-        <div className="absolute left-[-5px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-500/60 via-violet-500/50 to-fuchsia-500/40 md:left-auto md:right-[-5px]" />
-        
-        {/* Content card */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="glass-panel relative ml-6 p-6 md:ml-0 md:mr-6"
-        >
-          {/* Icon */}
-          <div 
-            className="absolute left-[-3rem] md:left-auto md:right-[-3rem] top-6 w-12 h-12 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: item.color }}
-          >
-            <item.icon className="text-white text-xl" />
-          </div>
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: 20 }}
+			whileInView={{ opacity: 1, y: 0 }}
+			transition={{ delay: index * 0.1 }}
+			className={`flex gap-8 relative ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}
+		>
+			{/* Timeline line */}
+			<div className="hidden md:block w-1/2" />
 
-          {/* Date badge */}
-          <div className="inline-block px-3 py-1 rounded-full text-sm font-medium mb-3"
-               style={{ backgroundColor: `${item.color}20`, color: item.color }}>
-            {item.date}
-          </div>
+			{/* Content */}
+			<div className="w-full md:w-1/2 relative pb-12">
+				{/* Vertical line */}
+				<div className="absolute left-[-5px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-500/60 via-violet-500/50 to-fuchsia-500/40 md:left-auto md:right-[-5px]" />
 
-          <h3 className="text-xl font-bold dark:text-white mb-1">{item.title}</h3>
-          <p className="text-gray-600 dark:text-gray-400 font-medium mb-3">{item.organization}</p>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{item.description}</p>
+				{/* Content card */}
+				<motion.div
+					whileHover={{ scale: 1.02 }}
+					className="glass-panel relative ml-6 p-6 md:ml-0 md:mr-6"
+				>
+					{/* Icon */}
+					<div
+						className="absolute left-[-3rem] md:left-auto md:right-[-3rem] top-6 w-12 h-12 rounded-full flex items-center justify-center"
+						style={{ backgroundColor: item.color }}
+					>
+						<item.icon className="text-white text-xl" />
+					</div>
 
-          {item.image ? (
-            <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-xl border border-slate-200/80 dark:border-white/10">
-              <Image
-                src={item.image}
-                alt={item.imageAlt || `${item.organization} — ${item.title}`}
-                layout="fill"
-                objectFit="cover"
-                sizes="(max-width: 768px) 100vw, 600px"
-              />
-            </div>
-          ) : null}
+					{/* Date badge */}
+					<div
+						className="inline-block px-3 py-1 rounded-full text-sm font-medium mb-3"
+						style={{ backgroundColor: `${item.color}20`, color: item.color }}
+					>
+						{item.date}
+					</div>
 
-          {/* Skills or Achievements */}
-          {item.skills && (
-            <div className="flex flex-wrap gap-2">
-              {item.skills.map((skill, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 rounded-full text-sm"
-                  style={{ backgroundColor: `${item.color}15`, color: item.color }}
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          )}
+					<h3 className="text-xl font-bold dark:text-white mb-1">
+						{item.title}
+					</h3>
+					<p className="text-gray-600 dark:text-gray-400 font-medium mb-3">
+						{item.organization}
+					</p>
+					<p className="text-gray-600 dark:text-gray-400 mb-4">
+						{item.description}
+					</p>
 
-          {item.achievements && (
-            <div className="flex flex-wrap gap-2">
-              {item.achievements.map((achievement, i) => (
-                <span
-                  key={i}
-                  className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400"
-                >
-                  <FaAward className="text-xs" />
-                  {achievement}
-                </span>
-              ))}
-            </div>
-          )}
-        </motion.div>
-      </div>
-    </motion.div>
-  );
+					{item.image ? (
+						<div className="relative mb-4 aspect-video w-full overflow-hidden rounded-xl border border-slate-200/80 dark:border-white/10">
+							<Image
+								src={item.image}
+								alt={item.imageAlt || `${item.organization} — ${item.title}`}
+								layout="fill"
+								objectFit="cover"
+								sizes="(max-width: 768px) 100vw, 600px"
+							/>
+						</div>
+					) : null}
+
+					{/* Skills or Achievements */}
+					{item.skills && (
+						<div className="flex flex-wrap gap-2">
+							{item.skills.map((skill, i) => (
+								<span
+									key={i}
+									className="px-3 py-1 rounded-full text-sm"
+									style={{
+										backgroundColor: `${item.color}15`,
+										color: item.color,
+									}}
+								>
+									{skill}
+								</span>
+							))}
+						</div>
+					)}
+
+					{item.achievements && (
+						<div className="flex flex-wrap gap-2">
+							{item.achievements.map((achievement, i) => (
+								<span
+									key={i}
+									className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400"
+								>
+									<FaAward className="text-xs" />
+									{achievement}
+								</span>
+							))}
+						</div>
+					)}
+				</motion.div>
+			</div>
+		</motion.div>
+	);
 };
 
 const Timeline = () => {
-  return (
-    <div className="relative scroll-mt-24 px-4 py-20">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-12 text-center">
-          <div className="flex justify-center">
-            <p className="section-eyebrow">Journey</p>
-          </div>
-          <h2 className="mt-3 font-display text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
-            Experience & Education
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-slate-600 dark:text-slate-400">
-            My professional journey, educational background, and key achievements.
-          </p>
-        </div>
+	return (
+		<div className="relative scroll-mt-24 px-4 py-20">
+			<div className="mx-auto max-w-6xl">
+				<div className="mb-12 text-center">
+					<div className="flex justify-center">
+						<p className="section-eyebrow">Journey</p>
+					</div>
+					<h2 className="mt-3 font-display text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
+						Experience & Education
+					</h2>
+					<p className="mx-auto mt-4 max-w-2xl text-slate-600 dark:text-slate-400">
+						My professional journey, educational background, and key
+						achievements.
+					</p>
+				</div>
 
-        <div className="relative">
-          {experiences.map((experience, index) => (
-            <TimelineItem key={experience.id} item={experience} index={index} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+				<div className="relative">
+					{experiences.map((experience, index) => (
+						<TimelineItem key={experience.id} item={experience} index={index} />
+					))}
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default Timeline;
