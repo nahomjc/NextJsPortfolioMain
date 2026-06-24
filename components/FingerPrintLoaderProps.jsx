@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 /** Halfwidth katakana + hex + symbols — reads “Matrix” without extra font files */
 const GLYPHS =
@@ -184,38 +184,143 @@ const MatrixRain = () => {
 	return (
 		<canvas
 			ref={canvasRef}
-			className="pointer-events-none fixed inset-0 z-0 h-full w-full min-h-[100dvh]"
+			className="matrix-rain-canvas pointer-events-none fixed inset-0 z-0 h-full w-full min-h-[100dvh]"
 			aria-hidden
 		/>
 	);
 };
 
+const WELCOME_LINE = "Welcome to the Matrix";
+
 const FingerPrintLoader = ({ onLoadingComplete }) => {
-	const [scanComplete, setScanComplete] = useState(false);
-	const [showText, setShowText] = useState(true);
+	const rootRef = useRef(null);
+	const welcomeRef = useRef(null);
+	const scannerRef = useRef(null);
+	const scanLineRef = useRef(null);
+	const statusRef = useRef(null);
+	const progressRef = useRef(null);
 
 	useEffect(() => {
-		const timer = setTimeout(() => {
-			setScanComplete(true);
-			if (onLoadingComplete) {
-				setTimeout(onLoadingComplete, 1000);
-			}
-		}, 3000);
+		document.documentElement.classList.add("intro-loading");
 
-		return () => clearTimeout(timer);
+		const reduced =
+			typeof window !== "undefined" &&
+			window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+		const ctx = gsap.context(() => {
+			const tl = gsap.timeline({
+				onComplete: () => {
+					onLoadingComplete?.();
+				},
+			});
+
+			if (reduced) {
+				tl.set(welcomeRef.current, { opacity: 1 })
+					.set(statusRef.current, { opacity: 1, textContent: "Welcome to the Matrix" })
+					.to(rootRef.current, { opacity: 0, duration: 0.6, delay: 1.2 });
+				return;
+			}
+
+			const chars = welcomeRef.current?.querySelectorAll(".matrix-welcome-char");
+			const scanDuration = 2.6;
+
+			tl.set(welcomeRef.current, { opacity: 1 })
+				.set(scannerRef.current, { opacity: 0, scale: 0.88, visibility: "hidden" })
+				.set(statusRef.current, { opacity: 0 })
+				.set(progressRef.current, { width: "0%" })
+				.from(chars, {
+					opacity: 0,
+					y: 28,
+					rotateX: -72,
+					filter: "blur(6px)",
+					stagger: 0.035,
+					duration: 0.55,
+					ease: "power3.out",
+					transformOrigin: "50% 100%",
+				})
+				.to(chars, {
+					textShadow: "0 0 16px rgba(57,255,20,0.9), 0 0 32px rgba(0,220,90,0.5)",
+					duration: 0.35,
+					stagger: 0.02,
+					ease: "power2.out",
+				})
+				.to(
+					chars,
+					{
+						opacity: 0.35,
+						duration: 0.04,
+						stagger: { each: 0.018, from: "random", repeat: 3, yoyo: true },
+					},
+					"+=0.35",
+				)
+				.to(
+					welcomeRef.current,
+					{
+						opacity: 0,
+						y: -32,
+						scale: 0.96,
+						duration: 0.55,
+						ease: "power2.in",
+					},
+					"+=0.55",
+				)
+				.set(scannerRef.current, { visibility: "visible" })
+				.to(
+					scannerRef.current,
+					{ opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" },
+					"-=0.15",
+				)
+				.to(statusRef.current, { opacity: 1, duration: 0.35 }, "-=0.45")
+				.fromTo(
+					scanLineRef.current,
+					{ attr: { y1: 0, y2: 0 } },
+					{
+						attr: { y1: 100, y2: 100 },
+						duration: scanDuration,
+						ease: "none",
+					},
+					"-=0.2",
+				)
+				.to(
+					progressRef.current,
+					{ width: "100%", duration: scanDuration, ease: "none" },
+					"<",
+				)
+				.to(
+					statusRef.current,
+					{
+						duration: 0.01,
+						onStart: () => {
+							if (statusRef.current) {
+								statusRef.current.textContent = "IDENTITY CONFIRMED";
+							}
+						},
+					},
+					`-=${scanDuration * 0.12}`,
+				)
+				.to(scannerRef.current, { scale: 1.12, duration: 0.55, ease: "power2.inOut" })
+				.to(rootRef.current, { opacity: 0, duration: 0.95, ease: "power2.inOut" }, "+=0.25");
+		}, rootRef);
+
+		return () => {
+			ctx.revert();
+			document.documentElement.classList.remove("intro-loading");
+		};
 	}, [onLoadingComplete]);
 
 	return (
-		<motion.div
-			initial={{ opacity: 1 }}
-			animate={{ opacity: scanComplete ? 0 : 1 }}
-			transition={{ duration: 1 }}
-			className="fixed inset-0 flex items-center justify-center bg-black/90 z-50"
+		<div
+			ref={rootRef}
+			className="intro-matrix-loader intro-loader-screen fixed inset-0 flex items-center justify-center bg-black z-50"
+			role="status"
+			aria-live="polite"
+			aria-label="Loading portfolio"
 		>
-			{/* Matrix Rain Background */}
 			<MatrixRain />
 
-			{/* Vignette + dense green scanlines (Matrix CRT) */}
+			<div className="matrix-phosphor pointer-events-none absolute inset-0 z-[1]" aria-hidden />
+			<div className="matrix-crt-flicker pointer-events-none absolute inset-0 z-[1]" aria-hidden />
+			<div className="matrix-scan-sweep pointer-events-none absolute inset-0 z-[1]" aria-hidden />
 			<div
 				className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_85%_70%_at_50%_45%,transparent_0%,rgba(0,12,4,0.5)_68%,rgba(0,8,2,0.92)_100%)]"
 				aria-hidden
@@ -228,28 +333,34 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 				}}
 				aria-hidden
 			/>
-			<div
-				className="pointer-events-none absolute inset-0 z-[1] opacity-[0.065]"
-				style={{
-					backgroundImage:
-						"repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,255,100,0.1) 3px, rgba(0,255,100,0.1) 4px)",
-				}}
-				aria-hidden
-			/>
 			<div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/45 via-transparent to-black/70" />
 
-			<div className="relative z-10">
-				<motion.div
-					initial={{ scale: 1 }}
-					animate={{ scale: scanComplete ? 1.5 : 1 }}
-					transition={{ duration: 1 }}
-					className="fingerprint-scanner"
-				>
+			<div
+				ref={welcomeRef}
+				className="pointer-events-none absolute z-20 max-w-[92vw] px-4 text-center opacity-0"
+				aria-hidden
+			>
+				<p className="matrix-status-text font-mono text-xl uppercase tracking-[0.22em] text-[#b8ffc8] sm:text-2xl md:text-3xl">
+					{WELCOME_LINE.split("").map((char, i) => (
+						<span
+							key={`welcome-${char.codePointAt(0)}-${i}`}
+							className="matrix-welcome-char inline-block will-change-transform"
+							style={{ transformPerspective: 600 }}
+						>
+							{char === " " ? "\u00A0" : char}
+						</span>
+					))}
+				</p>
+			</div>
+
+			<div className="relative z-10 flex flex-col items-center">
+				<div ref={scannerRef} className="fingerprint-scanner opacity-0">
 					<svg
 						width="200"
 						height="200"
 						viewBox="0 0 100 100"
 						className="fingerprint"
+						aria-hidden
 					>
 						{/* Core whorl pattern */}
 						<path
@@ -299,26 +410,17 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 						<path className="circuit-path" d="M50,20 L50,25" />
 						<path className="circuit-path" d="M50,75 L50,80" />
 
-						{/* Scanning elements */}
-						<motion.rect
+						<rect
 							className="scan-area"
 							x="0"
 							y="0"
 							width="100"
 							height="100"
-							initial={{ opacity: 0.1 }}
-							animate={{ opacity: [0.1, 0.2, 0.1] }}
-							transition={{ duration: 2, repeat: Infinity }}
+							opacity="0.14"
 						/>
 
-						{/* Scanning line */}
-						<motion.line
-							initial={{ y: 0 }}
-							animate={{ y: scanComplete ? 100 : 0 }}
-							transition={{
-								duration: 3,
-								ease: "linear",
-							}}
+						<line
+							ref={scanLineRef}
 							x1="0"
 							y1="0"
 							x2="100"
@@ -326,51 +428,35 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 							className="scan-line"
 						/>
 
-						{/* Data points */}
 						{[...Array(12)].map((_, i) => (
-							<motion.circle
-								key={i}
+							<circle
+								key={`scan-node-${i}`}
 								className="data-point"
 								cx={50 + 25 * Math.cos((i * Math.PI) / 6)}
 								cy={50 + 25 * Math.sin((i * Math.PI) / 6)}
 								r="1"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: [0, 1, 0] }}
-								transition={{
-									duration: 2,
-									delay: i * 0.2,
-									repeat: Infinity,
-								}}
+								opacity="0.85"
 							/>
 						))}
 					</svg>
-				</motion.div>
+				</div>
 
-				{/* Status Text */}
-				{showText && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ delay: 0.5 }}
-						className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-full text-center"
+				<div className="mt-8 w-full text-center">
+					<p
+						ref={statusRef}
+						className="matrix-status-text mb-3 font-mono text-base uppercase tracking-[0.14em] text-[#7dff9a] opacity-0 sm:text-lg"
 					>
-						<motion.p
-							initial={{ opacity: 1 }}
-							animate={{ opacity: scanComplete ? 0 : 1 }}
-							className="text-lg font-mono mb-2 text-[#7dff9a] glitch-text"
-						>
-							{scanComplete ? "IDENTITY CONFIRMED" : "<Kingdom Code/>"}
-						</motion.p>
-						<motion.div
-							initial={{ width: "0%" }}
-							animate={{ width: scanComplete ? "100%" : "0%" }}
-							transition={{ duration: 3 }}
-							className="h-1 bg-[#00ff00] mx-auto w-48 scanner-progress"
+						&lt;Kingdom Code/&gt;
+					</p>
+					<div className="mx-auto h-1 w-48 overflow-hidden rounded-sm bg-black/40">
+						<div
+							ref={progressRef}
+							className="matrix-progress-bar h-full w-0"
 						/>
-					</motion.div>
-				)}
+					</div>
+				</div>
 			</div>
-		</motion.div>
+		</div>
 	);
 };
 
