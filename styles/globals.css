@@ -105,29 +105,34 @@
 }
 
 .glitch-text {
-	text-shadow: 0.04em 0 0 rgba(57, 255, 20, 0.4), -0.02em -0.03em 0
-		rgba(0, 200, 90, 0.45);
+	text-shadow: 0.04em 0 0 rgba(34, 211, 238, 0.4), -0.02em -0.03em 0
+		rgba(139, 92, 246, 0.45);
 	letter-spacing: 0.08em;
 }
 
-/* Intro Matrix loader — cinematic rain + CRT stack */
+/* Intro loader — cinematic rain + CRT stack (site cyan / violet palette) */
 .intro-matrix-loader {
-	background: #000;
+	background: linear-gradient(
+		180deg,
+		#06030c 0%,
+		#07040f 50%,
+		#06030c 100%
+	);
 }
 
 .matrix-rain-canvas {
-	filter: saturate(1.35) contrast(1.08);
+	filter: saturate(1.2) contrast(1.06);
 }
 
 .matrix-phosphor {
 	background: radial-gradient(
 			ellipse 55% 45% at 50% 48%,
-			rgba(57, 255, 20, 0.14) 0%,
+			rgba(34, 211, 238, 0.12) 0%,
 			transparent 70%
 		),
 		radial-gradient(
 			ellipse 100% 80% at 50% 100%,
-			rgba(0, 255, 120, 0.06) 0%,
+			rgba(139, 92, 246, 0.08) 0%,
 			transparent 55%
 		);
 	mix-blend-mode: screen;
@@ -135,7 +140,7 @@
 }
 
 .matrix-crt-flicker {
-	background: rgba(57, 255, 20, 0.02);
+	background: rgba(34, 211, 238, 0.02);
 	animation: matrix-crt-flicker 4.5s steps(1) infinite;
 	mix-blend-mode: overlay;
 }
@@ -144,9 +149,9 @@
 	background: linear-gradient(
 		180deg,
 		transparent 0%,
-		rgba(57, 255, 20, 0.04) 48%,
-		rgba(180, 255, 200, 0.12) 50%,
-		rgba(57, 255, 20, 0.04) 52%,
+		rgba(34, 211, 238, 0.04) 48%,
+		rgba(167, 139, 250, 0.12) 50%,
+		rgba(34, 211, 238, 0.04) 52%,
 		transparent 100%
 	);
 	background-size: 100% 220%;
@@ -155,57 +160,17 @@
 }
 
 .matrix-status-text {
-	text-shadow: 0 0 12px rgba(57, 255, 20, 0.65), 0 0 28px rgba(0, 220, 90, 0.35),
-		0.05em 0 0 rgba(57, 255, 20, 0.35);
+	text-shadow: 0 0 12px rgba(34, 211, 238, 0.65), 0 0 28px rgba(139, 92, 246, 0.35),
+		0.05em 0 0 rgba(34, 211, 238, 0.35);
 }
 
 .matrix-progress-bar {
-	background: linear-gradient(90deg, #00c853, #39ff14, #b8ffc8);
-	box-shadow: 0 0 14px rgba(57, 255, 20, 0.75), 0 0 32px rgba(0, 220, 90, 0.35);
+	background: linear-gradient(90deg, #22d3ee, #8b5cf6, #e879f9);
+	box-shadow: 0 0 14px rgba(34, 211, 238, 0.75), 0 0 32px rgba(139, 92, 246, 0.35);
 	border-radius: 2px;
 }
 
-.intro-matrix-loader .fingerprint-scanner {
-	background: rgba(57, 255, 20, 0.05);
-	box-shadow: 0 0 60px rgba(57, 255, 20, 0.35), 0 0 120px rgba(0, 180, 70, 0.15),
-		inset 0 0 40px rgba(57, 255, 20, 0.12);
-}
-
-.intro-matrix-loader .fingerprint-scanner::before {
-	border-color: rgba(57, 255, 20, 0.65);
-	box-shadow: inset 0 0 24px rgba(57, 255, 20, 0.4), 0 0 28px
-		rgba(57, 255, 20, 0.35);
-}
-
-.intro-matrix-loader .fingerprint {
-	filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.65));
-}
-
-.intro-matrix-loader .scan-path {
-	stroke: #39ff14;
-}
-
-.intro-matrix-loader .scan-path.core {
-	stroke: #b8ffc8;
-}
-
-.intro-matrix-loader .circuit-path {
-	stroke: rgba(57, 255, 20, 0.55);
-}
-
-.intro-matrix-loader .scan-line {
-	stroke: #7dff9a;
-	filter: drop-shadow(0 0 10px #39ff14);
-}
-
-.intro-matrix-loader .scan-area {
-	fill: rgba(57, 255, 20, 0.08);
-}
-
-.intro-matrix-loader .data-point {
-	fill: #39ff14;
-	filter: drop-shadow(0 0 3px #39ff14);
-}
+/* Fingerprint scanner uses base .fingerprint-* styles (cyan / violet) */
 
 @keyframes matrix-phosphor-pulse {
 	0%,
@@ -295,7 +260,7 @@ html.intro-loading body {
 	height: 100%;
 	margin: 0;
 	padding: 0;
-	background: #000 !important;
+	background: #06030c !important;
 }
 
 .typing-indicator {

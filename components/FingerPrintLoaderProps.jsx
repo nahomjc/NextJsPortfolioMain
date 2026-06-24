@@ -21,7 +21,7 @@ function buildColumns(cssW, cssH, fontSize, colStep) {
 			len,
 			headTick: 0,
 			chars: Array.from({ length: len }, pickGlyph),
-			limeBias: Math.random() < 0.1,
+			limeBias: Math.random() < 0.12,
 			colStep,
 		});
 	}
@@ -84,9 +84,9 @@ const MatrixRain = () => {
 			last = now;
 
 			if (reducedRef.current) {
-				ctx.fillStyle = "#030712";
+				ctx.fillStyle = "#06030c";
 				ctx.fillRect(0, 0, w, h);
-				ctx.fillStyle = "rgba(0, 255, 80, 0.035)";
+				ctx.fillStyle = "rgba(34, 211, 238, 0.035)";
 				const step = fontSize * 2;
 				for (let x = 0; x < w; x += step) {
 					for (let y = 0; y < h; y += step) {
@@ -96,7 +96,7 @@ const MatrixRain = () => {
 				return;
 			}
 
-			ctx.fillStyle = "rgba(0, 8, 2, 0.2)";
+			ctx.fillStyle = "rgba(6, 3, 12, 0.22)";
 			ctx.fillRect(0, 0, w, h);
 
 			const cols = colsRef.current;
@@ -137,21 +137,21 @@ const MatrixRain = () => {
 					ctx.shadowBlur = 0;
 
 					if (isHead) {
-						ctx.shadowColor = "rgba(120, 255, 140, 0.95)";
+						ctx.shadowColor = "rgba(34, 211, 238, 0.95)";
 						ctx.shadowBlur = 16;
-						ctx.fillStyle = "#f0fff4";
+						ctx.fillStyle = "#ecfeff";
 						ctx.fillText(ch, x, y);
 						ctx.shadowBlur = 9;
-						ctx.fillStyle = "rgba(185, 255, 170, 0.45)";
+						ctx.fillStyle = "rgba(167, 243, 252, 0.45)";
 						ctx.fillText(ch, x, y);
 					} else {
-						const limeFlash =
+						const accentFlash =
 							col.limeBias && r > 0 && r < 10 && (r + i * 3) % 4 === 0;
-						if (limeFlash) {
-							ctx.fillStyle = `rgba(200, 255, 140, ${0.2 + (1 - depth) * 0.55})`;
+						if (accentFlash) {
+							ctx.fillStyle = `rgba(167, 139, 250, ${0.2 + (1 - depth) * 0.55})`;
 						} else {
 							const a = 0.1 + (1 - depth) * 0.78;
-							ctx.fillStyle = `rgba(0, 220, 95, ${a * (0.5 + depth * 0.5)})`;
+							ctx.fillStyle = `rgba(34, 211, 238, ${a * (0.45 + depth * 0.55)})`;
 						}
 						ctx.fillText(ch, x, y);
 					}
@@ -239,7 +239,8 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 					transformOrigin: "50% 100%",
 				})
 				.to(chars, {
-					textShadow: "0 0 16px rgba(57,255,20,0.9), 0 0 32px rgba(0,220,90,0.5)",
+					textShadow:
+						"0 0 16px rgba(34,211,238,0.9), 0 0 32px rgba(139,92,246,0.5)",
 					duration: 0.35,
 					stagger: 0.02,
 					ease: "power2.out",
@@ -311,7 +312,7 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 	return (
 		<div
 			ref={rootRef}
-			className="intro-matrix-loader intro-loader-screen fixed inset-0 flex items-center justify-center bg-black z-50"
+			className="intro-matrix-loader intro-loader-screen fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-[#06030c] via-[#07040f] to-[#06030c]"
 			role="status"
 			aria-live="polite"
 			aria-label="Loading portfolio"
@@ -322,25 +323,33 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 			<div className="matrix-crt-flicker pointer-events-none absolute inset-0 z-[1]" aria-hidden />
 			<div className="matrix-scan-sweep pointer-events-none absolute inset-0 z-[1]" aria-hidden />
 			<div
-				className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_85%_70%_at_50%_45%,transparent_0%,rgba(0,12,4,0.5)_68%,rgba(0,8,2,0.92)_100%)]"
+				className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_85%_70%_at_50%_45%,transparent_0%,rgba(6,3,12,0.45)_68%,rgba(6,3,12,0.92)_100%)]"
 				aria-hidden
 			/>
 			<div
 				className="pointer-events-none absolute inset-0 z-[1] opacity-[0.11]"
 				style={{
 					backgroundImage:
-						"repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(57,255,20,0.14) 1px, rgba(57,255,20,0.14) 2px)",
+						"repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(34,211,238,0.14) 1px, rgba(34,211,238,0.14) 2px)",
 				}}
 				aria-hidden
 			/>
-			<div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/45 via-transparent to-black/70" />
+			<div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-[#06030c]/45 via-transparent to-[#06030c]/70" />
+			<div
+				className="pointer-events-none absolute left-[10%] top-[18%] z-[1] h-64 w-64 rounded-full bg-cyan-400/10 blur-[100px]"
+				aria-hidden
+			/>
+			<div
+				className="pointer-events-none absolute right-[8%] bottom-[12%] z-[1] h-72 w-72 rounded-full bg-fuchsia-600/10 blur-[110px]"
+				aria-hidden
+			/>
 
 			<div
 				ref={welcomeRef}
 				className="pointer-events-none absolute z-20 max-w-[92vw] px-4 text-center opacity-0"
 				aria-hidden
 			>
-				<p className="matrix-status-text font-mono text-xl uppercase tracking-[0.22em] text-[#b8ffc8] sm:text-2xl md:text-3xl">
+				<p className="matrix-status-text font-mono text-xl uppercase tracking-[0.22em] text-cyan-200 sm:text-2xl md:text-3xl">
 					{WELCOME_LINE.split("").map((char, i) => (
 						<span
 							key={`welcome-${char.codePointAt(0)}-${i}`}
@@ -444,11 +453,11 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 				<div className="mt-8 w-full text-center">
 					<p
 						ref={statusRef}
-						className="matrix-status-text mb-3 font-mono text-base uppercase tracking-[0.14em] text-[#7dff9a] opacity-0 sm:text-lg"
+						className="matrix-status-text mb-3 font-mono text-base uppercase tracking-[0.14em] text-cyan-300/90 opacity-0 sm:text-lg"
 					>
 						&lt;Kingdom Code/&gt;
 					</p>
-					<div className="mx-auto h-1 w-48 overflow-hidden rounded-sm bg-black/40">
+					<div className="mx-auto h-1 w-48 overflow-hidden rounded-sm bg-white/[0.06]">
 						<div
 							ref={progressRef}
 							className="matrix-progress-bar h-full w-0"
