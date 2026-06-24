@@ -1,6 +1,8 @@
 import Image from "next/image";
-import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import React, { useEffect, useMemo, useRef } from "react";
+import { useReducedMotion } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Css from "../public/assets/skills/css.png";
 import Javascript from "../public/assets/skills/javascript.png";
 import ReactImg from "../public/assets/skills/react.png";
@@ -9,171 +11,508 @@ import Github from "../public/assets/skills/github1.png";
 import Firebase from "../public/assets/skills/firebase.png";
 import NextJS from "../public/assets/skills/nextjs.png";
 
-/** PNG from import or public SVG path */
-const skillItems = [
-	{ title: "CSS", image: Css },
-	{ title: "JavaScript", image: Javascript },
-	{ title: "TypeScript", src: "/assets/skills/typescript.svg" },
-	{ title: "React", image: ReactImg },
-	{ title: "Tailwind", image: Tailwind },
-	{ title: "Next.js", image: NextJS },
-	{ title: "Firebase", image: Firebase },
-	{ title: "GitHub", image: Github },
-	{ title: "GitLab", src: "/assets/skills/gitlab.svg" },
-	{ title: "Node.js", src: "/assets/skills/nodejs.svg" },
-	{ title: "Express.js", src: "/assets/skills/express.svg" },
-	{ title: "Hono", src: "/assets/skills/hono.svg" },
-	{ title: "Drizzle ORM", src: "/assets/skills/drizzle.svg" },
-	{ title: "PostgreSQL", src: "/assets/skills/postgresql.svg" },
-	{ title: "MySQL", src: "/assets/skills/mysql.svg" },
-	{ title: "WordPress", src: "/assets/skills/wordpress.svg" },
+const LANES = [
+	{
+		id: "frontend",
+		index: "01",
+		label: "Frontend",
+		subtitle: "Interfaces, routing & client performance",
+		accent: "cyan",
+	},
+	{
+		id: "backend",
+		index: "02",
+		label: "Backend",
+		subtitle: "APIs, auth & server-side logic",
+		accent: "violet",
+	},
+	{
+		id: "data",
+		index: "03",
+		label: "Data",
+		subtitle: "Databases, ORMs & data flow",
+		accent: "fuchsia",
+	},
+	{
+		id: "tools",
+		index: "04",
+		label: "Tools",
+		subtitle: "Version control, CI & deployment",
+		accent: "emerald",
+	},
 ];
 
-function SkillIcon({ item }) {
-	const common =
-		"h-14 w-14 shrink-0 object-contain transition duration-300 group-hover:scale-110";
+const skillItems = [
+	{
+		title: "React",
+		image: ReactImg,
+		category: "frontend",
+		featured: true,
+		tag: "UI core",
+	},
+	{
+		title: "Next.js",
+		image: NextJS,
+		category: "frontend",
+		featured: true,
+		tag: "App framework",
+	},
+	{
+		title: "TypeScript",
+		src: "/assets/skills/typescript.svg",
+		category: "frontend",
+		featured: true,
+		tag: "Type safety",
+	},
+	{
+		title: "JavaScript",
+		image: Javascript,
+		category: "frontend",
+		featured: true,
+		tag: "Language",
+	},
+	{ title: "CSS", image: Css, category: "frontend", tag: "Styling" },
+	{ title: "Tailwind", image: Tailwind, category: "frontend", tag: "Utility CSS" },
+	{
+		title: "WordPress",
+		src: "/assets/skills/wordpress.svg",
+		category: "frontend",
+		tag: "CMS",
+	},
+	{
+		title: "Node.js",
+		src: "/assets/skills/nodejs.svg",
+		category: "backend",
+		featured: true,
+		tag: "Runtime",
+	},
+	{
+		title: "Express.js",
+		src: "/assets/skills/express.svg",
+		category: "backend",
+		tag: "HTTP layer",
+	},
+	{ title: "Hono", src: "/assets/skills/hono.svg", category: "backend", tag: "Edge APIs" },
+	{
+		title: "PostgreSQL",
+		src: "/assets/skills/postgresql.svg",
+		category: "data",
+		featured: true,
+		tag: "Primary SQL",
+	},
+	{
+		title: "Drizzle ORM",
+		src: "/assets/skills/drizzle.svg",
+		category: "data",
+		tag: "Type-safe ORM",
+	},
+	{ title: "MySQL", src: "/assets/skills/mysql.svg", category: "data", tag: "Relational" },
+	{ title: "Firebase", image: Firebase, category: "data", tag: "Realtime" },
+	{ title: "GitHub", image: Github, category: "tools", tag: "Version control" },
+	{ title: "GitLab", src: "/assets/skills/gitlab.svg", category: "tools", tag: "CI / repos" },
+];
+
+const ACCENT = {
+	cyan: {
+		border: "border-cyan-400/30",
+		bg: "from-cyan-500/12 to-cyan-400/5",
+		text: "text-cyan-600 dark:text-cyan-400",
+		glow: "group-hover:border-cyan-400/45 group-hover:shadow-[0_0_24px_rgba(34,211,238,0.12)]",
+		lane: "skills-lane--cyan",
+	},
+	violet: {
+		border: "border-violet-400/30",
+		bg: "from-violet-500/12 to-violet-400/5",
+		text: "text-violet-600 dark:text-violet-400",
+		glow: "group-hover:border-violet-400/45 group-hover:shadow-[0_0_24px_rgba(139,92,246,0.12)]",
+		lane: "skills-lane--violet",
+	},
+	fuchsia: {
+		border: "border-fuchsia-400/30",
+		bg: "from-fuchsia-500/12 to-fuchsia-400/5",
+		text: "text-fuchsia-600 dark:text-fuchsia-400",
+		glow: "group-hover:border-fuchsia-400/45 group-hover:shadow-[0_0_24px_rgba(217,70,239,0.12)]",
+		lane: "skills-lane--fuchsia",
+	},
+	emerald: {
+		border: "border-emerald-400/30",
+		bg: "from-emerald-500/12 to-emerald-400/5",
+		text: "text-emerald-600 dark:text-emerald-400",
+		glow: "group-hover:border-emerald-400/45 group-hover:shadow-[0_0_24px_rgba(52,211,153,0.12)]",
+		lane: "skills-lane--emerald",
+	},
+};
+
+function SkillIcon({ item, size = 56 }) {
+	const common = "shrink-0 object-contain transition duration-300 group-hover:scale-105";
 	if (item.image) {
 		return (
 			<Image
 				src={item.image}
-				width={56}
-				height={56}
+				width={size}
+				height={size}
 				alt=""
 				className={common}
+				style={{ width: size, height: size }}
 			/>
 		);
 	}
 	return (
 		<Image
 			src={item.src}
-			width={56}
-			height={56}
+			width={size}
+			height={size}
 			alt=""
 			unoptimized
 			className={common}
+			style={{ width: size, height: size }}
 		/>
 	);
 }
 
-const containerVariants = {
-	hidden: { opacity: 0 },
-	show: {
-		opacity: 1,
-		transition: { staggerChildren: 0.06, delayChildren: 0.04 },
-	},
-};
+function SkillToken({ item, accentKey }) {
+	const accent = ACCENT[accentKey];
+	return (
+		<div
+			className={`skills-token group flex shrink-0 items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/70 px-3 py-2 shadow-sm backdrop-blur-sm transition duration-300 dark:border-white/10 dark:bg-slate-900/60 ${accent.glow}`}
+		>
+			<span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/90 dark:bg-slate-950/80">
+				<SkillIcon item={item} size={20} />
+			</span>
+			<span className="whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-100">
+				{item.title}
+			</span>
+			<span className="hidden font-mono text-[9px] uppercase tracking-wider text-slate-400 sm:inline">
+				{item.tag}
+			</span>
+		</div>
+	);
+}
 
-const cardVariants = {
-	hidden: { opacity: 0, y: 20 },
-	show: {
-		opacity: 1,
-		y: 0,
-		transition: { type: "spring", stiffness: 320, damping: 28 },
-	},
-};
+function FeaturedCard({ item }) {
+	const accent = ACCENT[item.category === "data" ? "fuchsia" : item.category === "backend" ? "violet" : item.category === "tools" ? "emerald" : "cyan"];
+	return (
+		<article
+			className={`skills-featured-card group relative shrink-0 snap-center overflow-hidden rounded-2xl border bg-gradient-to-br p-[1px] ${accent.border} ${accent.bg}`}
+		>
+			<div className="relative flex h-full w-[9.5rem] flex-col rounded-[0.94rem] bg-white/80 p-4 dark:bg-slate-950/85 sm:w-[10.5rem]">
+				<span className={`font-mono text-[9px] uppercase tracking-[0.18em] ${accent.text}`}>
+					Core
+				</span>
+				<div className="mx-auto my-3 flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100/90 dark:bg-slate-900/70">
+					<SkillIcon item={item} size={36} />
+				</div>
+				<h3 className="text-center text-sm font-semibold text-slate-900 dark:text-white">
+					{item.title}
+				</h3>
+				<p className="mt-1 text-center font-mono text-[9px] uppercase tracking-wider text-slate-400">
+					{item.tag}
+				</p>
+			</div>
+		</article>
+	);
+}
+
+function SkillLane({ lane, items, laneRef }) {
+	const accent = ACCENT[lane.accent];
+	return (
+		<article
+			ref={laneRef}
+			id={`skills-lane-${lane.id}`}
+			className={`skills-lane ${accent.lane} relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/45 dark:border-white/10 dark:bg-slate-950/35`}
+		>
+			<span
+				className="skills-lane-watermark pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 font-display text-[5.5rem] font-bold leading-none text-slate-900/[0.04] dark:text-white/[0.04]"
+				aria-hidden
+			>
+				{lane.index}
+			</span>
+			<div className="skills-lane-inner relative flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-5">
+				<div className="skills-lane-meta shrink-0 sm:w-44 lg:w-52">
+					<p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${accent.text}`}>
+						{lane.index} · {lane.label}
+					</p>
+					<h3 className="mt-1 font-display text-lg font-bold text-slate-900 dark:text-white">
+						{lane.label}
+					</h3>
+					<p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+						{lane.subtitle}
+					</p>
+					<p className="mt-2 font-mono text-[9px] uppercase tracking-wider text-slate-400">
+						{items.length} modules
+					</p>
+				</div>
+				<div className="skills-lane-track min-w-0 flex-1">
+					<div className="skills-lane-tokens flex flex-wrap gap-2 sm:gap-2.5">
+						{items.map((item) => (
+							<SkillToken key={item.title} item={item} accentKey={lane.accent} />
+						))}
+					</div>
+				</div>
+			</div>
+			<div
+				className={`skills-lane-beam pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${accent.bg} opacity-80`}
+				aria-hidden
+			/>
+		</article>
+	);
+}
 
 const Skills = () => {
 	const reduceMotion = useReducedMotion();
+	const sectionRef = useRef(null);
+	const headerRef = useRef(null);
+	const featuredRef = useRef(null);
+	const laneRefs = useRef([]);
+	const indexFillRef = useRef(null);
+
+	const featured = useMemo(() => skillItems.filter((s) => s.featured), []);
+	const lanesWithItems = useMemo(
+		() =>
+			LANES.map((lane) => ({
+				lane,
+				items: skillItems.filter((s) => s.category === lane.id),
+			})),
+		[]
+	);
+
+	useEffect(() => {
+		if (reduceMotion || typeof window === "undefined") return;
+
+		gsap.registerPlugin(ScrollTrigger);
+
+		const ctx = gsap.context(() => {
+			gsap.from(".skills-header-block", {
+				y: 48,
+				opacity: 0,
+				filter: "blur(10px)",
+				duration: 0.9,
+				ease: "power3.out",
+				scrollTrigger: {
+					trigger: headerRef.current,
+					start: "top 88%",
+					toggleActions: "play none none reverse",
+				},
+			});
+
+			if (featuredRef.current) {
+				gsap.from(".skills-featured-card", {
+					y: 56,
+					opacity: 0,
+					rotateX: 12,
+					stagger: 0.08,
+					duration: 0.75,
+					ease: "power3.out",
+					transformOrigin: "50% 100%",
+					scrollTrigger: {
+						trigger: featuredRef.current,
+						start: "top 86%",
+						toggleActions: "play none none reverse",
+					},
+				});
+			}
+
+			laneRefs.current.filter(Boolean).forEach((laneEl, i) => {
+				const tokens = laneEl.querySelectorAll(".skills-token");
+				const meta = laneEl.querySelector(".skills-lane-meta");
+				const watermark = laneEl.querySelector(".skills-lane-watermark");
+				const fromX = i % 2 === 0 ? -72 : 72;
+
+				gsap.fromTo(
+					laneEl,
+					{ clipPath: "inset(0 100% 0 0 round 16px)", opacity: 0.5 },
+					{
+						clipPath: "inset(0 0% 0 0 round 16px)",
+						opacity: 1,
+						ease: "power2.out",
+						scrollTrigger: {
+							trigger: laneEl,
+							start: "top 90%",
+							end: "top 58%",
+							scrub: 0.65,
+						},
+					}
+				);
+
+				if (meta) {
+					gsap.from(meta, {
+						x: fromX * 0.35,
+						opacity: 0,
+						duration: 0.65,
+						ease: "power3.out",
+						scrollTrigger: {
+							trigger: laneEl,
+							start: "top 82%",
+							toggleActions: "play none none reverse",
+						},
+					});
+				}
+
+				gsap.from(tokens, {
+					x: fromX,
+					opacity: 0,
+					stagger: 0.045,
+					duration: 0.55,
+					ease: "power3.out",
+					scrollTrigger: {
+						trigger: laneEl,
+						start: "top 80%",
+						toggleActions: "play none none reverse",
+					},
+				});
+
+				if (watermark) {
+					gsap.fromTo(
+						watermark,
+						{ x: 40, opacity: 0.02 },
+						{
+							x: 0,
+							opacity: 0.06,
+							ease: "none",
+							scrollTrigger: {
+								trigger: laneEl,
+								start: "top 85%",
+								end: "top 35%",
+								scrub: 0.5,
+							},
+						}
+					);
+				}
+			});
+
+			if (indexFillRef.current && sectionRef.current) {
+				gsap.fromTo(
+					indexFillRef.current,
+					{ scaleY: 0 },
+					{
+						scaleY: 1,
+						ease: "none",
+						scrollTrigger: {
+							trigger: sectionRef.current,
+							start: "top 70%",
+							end: "bottom 30%",
+							scrub: 0.4,
+						},
+					}
+				);
+			}
+		}, sectionRef);
+
+		return () => ctx.revert();
+	}, [reduceMotion]);
+
+	const scrollToLane = (id) => {
+		const el = document.getElementById(`skills-lane-${id}`);
+		el?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+	};
 
 	return (
-		<div
+		<section
 			id="skills"
-			className="relative w-full scroll-mt-24 overflow-hidden px-4 py-20 lg:min-h-screen lg:py-28"
+			ref={sectionRef}
+			className="skills-section relative w-full scroll-mt-24 overflow-hidden px-4 py-20 lg:min-h-screen lg:py-28"
 		>
 			<div
-				className="pointer-events-none absolute inset-0 bg-grid-future opacity-[0.32] dark:opacity-[0.2]"
+				className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.025)_1px,transparent_1px)] bg-[length:40px_40px] opacity-60 dark:opacity-40"
 				aria-hidden
 			/>
 			<div
-				className="pointer-events-none absolute left-0 top-1/4 h-[min(80vw,480px)] w-[min(80vw,480px)] -translate-x-1/2 rounded-full bg-violet-500/10 blur-[110px] dark:bg-violet-500/16"
+				className="pointer-events-none absolute left-0 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-500/10 blur-[100px]"
 				aria-hidden
 			/>
 			<div
-				className="pointer-events-none absolute bottom-0 right-0 h-[min(70vw,420px)] w-[min(70vw,420px)] translate-x-1/3 translate-y-1/3 rounded-full bg-cyan-400/10 blur-[100px] dark:bg-cyan-500/14"
-				aria-hidden
-			/>
-			<div
-				className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/25 to-transparent dark:via-violet-400/35"
+				className="pointer-events-none absolute bottom-0 right-0 h-80 w-80 translate-x-1/4 translate-y-1/4 rounded-full bg-cyan-400/10 blur-[100px]"
 				aria-hidden
 			/>
 
-			<motion.div
-				className="relative z-10 mx-auto flex max-w-[1240px] flex-col justify-center"
-				variants={containerVariants}
-				initial="hidden"
-				whileInView="show"
-				viewport={{ once: true, margin: "-50px" }}
-			>
-				<motion.div
-					variants={cardVariants}
-					className="mb-12 border-b border-slate-200/80 pb-10 dark:border-white/10 md:mb-14"
-				>
-					<p className="section-eyebrow">
-						<span
-							className="h-px w-8 bg-gradient-to-r from-violet-400 to-cyan-400"
-							aria-hidden
-						/>
-						Skills
-						<span className="font-mono text-[0.65rem] font-normal tracking-[0.15em] text-slate-400 dark:text-slate-500">
-							/ SEC 02
-						</span>
-					</p>
-					<div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-						<h2 className="font-display text-slate-900 dark:text-white">
-							What I <span className="text-gradient-future">Can Do</span>
-						</h2>
-						<p className="max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.18em] text-slate-500 dark:text-slate-400">
-							Stack modules · delivery-ready UI & APIs
-						</p>
-					</div>
-				</motion.div>
+			<div className="relative z-10 mx-auto max-w-[1180px]">
+				<div className="grid gap-10 lg:grid-cols-[4.5rem_1fr] lg:gap-12">
+					<aside className="skills-index hidden lg:flex lg:flex-col lg:items-center lg:pt-2">
+						<div className="relative flex h-full min-h-[18rem] flex-col items-center">
+							<div className="absolute inset-y-0 w-px bg-slate-200/80 dark:bg-white/10" />
+							<div
+								ref={indexFillRef}
+								className="skills-index-fill absolute inset-x-0 top-0 w-px origin-top bg-gradient-to-b from-cyan-400 via-violet-400 to-fuchsia-500"
+								aria-hidden
+							/>
+							{LANES.map((lane) => (
+								<button
+									key={lane.id}
+									type="button"
+									onClick={() => scrollToLane(lane.id)}
+									className="skills-index-dot relative z-[1] my-5 flex flex-col items-center gap-1.5"
+									aria-label={`Jump to ${lane.label}`}
+								>
+									<span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/80 bg-white/80 font-mono text-[10px] text-slate-500 transition hover:border-cyan-400/40 hover:text-cyan-600 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-400 dark:hover:text-cyan-400">
+										{lane.index}
+									</span>
+								</button>
+							))}
+						</div>
+					</aside>
 
-				<div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-					{skillItems.map((item) => (
-						<motion.div
-							key={item.title}
-							variants={cardVariants}
-							whileHover={
-								reduceMotion
-									? undefined
-									: { y: -4, transition: { duration: 0.2 } }
-							}
-							className="group relative"
-						>
-							<div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-cyan-500/0 via-cyan-400/30 to-violet-500/0 opacity-0 blur-[1px] transition duration-300 group-hover:opacity-100 dark:via-cyan-400/40" />
-							<div className="relative overflow-hidden rounded-2xl border border-slate-200/85 bg-white/70 p-5 shadow-card-light backdrop-blur-xl transition duration-300 group-hover:border-cyan-400/35 group-hover:shadow-glow dark:border-white/10 dark:bg-slate-900/55 dark:shadow-card-dark dark:group-hover:border-cyan-400/30 dark:group-hover:shadow-glow">
-								<div
-									className="pointer-events-none absolute left-2 top-2 h-3 w-3 border-l border-t border-cyan-400/40 dark:border-cyan-400/35"
+					<div>
+						<header ref={headerRef} className="skills-header-block mb-10 md:mb-12">
+							<p className="section-eyebrow">
+								<span
+									className="h-px w-8 bg-gradient-to-r from-violet-400 to-cyan-400"
 									aria-hidden
 								/>
-								<div
-									className="pointer-events-none absolute right-2 top-2 h-3 w-3 border-r border-t border-violet-400/40 dark:border-violet-400/35"
-									aria-hidden
-								/>
-								<div
-									className="noise-texture pointer-events-none absolute inset-0 opacity-[0.04] dark:opacity-[0.07]"
-									aria-hidden
-								/>
-
-								<div className="relative flex flex-col items-center gap-3 text-center">
-									<div className="flex h-[3.75rem] w-full items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-950/50">
-										<SkillIcon item={item} />
-									</div>
-									<h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 md:text-base">
-										{item.title}
-									</h3>
-								</div>
-
-								<div
-									className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent opacity-0 transition group-hover:opacity-100"
-									aria-hidden
-								/>
+								Skills
+								<span className="font-mono text-[0.65rem] font-normal tracking-[0.15em] text-slate-400 dark:text-slate-500">
+									/ SEC 02
+								</span>
+							</p>
+							<h2 className="mt-3 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl lg:text-[2.35rem]">
+								What I{" "}
+								<span className="text-gradient-future">Can Do</span>
+							</h2>
+							<p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+								Production stack across UI engineering, APIs, data layers, and
+								delivery tooling — organized by how I actually ship work.
+							</p>
+							<div className="mt-5 flex flex-wrap gap-3">
+								<span className="rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:border-white/10 dark:bg-slate-950/50">
+									{skillItems.length} technologies
+								</span>
+								<span className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">
+									Production ready
+								</span>
 							</div>
-						</motion.div>
-					))}
+						</header>
+
+						<div ref={featuredRef} className="skills-featured-strip mb-10 md:mb-12">
+							<div className="mb-3 flex items-center justify-between gap-3">
+								<p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+									Primary stack
+								</p>
+								<p className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+									Scroll →
+								</p>
+							</div>
+							<div className="skills-featured-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
+								{featured.map((item) => (
+									<FeaturedCard key={item.title} item={item} />
+								))}
+							</div>
+						</div>
+
+						<div className="space-y-4 md:space-y-5">
+							{lanesWithItems.map(({ lane, items }, i) => (
+								<SkillLane
+									key={lane.id}
+									lane={lane}
+									items={items}
+									laneRef={(el) => {
+										laneRefs.current[i] = el;
+									}}
+								/>
+							))}
+						</div>
+					</div>
 				</div>
-			</motion.div>
-		</div>
+			</div>
+		</section>
 	);
 };
 

@@ -48,6 +48,41 @@ function disposeObject3D(obj) {
 	});
 }
 
+/** Try several WebGL presets — avoids hard crash when GPU/context is unavailable. */
+function createWebGLRendererSafe() {
+	const presets = [
+		{
+			alpha: true,
+			antialias: true,
+			powerPreference: "high-performance",
+			failIfMajorPerformanceCaveat: false,
+		},
+		{
+			alpha: true,
+			antialias: true,
+			powerPreference: "default",
+			failIfMajorPerformanceCaveat: false,
+		},
+		{
+			alpha: true,
+			antialias: false,
+			powerPreference: "default",
+			failIfMajorPerformanceCaveat: false,
+		},
+	];
+	for (const options of presets) {
+		try {
+			const renderer = new THREE.WebGLRenderer(options);
+			const gl = renderer.getContext();
+			if (gl && !gl.isContextLost()) return renderer;
+			renderer.dispose();
+		} catch {
+			/* try next preset */
+		}
+	}
+	return null;
+}
+
 const HeroGltfRobot = () => {
 	const wrapRef = useRef(null);
 	const pivotRef = useRef(null);
@@ -75,737 +110,759 @@ const HeroGltfRobot = () => {
 
 	useEffect(() => {
 		const wrap = wrapRef.current;
-		if (!wrap) return;
+		if (!wrap) return undefined;
 
-		const rayPickCtx = {
-			camera: null,
-			renderer: null,
-			modelRoot: null,
-		};
+		let bootRaf = 0;
+		let teardown = () => {};
 
-		const variantKeyFromClick = (clientX, clientY) => {
-			const { camera, renderer, modelRoot } = rayPickCtx;
-			const gridFromRect = (rect) => {
-				const nx = (clientX - rect.left) / Math.max(rect.width, 1);
-				const ny = (clientY - rect.top) / Math.max(rect.height, 1);
-				return pickHudVariantKey(nx, 1 - ny);
+		bootRaf = requestAnimationFrame(() => {
+			if (!wrapRef.current) return;
+
+			const renderer = createWebGLRendererSafe();
+			if (!renderer) {
+				console.warn(
+					"HeroGltfRobot: WebGL is unavailable in this environment.",
+				);
+				return;
+			}
+
+			const rayPickCtx = {
+				camera: null,
+				renderer: null,
+				modelRoot: null,
 			};
-			if (!modelRoot || !renderer?.domElement || !camera) {
-				const rect = wrap.getBoundingClientRect();
-				return gridFromRect(rect);
-			}
-			const canvas = renderer.domElement;
-			const rect = canvas.getBoundingClientRect();
-			if (rect.width < 1 || rect.height < 1) {
-				return HUD_DEFAULT_VARIANT;
-			}
-			const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
-			const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
-			const raycaster = new THREE.Raycaster();
-			raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
-			modelRoot.updateMatrixWorld(true);
-			const hits = raycaster.intersectObject(modelRoot, true);
-			if (hits.length > 0) {
-				const box = new THREE.Box3().setFromObject(modelRoot);
-				const p = hits[0].point;
-				const sx = Math.max(box.max.x - box.min.x, 1e-6);
-				const sy = Math.max(box.max.y - box.min.y, 1e-6);
-				const tx = (p.x - box.min.x) / sx;
-				const ty = (p.y - box.min.y) / sy;
-				return pickHudVariantKey(tx, ty);
-			}
-			return gridFromRect(rect);
-		};
 
-		let cancelled = false;
-		let envRenderTarget = null;
-		const rawNdc = { x: 0, y: 0 };
-		let hoverInside = false;
-		/** Mouse/pen has moved at least once — rotation tracks viewport cursor, not “only inside” the GLB box */
-		let finePointerActive = false;
-		let captureId = null;
-		let activePointerType = null;
-		/** While dragging on touch, freeze aim-at-cursor so finger motion only drives drag */
-		let rawNdcFrozen = null;
-		let lastTouchClientX = 0;
-		let lastTouchClientY = 0;
-		/** Mouse / pen: drag to orbit (full yaw, clamped pitch) */
-		let lastMouseClientX = 0;
-		let lastMouseClientY = 0;
-		let dragYawAcc = 0;
-		let dragPitchAcc = 0;
-		/** Legacy touch offsets — only used after release (damp back to 0); drag uses dragYawAcc like mouse */
-		let touchYawOff = 0;
-		let touchPitchOff = 0;
-		let touchPanXOff = 0;
-		let touchPanYOff = 0;
-		let clickStart = null;
-		/** Slow turntable after pointer stays still (mouse/pen move or any touch activity resets) */
-		let idleAutoYaw = 0;
-		let lastPointerActivityAt = performance.now();
-		let lastActivityX = -1e9;
-		let lastActivityY = -1e9;
-		const IDLE_SPIN_DELAY_MS = 1400;
-		/** ~29s per full 360° at 60fps average */
-		const IDLE_SPIN_RAD_PER_SEC = 0.215;
-
-		const pingActivity = () => {
-			lastPointerActivityAt = performance.now();
-		};
-
-		const pingActivityIfMouseMoved = (e) => {
-			if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
-			if (
-				Math.hypot(e.clientX - lastActivityX, e.clientY - lastActivityY) > 0.55
-			) {
-				lastActivityX = e.clientX;
-				lastActivityY = e.clientY;
-				lastPointerActivityAt = performance.now();
-			}
-		};
-
-		let cursorYaw = 0;
-		let cursorPitch = 0;
-		let cursorRoll = 0;
-		let parallaxX = 0;
-		let parallaxY = 0;
-		const baseYaw = 0.15;
-		const reduceMotion =
-			typeof window !== "undefined" &&
-			window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-		/** Aim from robot center on screen toward cursor — works anywhere in the viewport */
-		const syncNdcLookAtCursor = (e) => {
-			const rect = wrap.getBoundingClientRect();
-			if (rect.width < 1 || rect.height < 1) return;
-			const cx = rect.left + rect.width * 0.5;
-			const cy = rect.top + rect.height * 0.5;
-			const dx = e.clientX - cx;
-			const dy = e.clientY - cy;
-			const vw = window.innerWidth;
-			const vh = window.innerHeight;
-			const scaleX = Math.max(vw * 0.46, rect.width * 0.7);
-			const scaleY = Math.max(vh * 0.46, rect.height * 0.7);
-			rawNdc.x = THREE.MathUtils.clamp(dx / scaleX, -1, 1);
-			rawNdc.y = THREE.MathUtils.clamp(dy / scaleY, -1, 1);
-		};
-
-		const pointerInfluence = () =>
-			finePointerActive || hoverInside || captureId !== null;
-
-		const onWindowPointerMove = (e) => {
-			if (reduceMotion) return;
-			if (e.pointerType === "mouse" || e.pointerType === "pen") {
-				pingActivityIfMouseMoved(e);
-				finePointerActive = true;
-			} else if (e.pointerType === "touch") {
-				pingActivity();
-			}
-			if (rawNdcFrozen !== null) return;
-			syncNdcLookAtCursor(e);
-		};
-
-		const onPointerEnter = (e) => {
-			hoverInside = true;
-			if (!reduceMotion) syncNdcLookAtCursor(e);
-		};
-
-		const onPointerMove = (e) => {
-			if (reduceMotion) return;
-			if (
-				(e.pointerType === "mouse" || e.pointerType === "pen") &&
-				captureId === e.pointerId &&
-				e.buttons & 1
-			) {
-				const dx = e.clientX - lastMouseClientX;
-				const dy = e.clientY - lastMouseClientY;
-				lastMouseClientX = e.clientX;
-				lastMouseClientY = e.clientY;
-				if (dx !== 0 || dy !== 0) {
-					const rect = wrap.getBoundingClientRect();
-					const invW = 1 / Math.max(rect.width, 1);
-					const invH = 1 / Math.max(rect.height, 1);
-					const yawGain = 6.8;
-					const pitchGain = 4.2;
-					dragYawAcc += dx * invW * yawGain;
-					const pitchLimit = Math.PI * 0.95;
-					dragPitchAcc = THREE.MathUtils.clamp(
-						dragPitchAcc + dy * invH * pitchGain * 0.62,
-						-pitchLimit,
-						pitchLimit,
-					);
-				}
-				if (
-					clickStart &&
-					(clickStart.pointerType === "mouse" ||
-						clickStart.pointerType === "pen")
-				) {
-					const dx0 = e.clientX - clickStart.x;
-					const dy0 = e.clientY - clickStart.y;
-					if (Math.hypot(dx0, dy0) > 14) clickStart = null;
-				}
-				if (dx !== 0 || dy !== 0) pingActivity();
-				return;
-			}
-			if (
-				e.pointerType === "touch" &&
-				captureId === e.pointerId &&
-				rawNdcFrozen !== null
-			) {
-				const dx = e.clientX - lastTouchClientX;
-				const dy = e.clientY - lastTouchClientY;
-				lastTouchClientX = e.clientX;
-				lastTouchClientY = e.clientY;
-				if (dx !== 0 || dy !== 0) {
-					const rect = wrap.getBoundingClientRect();
-					const invW = 1 / Math.max(rect.width, 1);
-					const invH = 1 / Math.max(rect.height, 1);
-					/* Same direct orbit as mouse — avoids damping lag that felt “slippery” on touch */
-					const yawGain = 6.8;
-					const pitchGain = 4.2;
-					const pitchLimit = Math.PI * 0.95;
-					dragYawAcc += dx * invW * yawGain;
-					dragPitchAcc = THREE.MathUtils.clamp(
-						dragPitchAcc + dy * invH * pitchGain * 0.62,
-						-pitchLimit,
-						pitchLimit,
-					);
-				}
-				if (clickStart && clickStart.pointerType === "touch") {
-					const dx0 = e.clientX - clickStart.x;
-					const dy0 = e.clientY - clickStart.y;
-					if (Math.hypot(dx0, dy0) > 14) clickStart = null;
-				}
-				if (dx !== 0 || dy !== 0) pingActivity();
-				return;
-			}
-			syncNdcLookAtCursor(e);
-		};
-
-		const onPointerLeave = () => {
-			if (captureId === null) hoverInside = false;
-		};
-
-		const onPointerDown = (e) => {
-			if (reduceMotion) return;
-			pingActivity();
-			lastActivityX = e.clientX;
-			lastActivityY = e.clientY;
-			activePointerType = e.pointerType;
-			if (e.pointerType === "touch") {
-				syncNdcLookAtCursor(e);
-				rawNdcFrozen = { x: rawNdc.x, y: rawNdc.y };
-				touchYawOff = 0;
-				touchPitchOff = 0;
-				touchPanXOff = 0;
-				touchPanYOff = 0;
-				lastTouchClientX = e.clientX;
-				lastTouchClientY = e.clientY;
-			} else {
-				rawNdcFrozen = null;
-				syncNdcLookAtCursor(e);
-			}
-			if (e.button === 0) {
-				clickStart = {
-					x: e.clientX,
-					y: e.clientY,
-					t: performance.now(),
-					pointerType: e.pointerType,
+			const variantKeyFromClick = (clientX, clientY) => {
+				const { camera, renderer, modelRoot } = rayPickCtx;
+				const gridFromRect = (rect) => {
+					const nx = (clientX - rect.left) / Math.max(rect.width, 1);
+					const ny = (clientY - rect.top) / Math.max(rect.height, 1);
+					return pickHudVariantKey(nx, 1 - ny);
 				};
-			}
-			if (e.pointerType === "mouse" || e.pointerType === "pen") {
-				lastMouseClientX = e.clientX;
-				lastMouseClientY = e.clientY;
-			}
-			try {
-				wrap.setPointerCapture(e.pointerId);
-				captureId = e.pointerId;
-			} catch {
-				captureId = e.pointerId;
-			}
-		};
-
-		const onPointerUp = (e) => {
-			if (clickStart && e.button === 0) {
-				const elapsed = performance.now() - clickStart.t;
-				const dx = e.clientX - clickStart.x;
-				const dy = e.clientY - clickStart.y;
-				const tapSlop = clickStart.pointerType === "touch" ? 22 : 16;
-				if (elapsed < 650 && Math.hypot(dx, dy) < tapSlop) {
-					const variantKey = variantKeyFromClick(clickStart.x, clickStart.y);
-					setIntroAnchorRef.current({
-						x: clickStart.x,
-						y: clickStart.y,
-						variantKey,
-					});
-					setIntroOpenRef.current(true);
+				if (!modelRoot || !renderer?.domElement || !camera) {
+					const rect = wrap.getBoundingClientRect();
+					return gridFromRect(rect);
 				}
-				clickStart = null;
-			}
-			if (captureId === e.pointerId) {
-				try {
-					wrap.releasePointerCapture(e.pointerId);
-				} catch {
-					/* noop */
+				const canvas = renderer.domElement;
+				const rect = canvas.getBoundingClientRect();
+				if (rect.width < 1 || rect.height < 1) {
+					return HUD_DEFAULT_VARIANT;
 				}
-				captureId = null;
-			}
-			if (e.pointerType === "touch") {
-				rawNdcFrozen = null;
-			}
-			activePointerType = null;
-			const rect = wrap.getBoundingClientRect();
-			const over =
-				e.clientX >= rect.left &&
-				e.clientX <= rect.right &&
-				e.clientY >= rect.top &&
-				e.clientY <= rect.bottom;
-			hoverInside = over;
-		};
+				const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+				const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
+				const raycaster = new THREE.Raycaster();
+				raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+				modelRoot.updateMatrixWorld(true);
+				const hits = raycaster.intersectObject(modelRoot, true);
+				if (hits.length > 0) {
+					const box = new THREE.Box3().setFromObject(modelRoot);
+					const p = hits[0].point;
+					const sx = Math.max(box.max.x - box.min.x, 1e-6);
+					const sy = Math.max(box.max.y - box.min.y, 1e-6);
+					const tx = (p.x - box.min.x) / sx;
+					const ty = (p.y - box.min.y) / sy;
+					return pickHudVariantKey(tx, ty);
+				}
+				return gridFromRect(rect);
+			};
 
-		const onPointerCancel = (e) => {
-			clickStart = null;
-			rawNdcFrozen = null;
-			activePointerType = null;
-			onPointerUp(e);
-			hoverInside = false;
-		};
+			let cancelled = false;
+			let envRenderTarget = null;
+			const rawNdc = { x: 0, y: 0 };
+			let hoverInside = false;
+			/** Mouse/pen has moved at least once — rotation tracks viewport cursor, not “only inside” the GLB box */
+			let finePointerActive = false;
+			let captureId = null;
+			let activePointerType = null;
+			/** While dragging on touch, freeze aim-at-cursor so finger motion only drives drag */
+			let rawNdcFrozen = null;
+			let lastTouchClientX = 0;
+			let lastTouchClientY = 0;
+			/** Mouse / pen: drag to orbit (full yaw, clamped pitch) */
+			let lastMouseClientX = 0;
+			let lastMouseClientY = 0;
+			let dragYawAcc = 0;
+			let dragPitchAcc = 0;
+			/** Legacy touch offsets — only used after release (damp back to 0); drag uses dragYawAcc like mouse */
+			let touchYawOff = 0;
+			let touchPitchOff = 0;
+			let touchPanXOff = 0;
+			let touchPanYOff = 0;
+			let clickStart = null;
+			/** Slow turntable after pointer stays still (mouse/pen move or any touch activity resets) */
+			let idleAutoYaw = 0;
+			let lastPointerActivityAt = performance.now();
+			let lastActivityX = -1e9;
+			let lastActivityY = -1e9;
+			const IDLE_SPIN_DELAY_MS = 1400;
+			/** ~29s per full 360° at 60fps average */
+			const IDLE_SPIN_RAD_PER_SEC = 0.215;
 
-		window.addEventListener("pointermove", onWindowPointerMove, {
-			passive: true,
-		});
-		wrap.addEventListener("pointerenter", onPointerEnter);
-		wrap.addEventListener("pointermove", onPointerMove);
-		wrap.addEventListener("pointerleave", onPointerLeave);
-		wrap.addEventListener("pointerdown", onPointerDown);
-		wrap.addEventListener("pointerup", onPointerUp);
-		wrap.addEventListener("pointercancel", onPointerCancel);
+			const pingActivity = () => {
+				lastPointerActivityAt = performance.now();
+			};
 
-		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(48, 1, 0.05, 100);
-		camera.position.set(0, 0.05, 4.48);
-		/* Look above origin so the GLB sits lower — head clear of canvas top + fixed navbar */
-		camera.lookAt(0, 0.38, 0);
-		rayPickCtx.camera = camera;
+			const pingActivityIfMouseMoved = (e) => {
+				if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+				if (
+					Math.hypot(e.clientX - lastActivityX, e.clientY - lastActivityY) >
+					0.55
+				) {
+					lastActivityX = e.clientX;
+					lastActivityY = e.clientY;
+					lastPointerActivityAt = performance.now();
+				}
+			};
 
-		const renderer = new THREE.WebGLRenderer({
-			alpha: true,
-			antialias: true,
-			powerPreference: "high-performance",
-		});
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-		renderer.outputColorSpace = THREE.SRGBColorSpace;
-		renderer.toneMapping = THREE.ACESFilmicToneMapping;
-		const baseExposure = 2.55;
-		renderer.toneMappingExposure = baseExposure;
-		renderer.setClearColor(0x000000, 0);
-		rayPickCtx.renderer = renderer;
+			let cursorYaw = 0;
+			let cursorPitch = 0;
+			let cursorRoll = 0;
+			let parallaxX = 0;
+			let parallaxY = 0;
+			const baseYaw = 0.15;
+			const reduceMotion =
+				typeof window !== "undefined" &&
+				window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-		/* IBL so PBR/metallic GLB surfaces get reflections instead of reading as flat black */
-		const pmrem = new THREE.PMREMGenerator(renderer);
-		envRenderTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
-		scene.environment = envRenderTarget.texture;
-		pmrem.dispose();
+			/** Aim from robot center on screen toward cursor — works anywhere in the viewport */
+			const syncNdcLookAtCursor = (e) => {
+				const rect = wrap.getBoundingClientRect();
+				if (rect.width < 1 || rect.height < 1) return;
+				const cx = rect.left + rect.width * 0.5;
+				const cy = rect.top + rect.height * 0.5;
+				const dx = e.clientX - cx;
+				const dy = e.clientY - cy;
+				const vw = window.innerWidth;
+				const vh = window.innerHeight;
+				const scaleX = Math.max(vw * 0.46, rect.width * 0.7);
+				const scaleY = Math.max(vh * 0.46, rect.height * 0.7);
+				rawNdc.x = THREE.MathUtils.clamp(dx / scaleX, -1, 1);
+				rawNdc.y = THREE.MathUtils.clamp(dy / scaleY, -1, 1);
+			};
 
-		const baseHemiI = 1.62;
-		const hemi = new THREE.HemisphereLight(0xffffff, 0x6b6288, baseHemiI);
-		hemi.position.set(0, 1.5, 0);
-		scene.add(hemi);
+			const pointerInfluence = () =>
+				finePointerActive || hoverInside || captureId !== null;
 
-		const baseAmbI = 1.38;
-		const amb = new THREE.AmbientLight(0xf8f6ff, baseAmbI);
-		scene.add(amb);
-		const baseKeyI = 2.85;
-		const key = new THREE.DirectionalLight(0xffffff, baseKeyI);
-		key.position.set(2.5, 4, 3);
-		scene.add(key);
-		const baseFillDirI = 1.85;
-		const fillDir = new THREE.DirectionalLight(0xf8f9ff, baseFillDirI);
-		fillDir.position.set(-2.2, 2.5, 2.8);
-		scene.add(fillDir);
-		const baseFrontI = 1.95;
-		const front = new THREE.DirectionalLight(0xffffff, baseFrontI);
-		front.position.set(0, 0.2, 4.5);
-		scene.add(front);
-		const baseRimI = 1.45;
-		const rim = new THREE.DirectionalLight(0xf5d0fe, baseRimI);
-		rim.position.set(-3.5, 1.5, -2);
-		scene.add(rim);
-		const baseBounceI = 1.05;
-		const bounce = new THREE.DirectionalLight(0xe8f0ff, baseBounceI);
-		bounce.position.set(0, -2.2, 2.5);
-		scene.add(bounce);
-		const baseMagentaI = 5.1;
-		const magenta = new THREE.PointLight(0xf472f6, baseMagentaI, 12);
-		magenta.position.set(0.6, 1.1, 1.8);
-		scene.add(magenta);
-		const baseFillPtI = 2.55;
-		const fill = new THREE.PointLight(0xc8eeff, baseFillPtI, 11);
-		fill.position.set(-2, 0.3, 2);
-		scene.add(fill);
+			const onWindowPointerMove = (e) => {
+				if (reduceMotion) return;
+				if (e.pointerType === "mouse" || e.pointerType === "pen") {
+					pingActivityIfMouseMoved(e);
+					finePointerActive = true;
+				} else if (e.pointerType === "touch") {
+					pingActivity();
+				}
+				if (rawNdcFrozen !== null) return;
+				syncNdcLookAtCursor(e);
+			};
 
-		const boltLight = new THREE.PointLight(0xcffafe, 0, 26, 2);
-		boltLight.position.set(0.9, 2.1, 1.6);
-		scene.add(boltLight);
-		const arcLight = new THREE.PointLight(0xf0abfc, 0, 18, 1.8);
-		arcLight.position.set(-1.1, 1.5, 1.4);
-		scene.add(arcLight);
+			const onPointerEnter = (e) => {
+				hoverInside = true;
+				if (!reduceMotion) syncNdcLookAtCursor(e);
+			};
 
-		const boltGeo = new THREE.BufferGeometry().setFromPoints(randomBoltPoints());
-		const boltMat = new THREE.LineBasicMaterial({
-			color: 0xa5f3fc,
-			transparent: true,
-			opacity: 0,
-			blending: THREE.AdditiveBlending,
-			depthWrite: false,
-		});
-		const boltLine = new THREE.Line(boltGeo, boltMat);
-		boltLine.frustumCulled = false;
-		scene.add(boltLine);
-
-		const boltGeo2 = new THREE.BufferGeometry().setFromPoints(randomBoltPoints());
-		const boltMat2 = new THREE.LineBasicMaterial({
-			color: 0xe879f9,
-			transparent: true,
-			opacity: 0,
-			blending: THREE.AdditiveBlending,
-			depthWrite: false,
-		});
-		const boltLine2 = new THREE.Line(boltGeo2, boltMat2);
-		boltLine2.frustumCulled = false;
-		boltLine2.position.z = -0.15;
-		scene.add(boltLine2);
-
-		let heroRevealT0 = null;
-		let introMaterialsNeedRestore = false;
-		let lastBoltRegen = -1;
-
-		const pivot = new THREE.Group();
-		scene.add(pivot);
-		pivotRef.current = pivot;
-
-		let mixer = null;
-		const clock = new THREE.Clock();
-		const loader = new GLTFLoader();
-
-		loader.load(
-			MODEL_PATH,
-			(gltf) => {
-				if (cancelled) {
-					disposeObject3D(gltf.scene);
+			const onPointerMove = (e) => {
+				if (reduceMotion) return;
+				if (
+					(e.pointerType === "mouse" || e.pointerType === "pen") &&
+					captureId === e.pointerId &&
+					e.buttons & 1
+				) {
+					const dx = e.clientX - lastMouseClientX;
+					const dy = e.clientY - lastMouseClientY;
+					lastMouseClientX = e.clientX;
+					lastMouseClientY = e.clientY;
+					if (dx !== 0 || dy !== 0) {
+						const rect = wrap.getBoundingClientRect();
+						const invW = 1 / Math.max(rect.width, 1);
+						const invH = 1 / Math.max(rect.height, 1);
+						const yawGain = 6.8;
+						const pitchGain = 4.2;
+						dragYawAcc += dx * invW * yawGain;
+						const pitchLimit = Math.PI * 0.95;
+						dragPitchAcc = THREE.MathUtils.clamp(
+							dragPitchAcc + dy * invH * pitchGain * 0.62,
+							-pitchLimit,
+							pitchLimit,
+						);
+					}
+					if (
+						clickStart &&
+						(clickStart.pointerType === "mouse" ||
+							clickStart.pointerType === "pen")
+					) {
+						const dx0 = e.clientX - clickStart.x;
+						const dy0 = e.clientY - clickStart.y;
+						if (Math.hypot(dx0, dy0) > 14) clickStart = null;
+					}
+					if (dx !== 0 || dy !== 0) pingActivity();
 					return;
 				}
-				const model = gltf.scene;
-				model.updateMatrixWorld(true);
-				const box = new THREE.Box3().setFromObject(model);
-				const center = box.getCenter(new THREE.Vector3());
-				model.position.sub(center);
-				const size = box.getSize(new THREE.Vector3());
-				const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
-				model.scale.setScalar(4.35 / maxDim);
-				pivot.add(model);
-				rayPickCtx.modelRoot = model;
-
-				model.traverse((child) => {
-					if (!child.isMesh) return;
-					const mats = Array.isArray(child.material)
-						? child.material
-						: [child.material];
-					for (const m of mats) {
-						if (m && "envMapIntensity" in m) {
-							m.envMapIntensity = (m.envMapIntensity ?? 1) * 1.25;
-						}
-						if (m && (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial)) {
-							m.userData._introEmissive = m.emissive.clone();
-							m.userData._introEmissiveInt = m.emissiveIntensity ?? 1;
-						}
+				if (
+					e.pointerType === "touch" &&
+					captureId === e.pointerId &&
+					rawNdcFrozen !== null
+				) {
+					const dx = e.clientX - lastTouchClientX;
+					const dy = e.clientY - lastTouchClientY;
+					lastTouchClientX = e.clientX;
+					lastTouchClientY = e.clientY;
+					if (dx !== 0 || dy !== 0) {
+						const rect = wrap.getBoundingClientRect();
+						const invW = 1 / Math.max(rect.width, 1);
+						const invH = 1 / Math.max(rect.height, 1);
+						/* Same direct orbit as mouse — avoids damping lag that felt “slippery” on touch */
+						const yawGain = 6.8;
+						const pitchGain = 4.2;
+						const pitchLimit = Math.PI * 0.95;
+						dragYawAcc += dx * invW * yawGain;
+						dragPitchAcc = THREE.MathUtils.clamp(
+							dragPitchAcc + dy * invH * pitchGain * 0.62,
+							-pitchLimit,
+							pitchLimit,
+						);
 					}
-				});
-
-				if (!reduceMotion) {
-					heroRevealT0 = performance.now();
-				}
-
-				if (gltf.animations?.length) {
-					mixer = new THREE.AnimationMixer(model);
-					for (const clip of gltf.animations) {
-						mixer.clipAction(clip).play();
+					if (clickStart && clickStart.pointerType === "touch") {
+						const dx0 = e.clientX - clickStart.x;
+						const dy0 = e.clientY - clickStart.y;
+						if (Math.hypot(dx0, dy0) > 14) clickStart = null;
 					}
+					if (dx !== 0 || dy !== 0) pingActivity();
+					return;
 				}
+				syncNdcLookAtCursor(e);
+			};
 
-				setLoaded(true);
-			},
-			undefined,
-			(err) => {
-				console.error("Hero GLB load failed:", err);
-			},
-		);
+			const onPointerLeave = () => {
+				if (captureId === null) hoverInside = false;
+			};
 
-		/** Cursor follow when not click-dragging; drag adds extra yaw/pitch (unbounded yaw via dragYawAcc) */
-		const maxYaw = 0.72;
-		const maxPitch = 0.42;
-		const maxParallaxX = 0.18;
-		const maxParallaxY = 0.045;
-
-		const tick = () => {
-			rafRef.current = requestAnimationFrame(tick);
-			const dt = clock.getDelta();
-			const t = clock.elapsedTime;
-			if (mixer) mixer.update(dt);
-
-			const revealSec =
-				heroRevealT0 === null
-					? 1e9
-					: (performance.now() - heroRevealT0) / 1000;
-			const inHeroReveal =
-				!reduceMotion && heroRevealT0 !== null && revealSec < 2.8;
-
-			let introShake = 0;
-			const cyanElectric = tmpColorB.setRGB(0.22, 0.98, 0.78);
-
-			if (inHeroReveal) {
-				introMaterialsNeedRestore = true;
-				const thunder = thunderPulse(revealSec);
-				const buzz = Math.sin(t * 88) * 0.1 + Math.sin(t * 131) * 0.07;
-				const flick = Math.abs(buzz);
-
-				renderer.toneMappingExposure =
-					baseExposure + thunder * 1.45 + flick * 0.32;
-
-				amb.intensity = baseAmbI * (1 + thunder * 0.28);
-				hemi.intensity = baseHemiI * (1 + thunder * 0.5);
-				key.intensity = baseKeyI * (1 + thunder * 0.45);
-				fillDir.intensity = baseFillDirI * (1 + thunder * 0.25);
-				front.intensity = baseFrontI * (1 + thunder * 0.35);
-				rim.intensity = baseRimI * (1 + thunder * 0.2);
-				bounce.intensity = baseBounceI * (1 + thunder * 0.15);
-				magenta.intensity =
-					baseMagentaI * (1 + thunder * 0.85 + flick * 2.2);
-				fill.intensity = baseFillPtI * (1 + thunder * 0.55 + flick);
-
-				boltLight.intensity = thunder * 56 + flick * 22;
-				arcLight.intensity =
-					thunder * 32 + (Math.sin(t * 101) * 0.5 + 0.5) * 18;
-
-				boltLight.position.set(
-					0.55 + thunder * 0.85,
-					1.6 + thunder * 0.65,
-					1.1 + flick * 0.4,
-				);
-				arcLight.position.set(
-					-0.9 - thunder * 0.3,
-					1.35 + flick * 0.2,
-					1.3,
-				);
-
-				const linePush = Math.min(1, thunder * 0.88 + flick * 2.8);
-				boltMat.opacity = linePush * 0.85;
-				boltMat2.opacity = linePush * 0.55;
-
-				const pk = Math.floor(revealSec * 5);
-				if (thunder > 0.28 && pk !== lastBoltRegen) {
-					lastBoltRegen = pk;
-					boltGeo.setFromPoints(randomBoltPoints());
-					boltGeo2.setFromPoints(randomBoltPoints());
-				}
-
-				const root = rayPickCtx.modelRoot;
-				if (root) {
-					const emAmt = thunder * 0.42 + flick * 0.14;
-					root.traverse((child) => {
-						if (!child.isMesh) return;
-						const mats = Array.isArray(child.material)
-							? child.material
-							: [child.material];
-						for (const m of mats) {
-							if (m?.userData?._introEmissive) {
-								m.emissive.lerpColors(
-									m.userData._introEmissive,
-									cyanElectric,
-									emAmt,
-								);
-								m.emissiveIntensity =
-									m.userData._introEmissiveInt + emAmt * 3.2;
-							}
-						}
-					});
-				}
-
-				const fo = flashOverlayRef.current;
-				if (fo) {
-					fo.style.opacity = String(
-						Math.min(0.5, thunder * 0.38 + flick * 0.12),
-					);
-				}
-
-				introShake = (Math.random() - 0.5) * 0.05 * thunder;
-			} else {
-				renderer.toneMappingExposure = baseExposure;
-				amb.intensity = baseAmbI;
-				hemi.intensity = baseHemiI;
-				key.intensity = baseKeyI;
-				fillDir.intensity = baseFillDirI;
-				front.intensity = baseFrontI;
-				rim.intensity = baseRimI;
-				bounce.intensity = baseBounceI;
-				magenta.intensity = baseMagentaI;
-				fill.intensity = baseFillPtI;
-				boltLight.intensity = 0;
-				arcLight.intensity = 0;
-				boltMat.opacity = 0;
-				boltMat2.opacity = 0;
-
-				const fo = flashOverlayRef.current;
-				if (fo) fo.style.opacity = "0";
-
-				if (introMaterialsNeedRestore && rayPickCtx.modelRoot) {
-					const root = rayPickCtx.modelRoot;
-					root.traverse((child) => {
-						if (!child.isMesh) return;
-						const mats = Array.isArray(child.material)
-							? child.material
-							: [child.material];
-						for (const m of mats) {
-							if (m?.userData?._introEmissive) {
-								m.emissive.copy(m.userData._introEmissive);
-								m.emissiveIntensity = m.userData._introEmissiveInt;
-							}
-						}
-					});
-					introMaterialsNeedRestore = false;
-				}
-			}
-
-			const touchDragging = captureId !== null && activePointerType === "touch";
-			const mouseOrbiting =
-				captureId !== null &&
-				(activePointerType === "mouse" || activePointerType === "pen");
-			const pointerQuietMs = performance.now() - lastPointerActivityAt;
-			const canIdleSpin =
-				!reduceMotion &&
-				!mouseOrbiting &&
-				!touchDragging &&
-				pointerQuietMs >= IDLE_SPIN_DELAY_MS;
-			if (canIdleSpin) {
-				idleAutoYaw += IDLE_SPIN_RAD_PER_SEC * dt;
-			}
-			if (!touchDragging) {
-				touchYawOff = THREE.MathUtils.damp(touchYawOff, 0, 5.5, dt);
-				touchPitchOff = THREE.MathUtils.damp(touchPitchOff, 0, 5.5, dt);
-				touchPanXOff = THREE.MathUtils.damp(touchPanXOff, 0, 5.5, dt);
-				touchPanYOff = THREE.MathUtils.damp(touchPanYOff, 0, 5.5, dt);
-			}
-
-			const srcNdc = rawNdcFrozen ?? rawNdc;
-			const active = !reduceMotion && pointerInfluence();
-			let targetYaw = 0;
-			let targetPitch = 0;
-			let targetRoll = 0;
-			let targetPx = 0;
-			let targetPy = 0;
-			if (active && !mouseOrbiting) {
-				targetYaw = srcNdc.x * maxYaw + touchYawOff;
-				targetPitch = srcNdc.y * maxPitch + touchPitchOff;
-				targetRoll = srcNdc.x * 0.1;
-				targetPx = srcNdc.x * maxParallaxX + touchPanXOff;
-				targetPy = srcNdc.y * maxParallaxY + touchPanYOff;
-			}
-
-			const ptrOn = pointerInfluence();
-			/** Eased follow while tracking cursor — slower easing when idle */
-			const followLambda = ptrOn ? 14 : 5;
-
-			cursorYaw = THREE.MathUtils.damp(cursorYaw, targetYaw, followLambda, dt);
-			cursorPitch = THREE.MathUtils.damp(
-				cursorPitch,
-				targetPitch,
-				followLambda,
-				dt,
-			);
-			cursorRoll = THREE.MathUtils.damp(
-				cursorRoll,
-				targetRoll,
-				followLambda,
-				dt,
-			);
-			parallaxX = THREE.MathUtils.damp(parallaxX, targetPx, followLambda, dt);
-			parallaxY = THREE.MathUtils.damp(parallaxY, targetPy, followLambda, dt);
-
-			if (pivotRef.current) {
-				/** Bob / wiggle only before first mouse/pen move or when touch is outside hero */
-				const idleMotion = !reduceMotion && !ptrOn;
-				const bobY = idleMotion ? Math.sin(t * 1.15) * 0.035 : 0;
-
-				if (reduceMotion) {
-					pivotRef.current.position.set(0, 0, 0);
-					pivotRef.current.rotation.y = 0.15;
-					pivotRef.current.rotation.x = 0;
-					pivotRef.current.rotation.z = 0;
+			const onPointerDown = (e) => {
+				if (reduceMotion) return;
+				pingActivity();
+				lastActivityX = e.clientX;
+				lastActivityY = e.clientY;
+				activePointerType = e.pointerType;
+				if (e.pointerType === "touch") {
+					syncNdcLookAtCursor(e);
+					rawNdcFrozen = { x: rawNdc.x, y: rawNdc.y };
+					touchYawOff = 0;
+					touchPitchOff = 0;
+					touchPanXOff = 0;
+					touchPanYOff = 0;
+					lastTouchClientX = e.clientX;
+					lastTouchClientY = e.clientY;
 				} else {
-					const wigglePitch = idleMotion ? Math.sin(t * 0.42) * 0.05 : 0;
-					const wiggleRoll = idleMotion ? Math.sin(t * 0.22) * 0.04 : 0;
-					pivotRef.current.position.x = parallaxX;
-					pivotRef.current.position.y = bobY + parallaxY;
-					pivotRef.current.position.z = 0;
-					pivotRef.current.rotation.y =
-						baseYaw + cursorYaw + dragYawAcc + idleAutoYaw;
-					pivotRef.current.rotation.x =
-						wigglePitch + cursorPitch + dragPitchAcc + introShake * 1.8;
-					pivotRef.current.rotation.z =
-						wiggleRoll + cursorRoll + introShake * 2.2;
+					rawNdcFrozen = null;
+					syncNdcLookAtCursor(e);
 				}
-			}
-			renderer.render(scene, camera);
-		};
+				if (e.button === 0) {
+					clickStart = {
+						x: e.clientX,
+						y: e.clientY,
+						t: performance.now(),
+						pointerType: e.pointerType,
+					};
+				}
+				if (e.pointerType === "mouse" || e.pointerType === "pen") {
+					lastMouseClientX = e.clientX;
+					lastMouseClientY = e.clientY;
+				}
+				try {
+					wrap.setPointerCapture(e.pointerId);
+					captureId = e.pointerId;
+				} catch {
+					captureId = e.pointerId;
+				}
+			};
 
-		wrap.appendChild(renderer.domElement);
-		const css = renderer.domElement.style;
-		css.display = "block";
-		css.width = "100%";
-		css.height = "100%";
-		css.touchAction = "none";
-		tick();
+			const onPointerUp = (e) => {
+				if (clickStart && e.button === 0) {
+					const elapsed = performance.now() - clickStart.t;
+					const dx = e.clientX - clickStart.x;
+					const dy = e.clientY - clickStart.y;
+					const tapSlop = clickStart.pointerType === "touch" ? 22 : 16;
+					if (elapsed < 650 && Math.hypot(dx, dy) < tapSlop) {
+						const variantKey = variantKeyFromClick(clickStart.x, clickStart.y);
+						setIntroAnchorRef.current({
+							x: clickStart.x,
+							y: clickStart.y,
+							variantKey,
+						});
+						setIntroOpenRef.current(true);
+					}
+					clickStart = null;
+				}
+				if (captureId === e.pointerId) {
+					try {
+						wrap.releasePointerCapture(e.pointerId);
+					} catch {
+						/* noop */
+					}
+					captureId = null;
+				}
+				if (e.pointerType === "touch") {
+					rawNdcFrozen = null;
+				}
+				activePointerType = null;
+				const rect = wrap.getBoundingClientRect();
+				const over =
+					e.clientX >= rect.left &&
+					e.clientX <= rect.right &&
+					e.clientY >= rect.top &&
+					e.clientY <= rect.bottom;
+				hoverInside = over;
+			};
 
-		const resize = () => {
-			if (!wrapRef.current) return;
-			const w = Math.max(280, wrapRef.current.clientWidth);
-			const h = Math.max(260, wrapRef.current.clientHeight);
-			camera.aspect = w / h;
-			camera.updateProjectionMatrix();
-			renderer.setSize(w, h, false);
-		};
+			const onPointerCancel = (e) => {
+				clickStart = null;
+				rawNdcFrozen = null;
+				activePointerType = null;
+				onPointerUp(e);
+				hoverInside = false;
+			};
 
-		const ro = new ResizeObserver(resize);
-		ro.observe(wrap);
-		resize();
+			window.addEventListener("pointermove", onWindowPointerMove, {
+				passive: true,
+			});
+			wrap.addEventListener("pointerenter", onPointerEnter);
+			wrap.addEventListener("pointermove", onPointerMove);
+			wrap.addEventListener("pointerleave", onPointerLeave);
+			wrap.addEventListener("pointerdown", onPointerDown);
+			wrap.addEventListener("pointerup", onPointerUp);
+			wrap.addEventListener("pointercancel", onPointerCancel);
+
+			const scene = new THREE.Scene();
+			const camera = new THREE.PerspectiveCamera(48, 1, 0.05, 100);
+			camera.position.set(0, 0.05, 4.48);
+			/* Look above origin so the GLB sits lower — head clear of canvas top + fixed navbar */
+			camera.lookAt(0, 0.38, 0);
+			rayPickCtx.camera = camera;
+
+			renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+			renderer.outputColorSpace = THREE.SRGBColorSpace;
+			renderer.toneMapping = THREE.ACESFilmicToneMapping;
+			const baseExposure = 2.55;
+			renderer.toneMappingExposure = baseExposure;
+			renderer.setClearColor(0x000000, 0);
+			rayPickCtx.renderer = renderer;
+
+			/* IBL so PBR/metallic GLB surfaces get reflections instead of reading as flat black */
+			const pmrem = new THREE.PMREMGenerator(renderer);
+			envRenderTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
+			scene.environment = envRenderTarget.texture;
+			pmrem.dispose();
+
+			const baseHemiI = 1.62;
+			const hemi = new THREE.HemisphereLight(0xffffff, 0x6b6288, baseHemiI);
+			hemi.position.set(0, 1.5, 0);
+			scene.add(hemi);
+
+			const baseAmbI = 1.38;
+			const amb = new THREE.AmbientLight(0xf8f6ff, baseAmbI);
+			scene.add(amb);
+			const baseKeyI = 2.85;
+			const key = new THREE.DirectionalLight(0xffffff, baseKeyI);
+			key.position.set(2.5, 4, 3);
+			scene.add(key);
+			const baseFillDirI = 1.85;
+			const fillDir = new THREE.DirectionalLight(0xf8f9ff, baseFillDirI);
+			fillDir.position.set(-2.2, 2.5, 2.8);
+			scene.add(fillDir);
+			const baseFrontI = 1.95;
+			const front = new THREE.DirectionalLight(0xffffff, baseFrontI);
+			front.position.set(0, 0.2, 4.5);
+			scene.add(front);
+			const baseRimI = 1.45;
+			const rim = new THREE.DirectionalLight(0xf5d0fe, baseRimI);
+			rim.position.set(-3.5, 1.5, -2);
+			scene.add(rim);
+			const baseBounceI = 1.05;
+			const bounce = new THREE.DirectionalLight(0xe8f0ff, baseBounceI);
+			bounce.position.set(0, -2.2, 2.5);
+			scene.add(bounce);
+			const baseMagentaI = 5.1;
+			const magenta = new THREE.PointLight(0xf472f6, baseMagentaI, 12);
+			magenta.position.set(0.6, 1.1, 1.8);
+			scene.add(magenta);
+			const baseFillPtI = 2.55;
+			const fill = new THREE.PointLight(0xc8eeff, baseFillPtI, 11);
+			fill.position.set(-2, 0.3, 2);
+			scene.add(fill);
+
+			const boltLight = new THREE.PointLight(0xcffafe, 0, 26, 2);
+			boltLight.position.set(0.9, 2.1, 1.6);
+			scene.add(boltLight);
+			const arcLight = new THREE.PointLight(0xf0abfc, 0, 18, 1.8);
+			arcLight.position.set(-1.1, 1.5, 1.4);
+			scene.add(arcLight);
+
+			const boltGeo = new THREE.BufferGeometry().setFromPoints(
+				randomBoltPoints(),
+			);
+			const boltMat = new THREE.LineBasicMaterial({
+				color: 0xa5f3fc,
+				transparent: true,
+				opacity: 0,
+				blending: THREE.AdditiveBlending,
+				depthWrite: false,
+			});
+			const boltLine = new THREE.Line(boltGeo, boltMat);
+			boltLine.frustumCulled = false;
+			scene.add(boltLine);
+
+			const boltGeo2 = new THREE.BufferGeometry().setFromPoints(
+				randomBoltPoints(),
+			);
+			const boltMat2 = new THREE.LineBasicMaterial({
+				color: 0xe879f9,
+				transparent: true,
+				opacity: 0,
+				blending: THREE.AdditiveBlending,
+				depthWrite: false,
+			});
+			const boltLine2 = new THREE.Line(boltGeo2, boltMat2);
+			boltLine2.frustumCulled = false;
+			boltLine2.position.z = -0.15;
+			scene.add(boltLine2);
+
+			let heroRevealT0 = null;
+			let introMaterialsNeedRestore = false;
+			let lastBoltRegen = -1;
+
+			const pivot = new THREE.Group();
+			scene.add(pivot);
+			pivotRef.current = pivot;
+
+			let mixer = null;
+			const clock = new THREE.Clock();
+			const loader = new GLTFLoader();
+
+			loader.load(
+				MODEL_PATH,
+				(gltf) => {
+					if (cancelled) {
+						disposeObject3D(gltf.scene);
+						return;
+					}
+					const model = gltf.scene;
+					model.updateMatrixWorld(true);
+					const box = new THREE.Box3().setFromObject(model);
+					const center = box.getCenter(new THREE.Vector3());
+					model.position.sub(center);
+					const size = box.getSize(new THREE.Vector3());
+					const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
+					model.scale.setScalar(4.35 / maxDim);
+					pivot.add(model);
+					rayPickCtx.modelRoot = model;
+
+					model.traverse((child) => {
+						if (!child.isMesh) return;
+						const mats = Array.isArray(child.material)
+							? child.material
+							: [child.material];
+						for (const m of mats) {
+							if (m && "envMapIntensity" in m) {
+								m.envMapIntensity = (m.envMapIntensity ?? 1) * 1.25;
+							}
+							if (m && (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial)) {
+								m.userData._introEmissive = m.emissive.clone();
+								m.userData._introEmissiveInt = m.emissiveIntensity ?? 1;
+							}
+						}
+					});
+
+					if (!reduceMotion) {
+						heroRevealT0 = performance.now();
+					}
+
+					if (gltf.animations?.length) {
+						mixer = new THREE.AnimationMixer(model);
+						for (const clip of gltf.animations) {
+							mixer.clipAction(clip).play();
+						}
+					}
+
+					setLoaded(true);
+				},
+				undefined,
+				(err) => {
+					console.error("Hero GLB load failed:", err);
+				},
+			);
+
+			/** Cursor follow when not click-dragging; drag adds extra yaw/pitch (unbounded yaw via dragYawAcc) */
+			const maxYaw = 0.72;
+			const maxPitch = 0.42;
+			const maxParallaxX = 0.18;
+			const maxParallaxY = 0.045;
+
+			const tick = () => {
+				rafRef.current = requestAnimationFrame(tick);
+				const dt = clock.getDelta();
+				const t = clock.elapsedTime;
+				if (mixer) mixer.update(dt);
+
+				const revealSec =
+					heroRevealT0 === null
+						? 1e9
+						: (performance.now() - heroRevealT0) / 1000;
+				const inHeroReveal =
+					!reduceMotion && heroRevealT0 !== null && revealSec < 2.8;
+
+				let introShake = 0;
+				const cyanElectric = tmpColorB.setRGB(0.22, 0.98, 0.78);
+
+				if (inHeroReveal) {
+					introMaterialsNeedRestore = true;
+					const thunder = thunderPulse(revealSec);
+					const buzz = Math.sin(t * 88) * 0.1 + Math.sin(t * 131) * 0.07;
+					const flick = Math.abs(buzz);
+
+					renderer.toneMappingExposure =
+						baseExposure + thunder * 1.45 + flick * 0.32;
+
+					amb.intensity = baseAmbI * (1 + thunder * 0.28);
+					hemi.intensity = baseHemiI * (1 + thunder * 0.5);
+					key.intensity = baseKeyI * (1 + thunder * 0.45);
+					fillDir.intensity = baseFillDirI * (1 + thunder * 0.25);
+					front.intensity = baseFrontI * (1 + thunder * 0.35);
+					rim.intensity = baseRimI * (1 + thunder * 0.2);
+					bounce.intensity = baseBounceI * (1 + thunder * 0.15);
+					magenta.intensity = baseMagentaI * (1 + thunder * 0.85 + flick * 2.2);
+					fill.intensity = baseFillPtI * (1 + thunder * 0.55 + flick);
+
+					boltLight.intensity = thunder * 56 + flick * 22;
+					arcLight.intensity =
+						thunder * 32 + (Math.sin(t * 101) * 0.5 + 0.5) * 18;
+
+					boltLight.position.set(
+						0.55 + thunder * 0.85,
+						1.6 + thunder * 0.65,
+						1.1 + flick * 0.4,
+					);
+					arcLight.position.set(-0.9 - thunder * 0.3, 1.35 + flick * 0.2, 1.3);
+
+					const linePush = Math.min(1, thunder * 0.88 + flick * 2.8);
+					boltMat.opacity = linePush * 0.85;
+					boltMat2.opacity = linePush * 0.55;
+
+					const pk = Math.floor(revealSec * 5);
+					if (thunder > 0.28 && pk !== lastBoltRegen) {
+						lastBoltRegen = pk;
+						boltGeo.setFromPoints(randomBoltPoints());
+						boltGeo2.setFromPoints(randomBoltPoints());
+					}
+
+					const root = rayPickCtx.modelRoot;
+					if (root) {
+						const emAmt = thunder * 0.42 + flick * 0.14;
+						root.traverse((child) => {
+							if (!child.isMesh) return;
+							const mats = Array.isArray(child.material)
+								? child.material
+								: [child.material];
+							for (const m of mats) {
+								if (m?.userData?._introEmissive) {
+									m.emissive.lerpColors(
+										m.userData._introEmissive,
+										cyanElectric,
+										emAmt,
+									);
+									m.emissiveIntensity =
+										m.userData._introEmissiveInt + emAmt * 3.2;
+								}
+							}
+						});
+					}
+
+					const fo = flashOverlayRef.current;
+					if (fo) {
+						fo.style.opacity = String(
+							Math.min(0.5, thunder * 0.38 + flick * 0.12),
+						);
+					}
+
+					introShake = (Math.random() - 0.5) * 0.05 * thunder;
+				} else {
+					renderer.toneMappingExposure = baseExposure;
+					amb.intensity = baseAmbI;
+					hemi.intensity = baseHemiI;
+					key.intensity = baseKeyI;
+					fillDir.intensity = baseFillDirI;
+					front.intensity = baseFrontI;
+					rim.intensity = baseRimI;
+					bounce.intensity = baseBounceI;
+					magenta.intensity = baseMagentaI;
+					fill.intensity = baseFillPtI;
+					boltLight.intensity = 0;
+					arcLight.intensity = 0;
+					boltMat.opacity = 0;
+					boltMat2.opacity = 0;
+
+					const fo = flashOverlayRef.current;
+					if (fo) fo.style.opacity = "0";
+
+					if (introMaterialsNeedRestore && rayPickCtx.modelRoot) {
+						const root = rayPickCtx.modelRoot;
+						root.traverse((child) => {
+							if (!child.isMesh) return;
+							const mats = Array.isArray(child.material)
+								? child.material
+								: [child.material];
+							for (const m of mats) {
+								if (m?.userData?._introEmissive) {
+									m.emissive.copy(m.userData._introEmissive);
+									m.emissiveIntensity = m.userData._introEmissiveInt;
+								}
+							}
+						});
+						introMaterialsNeedRestore = false;
+					}
+				}
+
+				const touchDragging =
+					captureId !== null && activePointerType === "touch";
+				const mouseOrbiting =
+					captureId !== null &&
+					(activePointerType === "mouse" || activePointerType === "pen");
+				const pointerQuietMs = performance.now() - lastPointerActivityAt;
+				const canIdleSpin =
+					!reduceMotion &&
+					!mouseOrbiting &&
+					!touchDragging &&
+					pointerQuietMs >= IDLE_SPIN_DELAY_MS;
+				if (canIdleSpin) {
+					idleAutoYaw += IDLE_SPIN_RAD_PER_SEC * dt;
+				}
+				if (!touchDragging) {
+					touchYawOff = THREE.MathUtils.damp(touchYawOff, 0, 5.5, dt);
+					touchPitchOff = THREE.MathUtils.damp(touchPitchOff, 0, 5.5, dt);
+					touchPanXOff = THREE.MathUtils.damp(touchPanXOff, 0, 5.5, dt);
+					touchPanYOff = THREE.MathUtils.damp(touchPanYOff, 0, 5.5, dt);
+				}
+
+				const srcNdc = rawNdcFrozen ?? rawNdc;
+				const active = !reduceMotion && pointerInfluence();
+				let targetYaw = 0;
+				let targetPitch = 0;
+				let targetRoll = 0;
+				let targetPx = 0;
+				let targetPy = 0;
+				if (active && !mouseOrbiting) {
+					targetYaw = srcNdc.x * maxYaw + touchYawOff;
+					targetPitch = srcNdc.y * maxPitch + touchPitchOff;
+					targetRoll = srcNdc.x * 0.1;
+					targetPx = srcNdc.x * maxParallaxX + touchPanXOff;
+					targetPy = srcNdc.y * maxParallaxY + touchPanYOff;
+				}
+
+				const ptrOn = pointerInfluence();
+				/** Eased follow while tracking cursor — slower easing when idle */
+				const followLambda = ptrOn ? 14 : 5;
+
+				cursorYaw = THREE.MathUtils.damp(
+					cursorYaw,
+					targetYaw,
+					followLambda,
+					dt,
+				);
+				cursorPitch = THREE.MathUtils.damp(
+					cursorPitch,
+					targetPitch,
+					followLambda,
+					dt,
+				);
+				cursorRoll = THREE.MathUtils.damp(
+					cursorRoll,
+					targetRoll,
+					followLambda,
+					dt,
+				);
+				parallaxX = THREE.MathUtils.damp(parallaxX, targetPx, followLambda, dt);
+				parallaxY = THREE.MathUtils.damp(parallaxY, targetPy, followLambda, dt);
+
+				if (pivotRef.current) {
+					/** Bob / wiggle only before first mouse/pen move or when touch is outside hero */
+					const idleMotion = !reduceMotion && !ptrOn;
+					const bobY = idleMotion ? Math.sin(t * 1.15) * 0.035 : 0;
+
+					if (reduceMotion) {
+						pivotRef.current.position.set(0, 0, 0);
+						pivotRef.current.rotation.y = 0.15;
+						pivotRef.current.rotation.x = 0;
+						pivotRef.current.rotation.z = 0;
+					} else {
+						const wigglePitch = idleMotion ? Math.sin(t * 0.42) * 0.05 : 0;
+						const wiggleRoll = idleMotion ? Math.sin(t * 0.22) * 0.04 : 0;
+						pivotRef.current.position.x = parallaxX;
+						pivotRef.current.position.y = bobY + parallaxY;
+						pivotRef.current.position.z = 0;
+						pivotRef.current.rotation.y =
+							baseYaw + cursorYaw + dragYawAcc + idleAutoYaw;
+						pivotRef.current.rotation.x =
+							wigglePitch + cursorPitch + dragPitchAcc + introShake * 1.8;
+						pivotRef.current.rotation.z =
+							wiggleRoll + cursorRoll + introShake * 2.2;
+					}
+				}
+				renderer.render(scene, camera);
+			};
+
+			wrap.appendChild(renderer.domElement);
+			const css = renderer.domElement.style;
+			css.display = "block";
+			css.width = "100%";
+			css.height = "100%";
+			css.touchAction = "none";
+			tick();
+
+			const resize = () => {
+				if (!wrapRef.current) return;
+				const w = Math.max(280, wrapRef.current.clientWidth);
+				const h = Math.max(260, wrapRef.current.clientHeight);
+				camera.aspect = w / h;
+				camera.updateProjectionMatrix();
+				renderer.setSize(w, h, false);
+			};
+
+			const ro = new ResizeObserver(resize);
+			ro.observe(wrap);
+			resize();
+
+			teardown = () => {
+				cancelled = true;
+				scene.environment = null;
+				envRenderTarget?.dispose();
+				envRenderTarget = null;
+				cancelAnimationFrame(rafRef.current);
+				ro.disconnect();
+				window.removeEventListener("pointermove", onWindowPointerMove);
+				wrap.removeEventListener("pointerenter", onPointerEnter);
+				wrap.removeEventListener("pointermove", onPointerMove);
+				wrap.removeEventListener("pointerleave", onPointerLeave);
+				wrap.removeEventListener("pointerdown", onPointerDown);
+				wrap.removeEventListener("pointerup", onPointerUp);
+				wrap.removeEventListener("pointercancel", onPointerCancel);
+				scene.remove(boltLine, boltLine2);
+				boltGeo.dispose();
+				boltMat.dispose();
+				boltGeo2.dispose();
+				boltMat2.dispose();
+				scene.remove(boltLight, arcLight);
+				disposeObject3D(pivot);
+				renderer.forceContextLoss();
+				renderer.dispose();
+				if (wrap.contains(renderer.domElement)) {
+					wrap.removeChild(renderer.domElement);
+				}
+				pivotRef.current = null;
+				mixer = null;
+			};
+		});
 
 		return () => {
-			cancelled = true;
-			scene.environment = null;
-			envRenderTarget?.dispose();
-			envRenderTarget = null;
-			cancelAnimationFrame(rafRef.current);
-			ro.disconnect();
-			window.removeEventListener("pointermove", onWindowPointerMove);
-			wrap.removeEventListener("pointerenter", onPointerEnter);
-			wrap.removeEventListener("pointermove", onPointerMove);
-			wrap.removeEventListener("pointerleave", onPointerLeave);
-			wrap.removeEventListener("pointerdown", onPointerDown);
-			wrap.removeEventListener("pointerup", onPointerUp);
-			wrap.removeEventListener("pointercancel", onPointerCancel);
-			scene.remove(boltLine, boltLine2);
-			boltGeo.dispose();
-			boltMat.dispose();
-			boltGeo2.dispose();
-			boltMat2.dispose();
-			scene.remove(boltLight, arcLight);
-			disposeObject3D(pivot);
-			renderer.dispose();
-			if (wrap.contains(renderer.domElement)) {
-				wrap.removeChild(renderer.domElement);
-			}
-			pivotRef.current = null;
-			mixer = null;
+			cancelAnimationFrame(bootRaf);
+			teardown();
 		};
 	}, []);
 
@@ -878,16 +935,18 @@ const HeroGltfRobot = () => {
 							}
 							className="pointer-events-none absolute left-1/2 top-[5%] z-30 w-[min(92%,280px)] -translate-x-1/2 px-2"
 						>
-							<div className="relative border border-cyan-400/45 bg-[#05030a]/88 px-3 py-2.5 shadow-[0_0_24px_rgba(34,211,238,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md">
-								<div className="absolute left-2 top-1.5 h-1 w-1 rounded-[1px] bg-fuchsia-400 shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
-								<div className="absolute right-2 top-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-cyan-400/70">
+							<div className="relative border border-cyan-400/45 bg-white/92 px-3 py-2.5 shadow-md backdrop-blur-md dark:bg-[#05030a]/88 dark:shadow-[0_0_24px_rgba(34,211,238,0.12),inset_0_1px_0_rgba(255,255,255,0.06)]">
+								<div className="absolute left-2 top-1.5 h-1 w-1 rounded-[1px] bg-fuchsia-500 shadow-[0_0_8px_rgba(217,70,239,0.55)] dark:bg-fuchsia-400 dark:shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
+								<div className="absolute right-2 top-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-cyan-600/75 dark:text-cyan-400/70">
 									UX.HUD
 								</div>
-								<p className="mt-4 font-mono text-[11px] font-medium uppercase leading-snug tracking-[0.12em] text-cyan-100/95 sm:text-xs">
-									<span className="text-fuchsia-400/90">&gt;</span> You can click on
-									me
+								<p className="mt-4 font-mono text-[11px] font-medium uppercase leading-snug tracking-[0.12em] text-slate-700 sm:text-xs dark:text-cyan-100/95">
+									<span className="text-fuchsia-600/90 dark:text-fuchsia-400/90">
+										&gt;
+									</span>{" "}
+									You can click on me
 								</p>
-								<div className="mt-2 flex items-center gap-1.5 border-t border-white/10 pt-2 font-mono text-[9px] tracking-wider text-slate-500">
+								<div className="mt-2 flex items-center gap-1.5 border-t border-slate-200/80 pt-2 font-mono text-[9px] tracking-wider text-slate-500 dark:border-white/10">
 									<span className="inline-block h-px w-3 bg-cyan-400/60" />
 									<span>OPEN_BRIEFING</span>
 								</div>

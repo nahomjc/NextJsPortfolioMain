@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useLayoutEffect } from "react";
 
 const ThemeContext = createContext();
 
@@ -9,7 +9,7 @@ export function ThemeProvider({ children }) {
 		setTheme(theme === "light" ? "dark" : "light");
 	};
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		document.documentElement.classList.toggle("dark", theme === "dark");
 	}, [theme]);
 

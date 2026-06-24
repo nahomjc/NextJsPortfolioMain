@@ -1,29 +1,126 @@
 import Link from "next/link";
-import React from "react";
-import { AiOutlineClose, AiOutlineMail, AiOutlineMenu } from "react-icons/ai";
-import { FaGithub, FaLinkedinIn } from "react-icons/fa";
-import { BsFillPersonLinesFill } from "react-icons/bs";
-import { useState, useEffect, useId } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-
-import ThemeToggle from "./ThemToggle";
-import Logo from "./Logo";
-import NavItem from "./NavItem";
+import { FaPhone } from "react-icons/fa";
+import { HiOutlineChatAlt2, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
+import { useTheme } from "./ThemeProvider";
+import { useDockActions } from "./DockActionsContext";
 import { mainNavItems } from "../config/navItems";
 
-const navLinkBase =
-	"relative text-xs font-semibold uppercase tracking-[0.12em] transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-gradient-to-r after:from-cyan-400 after:to-violet-500 after:transition-all hover:after:w-full";
-const navLinkOnLight = `${navLinkBase} text-slate-700 hover:text-cyan-600 dark:text-slate-200 dark:hover:text-cyan-300`;
-const navLinkOnDark = `${navLinkBase} text-slate-100/90 hover:text-cyan-200`;
+const PHONE_HREF = "tel:+251937287140";
 
-const mobileNavLinkClass =
-	"w-full py-4 text-sm font-medium text-slate-700 dark:text-slate-200 normal-case tracking-normal";
+const SECTION_MAP = [
+	{ id: "home", href: "/" },
+	{ id: "about", href: "/#about" },
+	{ id: "skills", href: "/#skills" },
+	{ id: "projects", href: "/#projects" },
+	{ id: "ai", href: "/#ai" },
+	{ id: "contact", href: "/#contact" },
+];
+
+function DockIcon({ item, isActive, itemRef }) {
+	const Icon = item.icon;
+
+	return (
+		<Link
+			href={item.href}
+			className="dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end"
+			aria-label={item.label}
+			aria-current={isActive ? "page" : undefined}
+		>
+			<span
+				ref={itemRef}
+				className="dock-magnify-target relative flex flex-col items-center justify-end"
+			>
+				<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-lg border border-slate-200/90 bg-white/95 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-700 opacity-0 shadow-lg transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 dark:border-white/15 dark:bg-slate-900/90 dark:text-slate-100 dark:shadow-lg">
+					{item.label}
+				</span>
+				<span
+					className={`dock-icon-shell ${isActive ? "is-active" : ""}`}
+				>
+					<Icon
+						size={22}
+						className="shrink-0 text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white"
+						aria-hidden
+					/>
+				</span>
+				{isActive ? (
+					<span
+						className="mt-1 h-1 w-1 rounded-full bg-slate-700 dark:bg-white/80"
+						aria-hidden
+					/>
+				) : (
+					<span className="mt-1 h-1 w-1" aria-hidden />
+				)}
+			</span>
+		</Link>
+	);
+}
+
+function DockActionButton({
+	label,
+	itemRef,
+	onClick,
+	href,
+	isActive = false,
+	children,
+}) {
+	const shellClass = `dock-icon-shell ${isActive ? "is-active" : ""}`;
+
+	const inner = (
+		<span
+			ref={itemRef}
+			className="dock-magnify-target relative flex flex-col items-center justify-end"
+		>
+			<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-lg border border-slate-200/90 bg-white/95 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-700 opacity-0 shadow-lg transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 dark:border-white/15 dark:bg-slate-900/90 dark:text-slate-100">
+				{label}
+			</span>
+			<span className={shellClass}>{children}</span>
+			{isActive ? (
+				<span
+					className="mt-1 h-1 w-1 rounded-full bg-slate-700 dark:bg-white/80"
+					aria-hidden
+				/>
+			) : (
+				<span className="mt-1 h-1 w-1" aria-hidden />
+			)}
+		</span>
+	);
+
+	if (href) {
+		return (
+			<a
+				href={href}
+				className="dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end"
+				aria-label={label}
+			>
+				{inner}
+			</a>
+		);
+	}
+
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			className="dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end"
+			aria-label={label}
+			aria-pressed={isActive || undefined}
+		>
+			{inner}
+		</button>
+	);
+}
 
 const Navbar = () => {
-	const [nav, setNav] = useState(false);
-	const [shadow, setShadow] = useState(false);
 	const router = useRouter();
-	const ledUid = useId().replace(/:/g, "");
+	const { theme, toggleTheme } = useTheme();
+	const { chatOpen, toggleChat } = useDockActions();
+	const isDark = theme === "dark";
+
+	const dockRef = useRef(null);
+	const itemRefs = useRef([]);
+	const [activeHref, setActiveHref] = useState("/");
 
 	const isLegacyTransparent =
 		router.asPath === "/property" ||
@@ -31,280 +128,195 @@ const Navbar = () => {
 		router.asPath === "/netflix" ||
 		router.asPath === "/twitch";
 
-	const handelNav = () => {
-		setNav(!nav);
-	};
+	const primaryItems = mainNavItems.filter((item) => item.href !== "/resume");
+	const resumeItem = mainNavItems.find((item) => item.href === "/resume");
 
 	useEffect(() => {
-		const handleShadow = () => {
-			setShadow(window.scrollY >= 90);
+		if (router.pathname !== "/") {
+			const match = mainNavItems.find((item) => item.href === router.pathname);
+			if (match) setActiveHref(match.href);
+			return;
+		}
+
+		const elements = SECTION_MAP.map(({ id }) => document.getElementById(id)).filter(
+			Boolean
+		);
+		if (!elements.length) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const visible = entries
+					.filter((e) => e.isIntersecting)
+					.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+				if (!visible.length) return;
+				const id = visible[0].target.id;
+				const mapped = SECTION_MAP.find((s) => s.id === id);
+				if (mapped) setActiveHref(mapped.href);
+			},
+			{ rootMargin: "-42% 0px -42% 0px", threshold: [0.12, 0.35, 0.55] }
+		);
+
+		for (const el of elements) observer.observe(el);
+		return () => observer.disconnect();
+	}, [router.pathname]);
+
+	useEffect(() => {
+		const dock = dockRef.current;
+		if (!dock) return;
+
+		const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		if (prefersReduced) return;
+
+		const setItemLift = (el, scale, lift, t) => {
+			el.style.transform = `scale(${scale}) translateY(${lift}px)`;
+			el.style.zIndex = t > 0.15 ? "30" : "";
+			const parent = el.closest(".dock-item");
+			if (parent) parent.style.zIndex = t > 0.15 ? "30" : "";
 		};
-		window.addEventListener("scroll", handleShadow);
-		return () => window.removeEventListener("scroll", handleShadow);
+
+		const onMove = (e) => {
+			for (let i = 0; i < itemRefs.current.length; i++) {
+				const el = itemRefs.current[i];
+				if (!el) continue;
+				const rect = el.getBoundingClientRect();
+				const center = rect.left + rect.width / 2;
+				const dist = Math.abs(e.clientX - center);
+				const maxDist = 110;
+				if (dist >= maxDist) {
+					el.style.transform = "scale(1) translateY(0)";
+					el.style.zIndex = "";
+					const parent = el.closest(".dock-item");
+					if (parent) parent.style.zIndex = "";
+					continue;
+				}
+				const t = 1 - dist / maxDist;
+				const scale = 1 + t * 0.52;
+				const lift = t * -18;
+				setItemLift(el, scale, lift, t);
+			}
+		};
+
+		const resetIcons = () => {
+			for (const el of itemRefs.current) {
+				if (!el) continue;
+				el.style.transform = "";
+				el.style.zIndex = "";
+				const parent = el.closest(".dock-item");
+				if (parent) parent.style.zIndex = "";
+			}
+		};
+
+		dock.addEventListener("mousemove", onMove);
+		dock.addEventListener("mouseleave", resetIcons);
+		return () => {
+			dock.removeEventListener("mousemove", onMove);
+			dock.removeEventListener("mouseleave", resetIcons);
+		};
 	}, []);
 
-	const glassBackPanel =
-		"absolute inset-0 z-0 overflow-hidden rounded-2xl border border-white/25 bg-gradient-to-b from-white/78 via-white/52 to-white/38 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7)] backdrop-blur-2xl backdrop-saturate-150 dark:border-white/[0.08] dark:from-slate-950/85 dark:via-slate-950/58 dark:to-slate-950/42 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07)]";
+	const isActive = (href) => {
+		if (href === "/resume") return router.pathname === "/resume";
+		if (router.pathname !== "/") return false;
+		return activeHref === href || (href === "/" && activeHref === "/");
+	};
 
-	const orbitShell = `relative isolate rounded-2xl transition-all duration-500 ease-out ${
-		shadow
-			? "shadow-card-light ring-1 ring-cyan-500/15 dark:shadow-card-dark dark:ring-cyan-400/20"
-			: "shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18),0_0_60px_-24px_rgba(34,211,238,0.12)] dark:shadow-[0_14px_48px_-14px_rgba(0,0,0,0.55),0_0_80px_-30px_rgba(34,211,238,0.08)]"
-	}`;
-
-	const navRow = (
-		<div className="relative z-[2] flex h-[3.5rem] w-full items-center justify-between px-4 sm:h-16 sm:px-5 2xl:px-10">
-			<Logo size="small" />
-
-			<div>
-				<ul className="hidden items-center gap-2 md:flex">
-					{mainNavItems.map((item) => (
-						<li key={item.href} className="ml-8">
-							<NavItem
-								href={item.href}
-								label={item.label}
-								icon={item.icon}
-								hasDropdown={item.hasDropdown}
-								className={
-									isLegacyTransparent ? navLinkOnDark : navLinkOnLight
-								}
-							/>
-						</li>
-					))}
-					<li className="ml-6 flex items-center">
-						<ThemeToggle isMobile={false} />
-					</li>
-				</ul>
-				<button
-					type="button"
-					className={`unstyled rounded-xl p-2 shadow-none md:hidden ${
-						isLegacyTransparent
-							? "text-slate-100"
-							: "border border-slate-200/60 bg-white/40 text-slate-800 backdrop-blur-md dark:border-white/15 dark:bg-white/5 dark:text-slate-100"
-					}`}
-					onClick={handelNav}
-					aria-label="Open menu"
-				>
-					<AiOutlineMenu size={25} />
-				</button>
-			</div>
-		</div>
-	);
+	const phoneIndex = primaryItems.length + (resumeItem ? 1 : 0);
+	const chatIndex = phoneIndex + 1;
+	const themeIndex = chatIndex + 1;
 
 	return (
-		<div
-			className={`fixed top-0 z-[100] w-full transition-all duration-300 ${
-				isLegacyTransparent ? "" : "px-3 pt-3 sm:px-5 md:px-8 2xl:px-12"
+		<nav
+			className={`dock-nav fixed inset-x-0 bottom-0 z-[100] flex justify-center overflow-visible px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-14 ${
+				isLegacyTransparent ? "pointer-events-none opacity-0" : ""
 			}`}
+			aria-label="Main navigation"
 		>
-			{isLegacyTransparent ? (
-				<div className="border-b border-transparent bg-transparent">{navRow}</div>
-			) : (
-				<div className={orbitShell}>
-					<div className={glassBackPanel} aria-hidden />
-					<div
-						className="pointer-events-none absolute inset-0 z-[1] rounded-2xl"
-						aria-hidden
-					>
-						<svg
-							className="h-full w-full text-slate-400/25 dark:text-white/[0.12]"
-							viewBox="0 0 800 128"
-							preserveAspectRatio="none"
-							aria-hidden
-						>
-							<defs>
-								<linearGradient
-									id={`${ledUid}-led`}
-									x1="0%"
-									y1="0%"
-									x2="100%"
-									y2="0%"
-								>
-									<stop offset="0%" stopColor="#22d3ee" stopOpacity="0" />
-									<stop offset="35%" stopColor="#67e8f9" stopOpacity="1" />
-									<stop offset="50%" stopColor="#e879f9" stopOpacity="1" />
-									<stop offset="65%" stopColor="#67e8f9" stopOpacity="1" />
-									<stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
-								</linearGradient>
-								<filter
-									id={`${ledUid}-glow`}
-									x="-40%"
-									y="-40%"
-									width="180%"
-									height="180%"
-									colorInterpolationFilters="sRGB"
-								>
-									<feGaussianBlur stdDeviation="2.2" result="b" />
-									<feMerge>
-										<feMergeNode in="b" />
-										<feMergeNode in="SourceGraphic" />
-									</feMerge>
-								</filter>
-							</defs>
-							{/* faint track so the bar edge reads when the dash is elsewhere */}
-							<rect
-								x="2.5"
-								y="2.5"
-								width="795"
-								height="123"
-								rx="26"
-								ry="26"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="1.5"
-							/>
-							{/* bright head */}
-							<rect
-								x="2.5"
-								y="2.5"
-								width="795"
-								height="123"
-								rx="26"
-								ry="26"
-								fill="none"
-								stroke={`url(#${ledUid}-led)`}
-								strokeWidth="3"
-								strokeLinecap="round"
-								pathLength="100"
-								strokeDasharray="5 95"
-								filter={`url(#${ledUid}-glow)`}
-							>
-								<animate
-									attributeName="stroke-dashoffset"
-									from="0"
-									to="-100"
-									dur="3.2s"
-									repeatCount="indefinite"
-								/>
-							</rect>
-							{/* softer trail chasing behind */}
-							<rect
-								x="2.5"
-								y="2.5"
-								width="795"
-								height="123"
-								rx="26"
-								ry="26"
-								fill="none"
-								stroke="#22d3ee"
-								strokeWidth="2"
-								strokeLinecap="round"
-								opacity="0.4"
-								pathLength="100"
-								strokeDasharray="3 97"
-							>
-								<animate
-									attributeName="stroke-dashoffset"
-									from="14"
-									to="-86"
-									dur="3.2s"
-									repeatCount="indefinite"
-								/>
-							</rect>
-						</svg>
-					</div>
-					<div className="relative z-[2]">
-						<div
-							className="pointer-events-none absolute inset-x-6 top-0 z-[1] h-px max-w-none bg-gradient-to-r from-transparent via-cyan-400/55 to-transparent dark:via-cyan-300/45"
+			<div className="dock-shelf relative max-w-[min(100%,980px)] overflow-visible">
+				<div
+					className="dock-shelf-bg pointer-events-none absolute inset-0 rounded-2xl border border-slate-200/85 bg-white/92 shadow-[0_8px_32px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-white/10 dark:bg-[#0a0a0c]/97 dark:shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]"
+					aria-hidden
+				>
+					<div className="absolute inset-x-4 top-0 h-px bg-slate-200/90 dark:bg-white/10" />
+				</div>
+
+				<div
+					ref={dockRef}
+					className="relative z-10 flex items-end gap-0.5 overflow-visible px-2 pb-2.5 pt-2 sm:gap-1 sm:px-3 sm:pb-3"
+				>
+				{primaryItems.map((item, i) => (
+					<DockIcon
+						key={item.href}
+						item={item}
+						isActive={isActive(item.href)}
+						itemRef={(el) => {
+							itemRefs.current[i] = el;
+						}}
+					/>
+				))}
+
+				{resumeItem ? (
+					<>
+						<span
+							className="dock-divider mx-0.5 mb-2 hidden h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 sm:block dark:bg-white/15"
 							aria-hidden
 						/>
-						{navRow}
-					</div>
-				</div>
-			)}
+						<DockIcon
+							item={resumeItem}
+							isActive={isActive(resumeItem.href)}
+							itemRef={(el) => {
+								itemRefs.current[primaryItems.length] = el;
+							}}
+						/>
+					</>
+				) : null}
 
-			<div
-				className={
-					nav
-						? "fixed left-0 top-0 z-[110] h-screen w-full bg-slate-950/60 backdrop-blur-md md:hidden"
-						: ""
-				}
-			>
-				<div
-					className={
-						nav
-							? "fixed left-0 top-0 z-[111] h-screen w-[75%] border-r border-white/15 bg-white/90 p-10 shadow-card-light backdrop-blur-xl duration-500 ease-in dark:border-white/10 dark:bg-slate-950/90 dark:shadow-card-dark sm:w-[60%] md:w-[45%]"
-							: "fixed left-[-100%] top-0 z-[111] p-10 duration-500 ease-in"
-					}
+				<span
+					className="dock-divider mx-0.5 mb-2 h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 dark:bg-white/15"
+					aria-hidden
+				/>
+
+				<DockActionButton
+					label="Call me"
+					href={PHONE_HREF}
+					itemRef={(el) => {
+						itemRefs.current[phoneIndex] = el;
+					}}
 				>
-					<div className="mb-6 mt-2 flex w-full justify-center">
-						<ThemeToggle isMobile={true} />
-					</div>
-					<div>
-						<div className="flex w-full items-center justify-between">
-							<Logo size="small" />
-							<button
-								type="button"
-								className="unstyled rounded-full border border-slate-200/80 bg-white/90 p-3 text-slate-800 shadow-md dark:border-white/10 dark:bg-slate-900/90 dark:text-white"
-								onClick={handelNav}
-								aria-label="Close menu"
-							>
-								<AiOutlineClose size={25} />
-							</button>
-						</div>
-						<div className="my-4 border-b border-slate-200 dark:border-white/10">
-							<p className="w-[85%] py-4 text-slate-600 dark:text-slate-400 md:w-[98%]">
-								Let&apos;s build something legendary together
-							</p>
-						</div>
+					<FaPhone className="h-[1.05rem] w-[1.05rem] text-slate-600 transition-colors group-hover:text-slate-900 sm:h-[1.15rem] sm:w-[1.15rem] dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+				</DockActionButton>
 
-						<div className="flex flex-col py-4 dark:text-white">
-							<ul className="uppercase">
-								{mainNavItems.map((item) => (
-									<li key={item.href}>
-										<NavItem
-											href={item.href}
-											label={item.label}
-											icon={item.icon}
-											hasDropdown={item.hasDropdown}
-											className={mobileNavLinkClass}
-											onClick={() => setNav(false)}
-											iconSize={20}
-										/>
-									</li>
-								))}
-							</ul>
-							<div className="pt-28">
-								<p className="section-eyebrow">Let&apos;s Connect</p>
+				<DockActionButton
+					label="AI chat"
+					isActive={chatOpen}
+					onClick={() => toggleChat(itemRefs.current[chatIndex])}
+					itemRef={(el) => {
+						itemRefs.current[chatIndex] = el;
+					}}
+				>
+					<HiOutlineChatAlt2 className="h-[1.35rem] w-[1.35rem] text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+				</DockActionButton>
 
-								<div className="my-4 flex w-full items-center justify-between sm:w-[80%]">
-									<a
-										href="https://www.linkedin.com/in/nahom-tesfaye-35b97420b/"
-										target="_blank"
-										rel="noreferrer"
-										className="icon-ring !h-11 !w-11"
-									>
-										<FaLinkedinIn />
-									</a>
-									<a
-										href="https://github.com/nahomjc"
-										target="_blank"
-										rel="noreferrer"
-										className="icon-ring !h-11 !w-11"
-									>
-										<FaGithub />
-									</a>
-									<Link
-										href="/#contact"
-										className="icon-ring !h-11 !w-11"
-										onClick={() => setNav(false)}
-									>
-										<AiOutlineMail />
-									</Link>
-									<Link
-										href="/resume"
-										className="icon-ring !h-11 !w-11"
-										onClick={() => setNav(false)}
-									>
-										<BsFillPersonLinesFill />
-									</Link>
-								</div>
-							</div>
-						</div>
-					</div>
+				<span
+					className="dock-divider mx-0.5 mb-2 h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 dark:bg-white/15"
+					aria-hidden
+				/>
+
+				<DockActionButton
+					label={isDark ? "Light mode" : "Dark mode"}
+					onClick={toggleTheme}
+					itemRef={(el) => {
+						itemRefs.current[themeIndex] = el;
+					}}
+				>
+					{isDark ? (
+						<HiOutlineSun className="h-[1.35rem] w-[1.35rem] text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+					) : (
+						<HiOutlineMoon className="h-[1.35rem] w-[1.35rem] text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+					)}
+				</DockActionButton>
 				</div>
 			</div>
-		</div>
+		</nav>
 	);
 };
 
