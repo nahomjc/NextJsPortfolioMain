@@ -5,6 +5,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AboutWorkspaceProjectsModal from "./AboutWorkspaceProjectsModal";
+import { bindVisibilityPause, isLowPowerDevice } from "../lib/animationControl";
 
 const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (11).glb")}`;
 
@@ -119,7 +120,9 @@ function AboutWorkspacePly() {
 			alpha: true,
 			powerPreference: "high-performance",
 		});
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+		renderer.setPixelRatio(
+			Math.min(window.devicePixelRatio, isLowPowerDevice() ? 1.25 : 1.5),
+		);
 		renderer.outputColorSpace = THREE.SRGBColorSpace;
 		renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		renderer.toneMappingExposure = 1.82;
@@ -289,16 +292,37 @@ function AboutWorkspacePly() {
 			}
 		);
 
-		const tick = () => {
+		let paused = false;
+
+		const schedule = () => {
+			if (loaderCancelled || paused) return;
 			rafId = requestAnimationFrame(tick);
+		};
+
+		const tick = () => {
+			if (loaderCancelled || paused) return;
 			controls.autoRotate = !reduceMotion;
 			controls.update();
 			renderer.render(scene, camera);
+			schedule();
 		};
-		tick();
+
+		const unbindVisibility = bindVisibilityPause(mount, {
+			onPause: () => {
+				paused = true;
+				cancelAnimationFrame(rafId);
+			},
+			onResume: () => {
+				paused = false;
+				schedule();
+			},
+		});
+
+		schedule();
 
 		return () => {
 			loaderCancelled = true;
+			unbindVisibility();
 			scene.environment = null;
 			envRenderTarget?.dispose();
 			envRenderTarget = null;

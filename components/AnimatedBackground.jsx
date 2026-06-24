@@ -1,146 +1,212 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from "react";
+import {
+	bindVisibilityPause,
+	isCoarsePointer,
+	isLowPowerDevice,
+	prefersEffects,
+} from "../lib/animationControl";
 
 const AnimatedBackground = () => {
-  const canvasRef = useRef(null);
+	const canvasRef = useRef(null);
+	const [enabled, setEnabled] = useState(false);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
-    let lines = [];
-    const mouse = { x: null, y: null, radius: 120 };
+	useEffect(() => {
+		setEnabled(!prefersEffects() && !isCoarsePointer());
+	}, []);
 
-    const palette = {
-      line: ['rgba(34, 211, 238, ', 'rgba(139, 92, 246, ', 'rgba(232, 121, 249, '],
-      hot: 'rgba(34, 211, 238, 0.55)',
-      link: (a) => `rgba(34, 211, 238, ${a})`,
-    };
+	useEffect(() => {
+		if (!enabled) return undefined;
 
-    const setCanvasSize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    setCanvasSize();
-    window.addEventListener('resize', setCanvasSize);
+		const canvas = canvasRef.current;
+		if (!canvas) return undefined;
 
-    const trackMouse = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
-    };
-    canvas.addEventListener('mousemove', trackMouse);
-    canvas.addEventListener('mouseleave', () => {
-      mouse.x = null;
-      mouse.y = null;
-    });
+		const ctx = canvas.getContext("2d");
+		if (!ctx) return undefined;
 
-    class Line {
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.length = Math.random() * 90 + 40;
-        this.angle = Math.random() * Math.PI * 2;
-        this.speed = Math.random() * 0.018 + 0.008;
-        const channel = palette.line[Math.floor(Math.random() * palette.line.length)];
-        const alpha = Math.random() * 0.22 + 0.08;
-        this.color = `${channel}${alpha})`;
-        this.originalColor = this.color;
-      }
+		let animationFrameId = 0;
+		let running = true;
+		let paused = false;
+		let lines = [];
+		const mouse = { x: null, y: null, radius: 100 };
+		const lowPower = isLowPowerDevice();
 
-      update() {
-        this.angle += this.speed;
-        this.x += Math.cos(this.angle) * 0.45;
-        this.y += Math.sin(this.angle) * 0.45;
+		const palette = {
+			line: [
+				"rgba(34, 211, 238, ",
+				"rgba(139, 92, 246, ",
+				"rgba(232, 121, 249, ",
+			],
+			hot: "rgba(34, 211, 238, 0.55)",
+			link: (a) => `rgba(34, 211, 238, ${a})`,
+		};
 
-        if (this.x < 0) this.x = canvas.width;
-        if (this.x > canvas.width) this.x = 0;
-        if (this.y < 0) this.y = canvas.height;
-        if (this.y > canvas.height) this.y = 0;
+		const setCanvasSize = () => {
+			const dpr = Math.min(window.devicePixelRatio || 1, lowPower ? 1 : 1.5);
+			canvas.width = Math.floor(window.innerWidth * dpr);
+			canvas.height = Math.floor(window.innerHeight * dpr);
+			canvas.style.width = `${window.innerWidth}px`;
+			canvas.style.height = `${window.innerHeight}px`;
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		};
+		setCanvasSize();
+		window.addEventListener("resize", setCanvasSize);
 
-        if (mouse.x != null && mouse.y != null) {
-          const dx = mouse.x - this.x;
-          const dy = mouse.y - this.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+		const trackMouse = (e) => {
+			mouse.x = e.clientX;
+			mouse.y = e.clientY;
+		};
+		const clearMouse = () => {
+			mouse.x = null;
+			mouse.y = null;
+		};
+		window.addEventListener("mousemove", trackMouse, { passive: true });
+		window.addEventListener("mouseleave", clearMouse);
 
-          if (distance < mouse.radius) {
-            const angle = Math.atan2(dy, dx);
-            this.x -= Math.cos(angle) * 2.2;
-            this.y -= Math.sin(angle) * 2.2;
-            this.color = palette.hot;
-          } else {
-            this.color = this.originalColor;
-          }
-        }
-      }
+		class Line {
+			constructor() {
+				this.x = Math.random() * window.innerWidth;
+				this.y = Math.random() * window.innerHeight;
+				this.length = Math.random() * 70 + 30;
+				this.angle = Math.random() * Math.PI * 2;
+				this.speed = Math.random() * 0.015 + 0.006;
+				const channel =
+					palette.line[Math.floor(Math.random() * palette.line.length)];
+				const alpha = Math.random() * 0.18 + 0.06;
+				this.color = `${channel}${alpha})`;
+				this.originalColor = this.color;
+			}
 
-      draw() {
-        ctx.beginPath();
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 1;
+			update() {
+				this.angle += this.speed;
+				this.x += Math.cos(this.angle) * 0.35;
+				this.y += Math.sin(this.angle) * 0.35;
 
-        const endX = this.x + Math.cos(this.angle) * this.length;
-        const endY = this.y + Math.sin(this.angle) * this.length;
+				const w = window.innerWidth;
+				const h = window.innerHeight;
+				if (this.x < 0) this.x = w;
+				if (this.x > w) this.x = 0;
+				if (this.y < 0) this.y = h;
+				if (this.y > h) this.y = 0;
 
-        ctx.moveTo(this.x, this.y);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-      }
-    }
+				if (mouse.x != null && mouse.y != null) {
+					const dx = mouse.x - this.x;
+					const dy = mouse.y - this.y;
+					const distance = Math.hypot(dx, dy);
 
-    const createLines = () => {
-      lines = [];
-      const count = Math.min(64, Math.floor((canvas.width * canvas.height) / 18000));
-      for (let i = 0; i < Math.max(42, count); i++) {
-        lines.push(new Line());
-      }
-    };
-    createLines();
+					if (distance < mouse.radius) {
+						const angle = Math.atan2(dy, dx);
+						this.x -= Math.cos(angle) * 1.6;
+						this.y -= Math.sin(angle) * 1.6;
+						this.color = palette.hot;
+					} else {
+						this.color = this.originalColor;
+					}
+				}
+			}
 
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+			draw() {
+				ctx.beginPath();
+				ctx.strokeStyle = this.color;
+				ctx.lineWidth = 1;
 
-      lines.forEach((line1, i) => {
-        lines.slice(i + 1).forEach((line2) => {
-          const dx = line1.x - line2.x;
-          const dy = line1.y - line2.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+				const endX = this.x + Math.cos(this.angle) * this.length;
+				const endY = this.y + Math.sin(this.angle) * this.length;
 
-          if (distance < 140) {
-            ctx.beginPath();
-            const opacity = 0.18 * (1 - distance / 140);
-            ctx.strokeStyle = palette.link(opacity);
-            ctx.lineWidth = 0.5;
-            ctx.moveTo(line1.x, line1.y);
-            ctx.lineTo(line2.x, line2.y);
-            ctx.stroke();
-          }
-        });
-      });
+				ctx.moveTo(this.x, this.y);
+				ctx.lineTo(endX, endY);
+				ctx.stroke();
+			}
+		}
 
-      lines.forEach((line) => {
-        line.update();
-        line.draw();
-      });
+		const createLines = () => {
+			lines = [];
+			const area = window.innerWidth * window.innerHeight;
+			const count = Math.min(
+				lowPower ? 22 : 32,
+				Math.max(16, Math.floor(area / 28000)),
+			);
+			for (let i = 0; i < count; i++) {
+				lines.push(new Line());
+			}
+		};
+		createLines();
 
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    animate();
+		const schedule = () => {
+			if (!running || paused) return;
+			animationFrameId = requestAnimationFrame(animate);
+		};
 
-    return () => {
-      window.removeEventListener('resize', setCanvasSize);
-      canvas.removeEventListener('mousemove', trackMouse);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
+		let linkFrame = 0;
+		const animate = () => {
+			if (!running || paused) return;
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="pointer-events-auto fixed inset-0 -z-10 h-full w-full"
-      style={{ background: 'transparent' }}
-      aria-hidden
-    />
-  );
+			ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+			const drawLinks = !lowPower && linkFrame % 2 === 0;
+			if (drawLinks) {
+				for (let i = 0; i < lines.length; i++) {
+					const line1 = lines[i];
+					for (let j = i + 1; j < lines.length; j++) {
+						const line2 = lines[j];
+						const dx = line1.x - line2.x;
+						const dy = line1.y - line2.y;
+						const distance = Math.hypot(dx, dy);
+
+						if (distance < 120) {
+							ctx.beginPath();
+							const opacity = 0.14 * (1 - distance / 120);
+							ctx.strokeStyle = palette.link(opacity);
+							ctx.lineWidth = 0.5;
+							ctx.moveTo(line1.x, line1.y);
+							ctx.lineTo(line2.x, line2.y);
+							ctx.stroke();
+						}
+					}
+				}
+			}
+			linkFrame += 1;
+
+			for (const line of lines) {
+				line.update();
+				line.draw();
+			}
+
+			schedule();
+		};
+
+		const unbindVisibility = bindVisibilityPause(canvas, {
+			onPause: () => {
+				paused = true;
+				cancelAnimationFrame(animationFrameId);
+			},
+			onResume: () => {
+				paused = false;
+				schedule();
+			},
+		});
+
+		schedule();
+
+		return () => {
+			running = false;
+			unbindVisibility();
+			window.removeEventListener("resize", setCanvasSize);
+			window.removeEventListener("mousemove", trackMouse);
+			window.removeEventListener("mouseleave", clearMouse);
+			cancelAnimationFrame(animationFrameId);
+		};
+	}, [enabled]);
+
+	if (!enabled) return null;
+
+	return (
+		<canvas
+			ref={canvasRef}
+			className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+			style={{ background: "transparent" }}
+			aria-hidden
+		/>
+	);
 };
 
 export default AnimatedBackground;

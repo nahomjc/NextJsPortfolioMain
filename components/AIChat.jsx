@@ -119,22 +119,11 @@ function TerminalLine({ message }) {
 				<PromptPrefix user={isUser} />
 				<p className="min-w-0 break-words whitespace-pre-wrap text-slate-300 [overflow-wrap:anywhere]">
 					{message.content}
+					{message.streaming ? (
+						<span className="terminal-cursor ml-0.5 inline text-emerald-400">▊</span>
+					) : null}
 				</p>
 			</div>
-		</motion.div>
-	);
-}
-
-function TypingIndicator() {
-	return (
-		<motion.div
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			className="flex min-w-0 items-center font-mono text-[12px]"
-		>
-			<PromptPrefix />
-			<span className="text-slate-500">processing</span>
-			<span className="terminal-cursor ml-1 text-emerald-400">▊</span>
 		</motion.div>
 	);
 }
@@ -188,6 +177,16 @@ const AIChat = () => {
 		}
 	}, [messages, isLoading, error]);
 
+	const removeEmptyStreamingReply = () => {
+		setMessages((prev) => {
+			const last = prev[prev.length - 1];
+			if (last?.role === "assistant" && last.streaming && !last.content) {
+				return prev.slice(0, -1);
+			}
+			return prev;
+		});
+	};
+
 	const sendMessage = async (text) => {
 		const trimmed = text.trim();
 		if (!trimmed || isLoading) return;
@@ -195,7 +194,10 @@ const AIChat = () => {
 		setError("");
 		const userMessage = { role: "user", content: trimmed };
 		const nextMessages = [...messages, userMessage];
-		setMessages(nextMessages);
+		setMessages([
+			...nextMessages,
+			{ role: "assistant", content: "", streaming: true },
+		]);
 		setInputMessage("");
 		setIsLoading(true);
 
@@ -208,17 +210,74 @@ const AIChat = () => {
 				}),
 			});
 
-			const data = await res.json();
-
 			if (!res.ok) {
+				const data = await res.json().catch(() => ({}));
 				throw new Error(data.error || "Something went wrong.");
 			}
 
-			setMessages((prev) => [
-				...prev,
-				{ role: "assistant", content: data.content },
-			]);
+			if (!res.body) {
+				throw new Error("Streaming is not supported in this browser.");
+			}
+
+			const reader = res.body.getReader();
+			const decoder = new TextDecoder();
+			let buffer = "";
+			let streamedContent = "";
+
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+
+				buffer += decoder.decode(value, { stream: true });
+				const lines = buffer.split("\n");
+				buffer = lines.pop() || "";
+
+				for (const line of lines) {
+					if (!line.startsWith("data: ")) continue;
+
+					const payload = line.slice(6).trim();
+					if (payload === "[DONE]") continue;
+
+					try {
+						const parsed = JSON.parse(payload);
+						if (parsed.content) {
+							streamedContent += parsed.content;
+							const content = streamedContent;
+							setMessages((prev) => {
+								const updated = [...prev];
+								const lastIdx = updated.length - 1;
+								if (updated[lastIdx]?.role === "assistant") {
+									updated[lastIdx] = {
+										role: "assistant",
+										content,
+										streaming: true,
+									};
+								}
+								return updated;
+							});
+						}
+					} catch {
+						// skip malformed chunks
+					}
+				}
+			}
+
+			const finalContent = streamedContent.trim();
+			if (!finalContent) {
+				removeEmptyStreamingReply();
+				throw new Error("Empty response from AI service.");
+			}
+
+			setMessages((prev) => {
+				const updated = [...prev];
+				const lastIdx = updated.length - 1;
+				if (updated[lastIdx]?.role === "assistant") {
+					updated[lastIdx] = { role: "assistant", content: finalContent };
+				}
+				return updated;
+			});
 		} catch (err) {
+			removeEmptyStreamingReply();
 			setError(err.message || "Failed to send message.");
 		} finally {
 			setIsLoading(false);
@@ -272,7 +331,6 @@ const AIChat = () => {
 							{messages.map((message, index) => (
 								<TerminalLine key={`${message.role}-${index}`} message={message} />
 							))}
-							{isLoading ? <TypingIndicator /> : null}
 						</div>
 
 						{error ? (

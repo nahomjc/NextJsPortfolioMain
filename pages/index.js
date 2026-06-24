@@ -1,17 +1,6 @@
+import dynamic from "next/dynamic";
 import Head from "next/head";
-import About from "../components/About";
-import Contact from "../components/Contact";
 import Main from "../components/Main";
-import Projects from "../components/Projects";
-import Skills from "../components/Skills";
-import CoursePromo from "../components/CoursePromo";
-import TelegramPromo from "../components/TelegramPromo";
-import MediumBlog from "../components/MeduimBlog";
-import AIChat from "../components/AIChat";
-import CertificateShowcase from "../components/CertificateShowCase";
-import SkillsProgress from "../components/SkillCategory";
-import Timeline from "../components/ExperienceTimeLine";
-import AISection from "../components/AISection";
 import {
 	SITE_URL,
 	SITE_NAME,
@@ -20,6 +9,21 @@ import {
 	absoluteUrl,
 	homeJsonLd,
 } from "../lib/seo";
+
+const AIChat = dynamic(() => import("../components/AIChat"), { ssr: false });
+const About = dynamic(() => import("../components/About"));
+const Skills = dynamic(() => import("../components/Skills"));
+const SkillsProgress = dynamic(() => import("../components/SkillCategory"));
+const Timeline = dynamic(() => import("../components/ExperienceTimeLine"));
+const Projects = dynamic(() => import("../components/Projects"));
+const AISection = dynamic(() => import("../components/AISection"));
+const CertificateShowcase = dynamic(() =>
+	import("../components/CertificateShowCase"),
+);
+const CoursePromo = dynamic(() => import("../components/CoursePromo"));
+const TelegramPromo = dynamic(() => import("../components/TelegramPromo"));
+const MediumBlog = dynamic(() => import("../components/MeduimBlog"));
+const Contact = dynamic(() => import("../components/Contact"));
 
 const canonicalUrl = `${SITE_URL}/`;
 

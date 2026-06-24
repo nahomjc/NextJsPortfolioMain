@@ -1,19 +1,21 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaCode } from "react-icons/fa";
+import { prefersEffects } from "../lib/animationControl";
 
 const MouseFollower = () => {
-	const [position, setPosition] = useState({ x: 0, y: 0 });
+	const outerRef = useRef(null);
 	const [isHovering, setIsHovering] = useState(false);
 	const [isVisible, setIsVisible] = useState(true);
-	const [isMobile, setIsMobile] = useState(false);
+	const [isMobile, setIsMobile] = useState(true);
 	const cursorRef = useRef({ x: 0, y: 0 });
 	const mouseRef = useRef({ x: 0, y: 0 });
 	const animationFrameRef = useRef(null);
 
-	// Check if device is mobile
 	useEffect(() => {
 		const checkMobile = () => {
-			setIsMobile(window.matchMedia("(hover: none)").matches);
+			setIsMobile(
+				window.matchMedia("(hover: none)").matches || prefersEffects(),
+			);
 		};
 
 		checkMobile();
@@ -24,13 +26,16 @@ const MouseFollower = () => {
 	useEffect(() => {
 		if (isMobile) return;
 
+		const applyTransform = () => {
+			if (!outerRef.current) return;
+			outerRef.current.style.transform = `translate(${cursorRef.current.x}px, ${cursorRef.current.y}px) translate(-50%, -50%)`;
+		};
+
 		const lerp = (start, end, factor) => start + (end - start) * factor;
 
 		const animate = () => {
-			// Increase smoothing factor for faster response (0.15 -> 0.35)
 			const smoothing = 0.35;
 
-			// Update cursor position with lerp
 			cursorRef.current.x = lerp(
 				cursorRef.current.x,
 				mouseRef.current.x,
@@ -42,35 +47,22 @@ const MouseFollower = () => {
 				smoothing,
 			);
 
-			// Reduce threshold for more frequent updates (0.01 -> 0.001)
-			const dx = Math.abs(cursorRef.current.x - position.x);
-			const dy = Math.abs(cursorRef.current.y - position.y);
-
-			if (dx > 0.001 || dy > 0.001) {
-				setPosition({
-					x: cursorRef.current.x,
-					y: cursorRef.current.y,
-				});
-			}
-
+			applyTransform();
 			animationFrameRef.current = requestAnimationFrame(animate);
 		};
+
 		const handleMouseMove = (e) => {
 			mouseRef.current = {
 				x: e.clientX,
 				y: e.clientY,
 			};
 
-			// Initialize cursor position on first move
 			if (cursorRef.current.x === 0) {
 				cursorRef.current = {
 					x: e.clientX,
 					y: e.clientY,
 				};
-				setPosition({
-					x: e.clientX,
-					y: e.clientY,
-				});
+				applyTransform();
 			}
 		};
 
@@ -84,30 +76,25 @@ const MouseFollower = () => {
 			setIsVisible(false);
 		};
 
-		// Handle visibility when tab switching
 		const handleVisibilityChange = () => {
 			if (document.hidden) {
 				setIsVisible(false);
 			} else {
 				setIsVisible(true);
-				// Reset positions when becoming visible
 				if (mouseRef.current.x) {
 					cursorRef.current = { ...mouseRef.current };
-					setPosition({ ...mouseRef.current });
+					applyTransform();
 				}
 			}
 		};
 
-		// Add event listeners
-		window.addEventListener("mousemove", handleMouseMove);
+		window.addEventListener("mousemove", handleMouseMove, { passive: true });
 		window.addEventListener("mouseenter", handleMouseEnter);
 		window.addEventListener("mouseleave", handleMouseLeave);
 		document.addEventListener("visibilitychange", handleVisibilityChange);
 
-		// Start animation
 		animate();
 
-		// Cleanup
 		return () => {
 			window.removeEventListener("mousemove", handleMouseMove);
 			window.removeEventListener("mouseenter", handleMouseEnter);
@@ -119,37 +106,31 @@ const MouseFollower = () => {
 		};
 	}, [isMobile]);
 
-	// Don't render on mobile
 	if (isMobile) return null;
 
 	return (
 		<div
+			ref={outerRef}
 			className={`fixed pointer-events-none z-[9999] transition-opacity duration-300 ease-out hidden md:block ${
 				isVisible ? "opacity-100" : "opacity-0"
 			}`}
-			style={{
-				transform: `translate(${position.x}px, ${position.y}px) translate(-50%, -50%)`,
-				willChange: "transform",
-			}}
+			style={{ willChange: "transform" }}
 		>
 			<div
 				className={`relative transition-all duration-300 ${
 					isHovering ? "scale-150" : "scale-100"
 				}`}
 			>
-				{/* Main circle */}
 				<div
 					className={`w-8 h-8 rounded-full bg-[#5651e5] shadow-lg transition-all duration-300 ${
 						isHovering ? "bg-opacity-80" : "bg-opacity-100"
 					}`}
 				>
-					{/* Inner circle */}
 					<div
 						className={`absolute inset-0 m-1 rounded-full bg-white transition-all duration-300 ${
 							isHovering ? "scale-75" : "scale-100"
 						}`}
 					>
-						{/* Icon */}
 						<div
 							className={`absolute inset-0 flex items-center justify-center text-[#5651e5] transition-all duration-300 ${
 								isHovering ? "scale-125" : "scale-100"
@@ -160,7 +141,6 @@ const MouseFollower = () => {
 					</div>
 				</div>
 
-				{/* Trail effect */}
 				<div
 					className={`absolute inset-0 rounded-full bg-[#5651e5] blur-sm transition-all duration-300 ${
 						isHovering ? "scale-150 opacity-30" : "scale-100 opacity-20"

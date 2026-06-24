@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from "react";
+import { bindVisibilityPause, isCoarsePointer } from "../lib/animationControl";
 
-const PARTICLE_COUNT_DESKTOP = 72;
-const PARTICLE_COUNT_MOBILE = 28;
-const LINK_DIST = 118;
-const MOUSE_RADIUS = 160;
+const PARTICLE_COUNT_DESKTOP = 40;
+const PARTICLE_COUNT_MOBILE = 16;
+const LINK_DIST = 108;
+const MOUSE_RADIUS = 140;
 
 function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 	const canvasRef = useRef(null);
@@ -19,21 +20,22 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return;
 
-		const isCoarse =
-			typeof window !== "undefined" &&
-			window.matchMedia("(hover: none)").matches;
-		const count = isCoarse ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
+		const coarse = isCoarsePointer();
+		const count = coarse ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
+		const drawLinks = !coarse;
 
 		const mouse = { x: -9999, y: -9999, active: false };
 		let w = 0;
 		let h = 0;
+		let paused = false;
+		let running = true;
 
 		const particles = Array.from({ length: count }, () => ({
 			x: Math.random(),
 			y: Math.random(),
 			bx: Math.random(),
 			by: Math.random(),
-			r: Math.random() * 1.4 + 0.6,
+			r: Math.random() * 1.2 + 0.5,
 			hue: Math.random() > 0.5 ? "cyan" : "fuchsia",
 			phase: Math.random() * Math.PI * 2,
 		}));
@@ -42,7 +44,7 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 			const rect = container.getBoundingClientRect();
 			w = Math.max(1, rect.width);
 			h = Math.max(1, rect.height);
-			const dpr = Math.min(window.devicePixelRatio || 1, 2);
+			const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5);
 			canvas.width = w * dpr;
 			canvas.height = h * dpr;
 			canvas.style.width = `${w}px`;
@@ -68,23 +70,29 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 			if (spotlight) spotlight.style.opacity = "0";
 		};
 
-		const tick = (t) => {
+		const schedule = () => {
+			if (!running || paused) return;
 			rafRef.current = requestAnimationFrame(tick);
+		};
+
+		const tick = (t) => {
+			if (!running || paused) return;
+
 			ctx.clearRect(0, 0, w, h);
 			const isDark = document.documentElement.classList.contains("dark");
 			const particleAlpha = isDark ? 0.35 : 0.55;
 			const fuchsiaAlpha = isDark ? 0.28 : 0.45;
 
 			for (const p of particles) {
-				const px = p.bx * w + Math.sin(t * 0.00035 + p.phase) * 12;
-				const py = p.by * h + Math.cos(t * 0.00028 + p.phase) * 10;
+				const px = p.bx * w + Math.sin(t * 0.00035 + p.phase) * 10;
+				const py = p.by * h + Math.cos(t * 0.00028 + p.phase) * 8;
 
 				if (mouse.active) {
 					const dx = px - mouse.x;
 					const dy = py - mouse.y;
 					const dist = Math.hypot(dx, dy);
 					if (dist < MOUSE_RADIUS && dist > 0.001) {
-						const force = (1 - dist / MOUSE_RADIUS) * 28;
+						const force = (1 - dist / MOUSE_RADIUS) * 22;
 						p.x += (dx / dist) * force * 0.04;
 						p.y += (dy / dist) * force * 0.04;
 					}
@@ -103,21 +111,23 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 				ctx.fill();
 			}
 
-			for (let i = 0; i < particles.length; i++) {
-				for (let j = i + 1; j < particles.length; j++) {
-					const a = particles[i];
-					const b = particles[j];
-					const dx = a.x - b.x;
-					const dy = a.y - b.y;
-					const dist = Math.hypot(dx, dy);
-					if (dist < LINK_DIST) {
-						const alpha = (1 - dist / LINK_DIST) * (isDark ? 0.22 : 0.16);
-						ctx.beginPath();
-						ctx.moveTo(a.x, a.y);
-						ctx.lineTo(b.x, b.y);
-						ctx.strokeStyle = `rgba(34, 211, 238, ${alpha})`;
-						ctx.lineWidth = 0.6;
-						ctx.stroke();
+			if (drawLinks) {
+				for (let i = 0; i < particles.length; i++) {
+					for (let j = i + 1; j < particles.length; j++) {
+						const a = particles[i];
+						const b = particles[j];
+						const dx = a.x - b.x;
+						const dy = a.y - b.y;
+						const dist = Math.hypot(dx, dy);
+						if (dist < LINK_DIST) {
+							const alpha = (1 - dist / LINK_DIST) * (isDark ? 0.2 : 0.14);
+							ctx.beginPath();
+							ctx.moveTo(a.x, a.y);
+							ctx.lineTo(b.x, b.y);
+							ctx.strokeStyle = `rgba(34, 211, 238, ${alpha})`;
+							ctx.lineWidth = 0.6;
+							ctx.stroke();
+						}
 					}
 				}
 			}
@@ -137,6 +147,8 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 				ctx.fillStyle = grad;
 				ctx.fillRect(0, 0, w, h);
 			}
+
+			schedule();
 		};
 
 		resize();
@@ -144,9 +156,23 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 		ro.observe(container);
 		container.addEventListener("pointermove", onPointerMove, { passive: true });
 		container.addEventListener("pointerleave", onPointerLeave);
-		rafRef.current = requestAnimationFrame(tick);
+
+		const unbindVisibility = bindVisibilityPause(container, {
+			onPause: () => {
+				paused = true;
+				cancelAnimationFrame(rafRef.current);
+			},
+			onResume: () => {
+				paused = false;
+				schedule();
+			},
+		});
+
+		schedule();
 
 		return () => {
+			running = false;
+			unbindVisibility();
 			cancelAnimationFrame(rafRef.current);
 			ro.disconnect();
 			container.removeEventListener("pointermove", onPointerMove);

@@ -26,9 +26,10 @@ export default function LenisProvider({ children }) {
 		if (typeof window === "undefined") return;
 
 		const prefersReduced = window.matchMedia(
-			"(prefers-reduced-motion: reduce)"
+			"(prefers-reduced-motion: reduce)",
 		).matches;
-		if (prefersReduced) return;
+		const coarsePointer = window.matchMedia("(hover: none)").matches;
+		if (prefersReduced || coarsePointer) return;
 
 		gsap.registerPlugin(ScrollTrigger);
 

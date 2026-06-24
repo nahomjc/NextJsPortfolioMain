@@ -5,6 +5,11 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import HeroRobotIntroModal from "./HeroRobotIntroModal";
 import { HUD_DEFAULT_VARIANT, pickHudVariantKey } from "./heroRobotHudVariants";
+import {
+	bindVisibilityPause,
+	isCoarsePointer,
+	isLowPowerDevice,
+} from "../lib/animationControl";
 
 const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (9).glb")}`;
 
@@ -49,27 +54,42 @@ function disposeObject3D(obj) {
 }
 
 /** Try several WebGL presets — avoids hard crash when GPU/context is unavailable. */
-function createWebGLRendererSafe() {
-	const presets = [
-		{
-			alpha: true,
-			antialias: true,
-			powerPreference: "high-performance",
-			failIfMajorPerformanceCaveat: false,
-		},
-		{
-			alpha: true,
-			antialias: true,
-			powerPreference: "default",
-			failIfMajorPerformanceCaveat: false,
-		},
-		{
-			alpha: true,
-			antialias: false,
-			powerPreference: "default",
-			failIfMajorPerformanceCaveat: false,
-		},
-	];
+function createWebGLRendererSafe(preferPerformance = false) {
+	const presets = preferPerformance
+		? [
+				{
+					alpha: true,
+					antialias: false,
+					powerPreference: "high-performance",
+					failIfMajorPerformanceCaveat: false,
+				},
+				{
+					alpha: true,
+					antialias: false,
+					powerPreference: "default",
+					failIfMajorPerformanceCaveat: false,
+				},
+			]
+		: [
+				{
+					alpha: true,
+					antialias: true,
+					powerPreference: "high-performance",
+					failIfMajorPerformanceCaveat: false,
+				},
+				{
+					alpha: true,
+					antialias: true,
+					powerPreference: "default",
+					failIfMajorPerformanceCaveat: false,
+				},
+				{
+					alpha: true,
+					antialias: false,
+					powerPreference: "default",
+					failIfMajorPerformanceCaveat: false,
+				},
+			];
 	for (const options of presets) {
 		try {
 			const renderer = new THREE.WebGLRenderer(options);
@@ -118,7 +138,8 @@ const HeroGltfRobot = () => {
 		bootRaf = requestAnimationFrame(() => {
 			if (!wrapRef.current) return;
 
-			const renderer = createWebGLRendererSafe();
+			const preferPerformance = isCoarsePointer() || isLowPowerDevice();
+			const renderer = createWebGLRendererSafe(preferPerformance);
 			if (!renderer) {
 				console.warn(
 					"HeroGltfRobot: WebGL is unavailable in this environment.",
@@ -167,6 +188,7 @@ const HeroGltfRobot = () => {
 			};
 
 			let cancelled = false;
+			let paused = false;
 			let envRenderTarget = null;
 			const rawNdc = { x: 0, y: 0 };
 			let hoverInside = false;
@@ -438,7 +460,9 @@ const HeroGltfRobot = () => {
 			camera.lookAt(0, 0.38, 0);
 			rayPickCtx.camera = camera;
 
-			renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+			renderer.setPixelRatio(
+				Math.min(window.devicePixelRatio, preferPerformance ? 1.25 : 1.5),
+			);
 			renderer.outputColorSpace = THREE.SRGBColorSpace;
 			renderer.toneMapping = THREE.ACESFilmicToneMapping;
 			const baseExposure = 2.55;
@@ -596,8 +620,13 @@ const HeroGltfRobot = () => {
 			const maxParallaxX = 0.18;
 			const maxParallaxY = 0.045;
 
-			const tick = () => {
+			const schedule = () => {
+				if (cancelled || paused) return;
 				rafRef.current = requestAnimationFrame(tick);
+			};
+
+			const tick = () => {
+				if (cancelled || paused) return;
 				const dt = clock.getDelta();
 				const t = clock.elapsedTime;
 				if (mixer) mixer.update(dt);
@@ -806,6 +835,7 @@ const HeroGltfRobot = () => {
 					}
 				}
 				renderer.render(scene, camera);
+				schedule();
 			};
 
 			wrap.appendChild(renderer.domElement);
@@ -814,7 +844,18 @@ const HeroGltfRobot = () => {
 			css.width = "100%";
 			css.height = "100%";
 			css.touchAction = "none";
-			tick();
+			schedule();
+
+			const unbindVisibility = bindVisibilityPause(wrap, {
+				onPause: () => {
+					paused = true;
+					cancelAnimationFrame(rafRef.current);
+				},
+				onResume: () => {
+					paused = false;
+					schedule();
+				},
+			});
 
 			const resize = () => {
 				if (!wrapRef.current) return;
@@ -831,6 +872,7 @@ const HeroGltfRobot = () => {
 
 			teardown = () => {
 				cancelled = true;
+				unbindVisibility();
 				scene.environment = null;
 				envRenderTarget?.dispose();
 				envRenderTarget = null;

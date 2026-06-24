@@ -1,7 +1,6 @@
+import dynamic from "next/dynamic";
 import Navbar from "../components/Navbar";
-import AnimatedBackground from "../components/AnimatedBackground";
 import ScrollProgress from "../components/ScrollProgress";
-import MouseFollower from "../components/MouseFollower";
 import LenisProvider from "../components/LenisProvider";
 import { DockActionsProvider } from "../components/DockActionsContext";
 import "../styles/globals.css";
@@ -13,11 +12,27 @@ import { ThemeProvider } from "../components/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import FingerPrintLoader from "../components/FingerPrintLoaderProps";
 import EntranceSmoke from "../components/EntranceSmoke";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+
+const AnimatedBackground = dynamic(
+	() => import("../components/AnimatedBackground"),
+	{ ssr: false },
+);
+const MouseFollower = dynamic(() => import("../components/MouseFollower"), {
+	ssr: false,
+});
 
 function MyApp({ Component, pageProps }) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [showEntranceSmoke, setShowEntranceSmoke] = useState(false);
+	const [showDecorations, setShowDecorations] = useState(false);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		const coarse = window.matchMedia("(hover: none)").matches;
+		setShowDecorations(!reduced && !coarse);
+	}, []);
 
 	const handleLoadingComplete = useCallback(() => {
 		setIsLoading(false);
@@ -50,10 +65,10 @@ function MyApp({ Component, pageProps }) {
 						>
 							<LenisProvider>
 								<DockActionsProvider>
-									<AnimatedBackground />
+									{showDecorations ? <AnimatedBackground /> : null}
 									<ScrollProgress />
 									<Navbar />
-									<MouseFollower />
+									{showDecorations ? <MouseFollower /> : null}
 									<Component {...pageProps} />
 								</DockActionsProvider>
 							</LenisProvider>

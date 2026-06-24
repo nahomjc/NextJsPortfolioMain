@@ -48,20 +48,10 @@ const sparklePositions = [
 	[22, 24],
 	[76, 18],
 	[45, 12],
-	[91, 38],
 	[8, 42],
 	[34, 55],
 	[67, 48],
-	[15, 68],
-	[82, 62],
 	[52, 72],
-	[73, 88],
-	[28, 82],
-	[61, 30],
-	[94, 52],
-	[5, 58],
-	[38, 38],
-	[55, 90],
 	[70, 14],
 ];
 
@@ -191,6 +181,8 @@ const Main = () => {
 	const heroExitVeilRef = useRef(null);
 	const heroFractureRef = useRef(null);
 	const statRefs = useRef([]);
+	const pointerRafRef = useRef(0);
+	const pendingPointerRef = useRef(null);
 
 	const [sparkleOffset, setSparkleOffset] = useState({ x: 0, y: 0 });
 	const [terminalText, setTerminalText] = useState("");
@@ -565,7 +557,7 @@ const Main = () => {
 		const hero = heroRef.current;
 		if (!hero) return;
 
-		const onMove = (e) => {
+		const applyPointer = (e) => {
 			const rect = hero.getBoundingClientRect();
 			const nx = (e.clientX - rect.left) / rect.width - 0.5;
 			const ny = (e.clientY - rect.top) / rect.height - 0.5;
@@ -600,8 +592,23 @@ const Main = () => {
 			}
 		};
 
+		const onMove = (e) => {
+			pendingPointerRef.current = e;
+			if (pointerRafRef.current) return;
+			pointerRafRef.current = requestAnimationFrame(() => {
+				pointerRafRef.current = 0;
+				const event = pendingPointerRef.current;
+				if (event) applyPointer(event);
+			});
+		};
+
 		hero.addEventListener("pointermove", onMove, { passive: true });
-		return () => hero.removeEventListener("pointermove", onMove);
+		return () => {
+			hero.removeEventListener("pointermove", onMove);
+			if (pointerRafRef.current) {
+				cancelAnimationFrame(pointerRafRef.current);
+			}
+		};
 	}, [reduceMotion]);
 
 	return (
