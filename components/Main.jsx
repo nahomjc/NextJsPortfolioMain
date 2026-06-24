@@ -4,24 +4,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineMail } from "react-icons/ai";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
-import { HiArrowRight } from "react-icons/hi";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-import { PERSON } from "../lib/seo";
 
 const HeroGltfRobot = dynamic(() => import("./HeroGltfRobot"), { ssr: false });
 const HeroInteractiveLayer = dynamic(() => import("./HeroInteractiveLayer"), {
 	ssr: false,
 });
 
-const ROTATING_WORDS = [
-	"scalable",
-	"accessible",
-	"performant",
-	"production-ready",
-];
 const TERMINAL_LINES = [
 	"nahom@dev ~ react · next · typescript",
 	"wire → apis · postgres · supabase",
@@ -103,19 +94,6 @@ function HeroSparkles({ offsetX = 0, offsetY = 0 }) {
 	);
 }
 
-function IntroWords({ text, className = "" }) {
-	return text.split(" ").map((word, i) => (
-		<span
-			key={`${word}-${i}`}
-			className="hero-word-wrap inline-block overflow-hidden align-bottom"
-		>
-			<span className={`hero-intro-word inline-block ${className}`}>
-				{word}&nbsp;
-			</span>
-		</span>
-	));
-}
-
 function MagneticWrap({ children, reduceMotion, className = "" }) {
 	const ref = useRef(null);
 
@@ -173,7 +151,6 @@ const Main = () => {
 	const orbFuchsiaRef = useRef(null);
 	const gridRef = useRef(null);
 	const vignetteRef = useRef(null);
-	const rotatingWordRef = useRef(null);
 	const terminalRef = useRef(null);
 	const scrollCueRef = useRef(null);
 	const scrollExitRef = useRef(null);
@@ -244,18 +221,6 @@ const Main = () => {
 					ease: "power3.out",
 				},
 				0.45,
-			);
-
-			intro.from(
-				".hero-intro-word",
-				{
-					yPercent: 120,
-					opacity: 0,
-					duration: 0.7,
-					stagger: 0.028,
-					ease: "power4.out",
-				},
-				0.55,
 			);
 
 			if (robotColRef.current) {
@@ -485,38 +450,6 @@ const Main = () => {
 	}, [reduceMotion]);
 
 	useEffect(() => {
-		if (reduceMotion || typeof window === "undefined") return;
-		const el = rotatingWordRef.current;
-		if (!el || !bootComplete) return;
-
-		let idx = 0;
-		let timer;
-
-		const swap = () => {
-			const next = (idx + 1) % ROTATING_WORDS.length;
-			gsap.to(el, {
-				yPercent: -110,
-				opacity: 0,
-				duration: 0.32,
-				ease: "power2.in",
-				onComplete: () => {
-					el.textContent = ROTATING_WORDS[next];
-					idx = next;
-					gsap.fromTo(
-						el,
-						{ yPercent: 110, opacity: 0 },
-						{ yPercent: 0, opacity: 1, duration: 0.42, ease: "power3.out" },
-					);
-				},
-			});
-			timer = window.setTimeout(swap, 2800);
-		};
-
-		timer = window.setTimeout(swap, 2800);
-		return () => window.clearTimeout(timer);
-	}, [reduceMotion, bootComplete]);
-
-	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") {
 			setTerminalText(TERMINAL_LINES[0]);
 			return;
@@ -725,59 +658,10 @@ const Main = () => {
 							aria-hidden
 						/>
 
-						<span
-							data-hero-intro
-							data-hero-exit="fast"
-							className="mb-4 inline-flex items-center justify-center gap-2 self-center rounded-full border border-slate-200/80 bg-white/75 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-600 shadow-sm backdrop-blur-md sm:text-[11px] lg:self-start dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:shadow-[0_0_32px_rgba(217,70,239,0.1),inset_0_1px_0_rgba(255,255,255,0.06)]"
-						>
-							<span className="relative flex h-1.5 w-1.5 shrink-0" aria-hidden>
-								<span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-cyan-400/50" />
-								<span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gradient-to-br from-cyan-300 to-fuchsia-400" />
-							</span>
-							Full-stack minded · front-end engineer
-						</span>
-
-						<h1
-							data-hero-intro
-							data-hero-exit="headline"
-							className="font-display text-[1.65rem] font-bold leading-[1.15] tracking-tight text-slate-900 sm:text-[1.85rem] md:text-[2.15rem] lg:text-[2.35rem] dark:text-white"
-						>
-							<span className="block text-slate-600 dark:text-slate-300/90">
-								{PERSON.name}
-							</span>
-							<span className="mt-1 block">
-								<IntroWords
-									text="Crafts"
-									className="text-slate-900 dark:text-white/95"
-								/>
-								<span className="relative inline-block overflow-hidden align-bottom">
-									<span
-										ref={rotatingWordRef}
-										className="hero-rotating-word relative z-[1] inline-block bg-gradient-to-r from-cyan-600 via-fuchsia-600 to-fuchsia-700 bg-clip-text text-transparent dark:from-cyan-200 dark:via-fuchsia-300 dark:to-fuchsia-400"
-									>
-										{ROTATING_WORDS[0]}
-									</span>
-								</span>{" "}
-								<IntroWords
-									text="web products."
-									className="text-slate-900 dark:text-white/95"
-								/>
-							</span>
-						</h1>
-
-						<p
-							data-hero-intro
-							data-hero-exit="headline"
-							className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-slate-600 sm:text-sm lg:mx-0 dark:text-slate-400"
-						>
-							React, Next.js & TypeScript — polished UI wired to real APIs,
-							optimized data flow, and architecture that scales.
-						</p>
-
 						<div
 							data-hero-intro
 							data-hero-exit="fast"
-							className="mx-auto mt-4 flex w-full max-w-md flex-wrap justify-center gap-2 lg:mx-0 lg:justify-start"
+							className="mx-auto flex w-full max-w-md flex-wrap justify-center gap-2 lg:mx-0 lg:justify-start"
 						>
 							{HERO_STATS.map((stat, i) => (
 								<div
@@ -833,58 +717,10 @@ const Main = () => {
 							</div>
 						</div>
 
-						<p
-							data-hero-intro
-							data-hero-exit="mid"
-							className="mx-auto mt-4 max-w-md text-left text-[11px] leading-relaxed text-slate-500 sm:text-xs lg:mx-0"
-						>
-							CS graduate · Meta React certified · teaching web dev on Muyalogy.
-							I turn complex requirements into fast, reliable interfaces — from
-							e-commerce roots to production SaaS.
-						</p>
-
-						<div
-							data-hero-intro
-							data-hero-exit="cta"
-							className="mt-6 flex flex-col items-stretch gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center lg:justify-start"
-						>
-							<MagneticWrap
-								reduceMotion={reduceMotion}
-								className="sm:flex-initial"
-							>
-								<Link href="/#contact" passHref legacyBehavior>
-									<a className="unstyled group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-cyan-300 via-cyan-200 to-fuchsia-200 px-6 py-2.5 text-xs font-bold text-slate-900 shadow-[0_0_32px_rgba(34,211,238,0.35)] ring-1 ring-cyan-300/40 transition duration-300 hover:shadow-[0_0_44px_rgba(34,211,238,0.45)] sm:w-auto sm:text-sm">
-										<span
-											className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/45 to-transparent transition duration-500 group-hover:translate-x-full"
-											aria-hidden
-										/>
-										Hire me
-										<HiArrowRight className="text-lg transition-transform duration-300 group-hover:translate-x-0.5" />
-									</a>
-								</Link>
-							</MagneticWrap>
-							<MagneticWrap reduceMotion={reduceMotion}>
-								<Link
-									href="/#projects"
-									className="unstyled inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white/90 px-5 py-2.5 text-xs font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto sm:text-sm dark:border-white/70 dark:bg-white/[0.03] dark:text-white dark:hover:border-white dark:hover:bg-white/10"
-								>
-									View work
-								</Link>
-							</MagneticWrap>
-							<MagneticWrap reduceMotion={reduceMotion}>
-								<Link
-									href="/#about"
-									className="unstyled inline-flex w-full items-center justify-center rounded-full border border-fuchsia-400/40 bg-fuchsia-50 px-5 py-2.5 text-xs font-semibold text-fuchsia-800 transition hover:border-fuchsia-400/55 hover:bg-fuchsia-100/80 sm:w-auto sm:text-sm dark:border-fuchsia-400/35 dark:bg-fuchsia-500/15 dark:text-fuchsia-50 dark:hover:border-fuchsia-400/55"
-								>
-									About me
-								</Link>
-							</MagneticWrap>
-						</div>
-
 						<div
 							data-hero-intro
 							data-hero-exit="fast"
-							className="mt-6 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start"
+							className="mt-5 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start"
 						>
 							{[
 								{
