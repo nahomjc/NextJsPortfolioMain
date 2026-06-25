@@ -58,7 +58,7 @@ function MyApp({ Component, pageProps }) {
 					) : (
 						<motion.div
 							key="app-shell"
-							className="relative min-h-screen pb-[5.75rem]"
+							className="relative min-h-screen pb-[4.75rem] sm:pb-[5.75rem]"
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							transition={{ duration: 1 }}

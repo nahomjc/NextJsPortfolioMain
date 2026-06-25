@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -174,12 +174,12 @@ function SkillToken({ item, accentKey }) {
 	const accent = ACCENT[accentKey];
 	return (
 		<div
-			className={`skills-token group flex shrink-0 items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/70 px-3 py-2 shadow-sm backdrop-blur-sm transition duration-300 dark:border-white/10 dark:bg-slate-900/60 ${accent.glow}`}
+			className={`skills-token group flex shrink-0 items-center gap-2 rounded-full border border-slate-200/80 bg-white/70 px-2.5 py-1.5 shadow-sm backdrop-blur-sm transition duration-300 sm:gap-2.5 sm:px-3 sm:py-2 dark:border-white/10 dark:bg-slate-900/60 ${accent.glow}`}
 		>
-			<span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/90 dark:bg-slate-950/80">
-				<SkillIcon item={item} size={20} />
+			<span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100/90 sm:h-8 sm:w-8 dark:bg-slate-950/80">
+				<SkillIcon item={item} size={18} />
 			</span>
-			<span className="whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-100">
+			<span className="whitespace-nowrap text-xs font-medium text-slate-800 sm:text-sm dark:text-slate-100">
 				{item.title}
 			</span>
 			<span className="hidden font-mono text-[9px] uppercase tracking-wider text-slate-400 sm:inline">
@@ -195,7 +195,7 @@ function FeaturedCard({ item }) {
 		<article
 			className={`skills-featured-card group relative shrink-0 snap-center overflow-hidden rounded-2xl border bg-gradient-to-br p-[1px] ${accent.border} ${accent.bg}`}
 		>
-			<div className="relative flex h-full w-[9.5rem] flex-col rounded-[0.94rem] bg-white/80 p-4 dark:bg-slate-950/85 sm:w-[10.5rem]">
+			<div className="relative flex h-full w-[8.75rem] flex-col rounded-[0.94rem] bg-white/80 p-3.5 dark:bg-slate-950/85 sm:w-[10.5rem] sm:p-4">
 				<span className={`font-mono text-[9px] uppercase tracking-[0.18em] ${accent.text}`}>
 					Core
 				</span>
@@ -219,31 +219,32 @@ function SkillLane({ lane, items, laneRef }) {
 		<article
 			ref={laneRef}
 			id={`skills-lane-${lane.id}`}
-			className={`skills-lane ${accent.lane} relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/45 dark:border-white/10 dark:bg-slate-950/35`}
+			className={`skills-lane ${accent.lane} relative scroll-mt-28 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/45 dark:border-white/10 dark:bg-slate-950/35 sm:scroll-mt-32`}
 		>
 			<span
-				className="skills-lane-watermark pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 font-display text-[5.5rem] font-bold leading-none text-slate-900/[0.04] dark:text-white/[0.04]"
+				className="skills-lane-watermark pointer-events-none absolute -right-1 top-1/2 -translate-y-1/2 font-display text-[3.25rem] font-bold leading-none text-slate-900/[0.04] sm:-right-2 sm:text-[5.5rem] dark:text-white/[0.04]"
 				aria-hidden
 			>
 				{lane.index}
 			</span>
-			<div className="skills-lane-inner relative flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-5">
+			<div className="skills-lane-inner relative flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:gap-6 sm:p-5">
 				<div className="skills-lane-meta shrink-0 sm:w-44 lg:w-52">
 					<p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${accent.text}`}>
 						{lane.index} · {lane.label}
 					</p>
-					<h3 className="mt-1 font-display text-lg font-bold text-slate-900 dark:text-white">
+					<h3 className="mt-1 font-display text-base font-bold text-slate-900 sm:text-lg dark:text-white">
 						{lane.label}
 					</h3>
-					<p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+					<p className="mt-1 text-[11px] leading-relaxed text-slate-500 sm:text-xs dark:text-slate-400">
 						{lane.subtitle}
 					</p>
 					<p className="mt-2 font-mono text-[9px] uppercase tracking-wider text-slate-400">
 						{items.length} modules
+						<span className="sm:hidden"> · swipe</span>
 					</p>
 				</div>
-				<div className="skills-lane-track min-w-0 flex-1">
-					<div className="skills-lane-tokens flex flex-wrap gap-2 sm:gap-2.5">
+				<div className="skills-lane-track min-w-0 flex-1 overflow-hidden">
+					<div className="skills-lane-tokens flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-x-visible sm:pb-0 sm:gap-2.5">
 						{items.map((item) => (
 							<SkillToken key={item.title} item={item} accentKey={lane.accent} />
 						))}
@@ -260,6 +261,7 @@ function SkillLane({ lane, items, laneRef }) {
 
 const Skills = () => {
 	const reduceMotion = useReducedMotion();
+	const [activeLane, setActiveLane] = useState("frontend");
 	const sectionRef = useRef(null);
 	const headerRef = useRef(null);
 	const featuredRef = useRef(null);
@@ -280,6 +282,8 @@ const Skills = () => {
 		if (reduceMotion || typeof window === "undefined") return;
 
 		gsap.registerPlugin(ScrollTrigger);
+
+		const isMobileLayout = window.matchMedia("(max-width: 639px)").matches;
 
 		const ctx = gsap.context(() => {
 			gsap.from(".skills-header-block", {
@@ -318,21 +322,35 @@ const Skills = () => {
 				const watermark = laneEl.querySelector(".skills-lane-watermark");
 				const fromX = i % 2 === 0 ? -72 : 72;
 
-				gsap.fromTo(
-					laneEl,
-					{ clipPath: "inset(0 100% 0 0 round 16px)", opacity: 0.5 },
-					{
-						clipPath: "inset(0 0% 0 0 round 16px)",
-						opacity: 1,
-						ease: "power2.out",
+				if (isMobileLayout) {
+					gsap.from(laneEl, {
+						y: 28,
+						opacity: 0,
+						duration: 0.55,
+						ease: "power3.out",
 						scrollTrigger: {
 							trigger: laneEl,
-							start: "top 90%",
-							end: "top 58%",
-							scrub: 0.65,
+							start: "top 92%",
+							toggleActions: "play none none reverse",
 						},
-					}
-				);
+					});
+				} else {
+					gsap.fromTo(
+						laneEl,
+						{ clipPath: "inset(0 100% 0 0 round 16px)", opacity: 0.5 },
+						{
+							clipPath: "inset(0 0% 0 0 round 16px)",
+							opacity: 1,
+							ease: "power2.out",
+							scrollTrigger: {
+								trigger: laneEl,
+								start: "top 90%",
+								end: "top 58%",
+								scrub: 0.65,
+							},
+						},
+					);
+				}
 
 				if (meta) {
 					gsap.from(meta, {
@@ -401,7 +419,37 @@ const Skills = () => {
 		return () => ctx.revert();
 	}, [reduceMotion]);
 
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+
+		let observer;
+		const raf = requestAnimationFrame(() => {
+			const laneEls = laneRefs.current.filter(Boolean);
+			if (!laneEls.length) return;
+
+			observer = new IntersectionObserver(
+				(entries) => {
+					const visible = entries
+						.filter((entry) => entry.isIntersecting)
+						.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+					if (!visible.length) return;
+					const id = visible[0].target.id.replace("skills-lane-", "");
+					setActiveLane(id);
+				},
+				{ rootMargin: "-35% 0px -40% 0px", threshold: [0.15, 0.4] },
+			);
+
+			for (const el of laneEls) observer.observe(el);
+		});
+
+		return () => {
+			cancelAnimationFrame(raf);
+			observer?.disconnect();
+		};
+	}, [lanesWithItems.length]);
+
 	const scrollToLane = (id) => {
+		setActiveLane(id);
 		const el = document.getElementById(`skills-lane-${id}`);
 		el?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
 	};
@@ -410,7 +458,7 @@ const Skills = () => {
 		<section
 			id="skills"
 			ref={sectionRef}
-			className="skills-section relative w-full scroll-mt-24 overflow-hidden px-4 py-20 lg:min-h-screen lg:py-28"
+			className="skills-section relative w-full scroll-mt-28 overflow-x-clip px-4 py-16 sm:scroll-mt-32 sm:py-20 lg:min-h-screen lg:py-28"
 		>
 			<div
 				className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.025)_1px,transparent_1px)] bg-[length:40px_40px] opacity-60 dark:opacity-40"
@@ -451,8 +499,8 @@ const Skills = () => {
 						</div>
 					</aside>
 
-					<div>
-						<header ref={headerRef} className="skills-header-block mb-10 md:mb-12">
+					<div className="min-w-0">
+						<header ref={headerRef} className="skills-header-block mb-8 md:mb-12">
 							<p className="section-eyebrow">
 								<span
 									className="h-px w-8 bg-gradient-to-r from-violet-400 to-cyan-400"
@@ -463,7 +511,7 @@ const Skills = () => {
 									/ SEC 02
 								</span>
 							</p>
-							<h2 className="mt-3 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl lg:text-[2.35rem]">
+							<h2 className="mt-3 font-display text-xl font-bold text-slate-900 sm:text-2xl dark:text-white md:text-3xl lg:text-[2.35rem]">
 								What I{" "}
 								<span className="text-gradient-future">Can Do</span>
 							</h2>
@@ -471,7 +519,7 @@ const Skills = () => {
 								Production stack across UI engineering, APIs, data layers, and
 								delivery tooling — organized by how I actually ship work.
 							</p>
-							<div className="mt-5 flex flex-wrap gap-3">
+							<div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
 								<span className="rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:border-white/10 dark:bg-slate-950/50">
 									{skillItems.length} technologies
 								</span>
@@ -481,19 +529,48 @@ const Skills = () => {
 							</div>
 						</header>
 
-						<div ref={featuredRef} className="skills-featured-strip mb-10 md:mb-12">
+						<nav
+							className="skills-mobile-nav mb-8 flex gap-2 overflow-x-auto pb-1 lg:hidden"
+							aria-label="Skill categories"
+						>
+							{LANES.map((lane) => {
+								const accent = ACCENT[lane.accent];
+								const isActive = activeLane === lane.id;
+								return (
+									<button
+										key={lane.id}
+										type="button"
+										onClick={() => scrollToLane(lane.id)}
+										className={`unstyled shrink-0 rounded-full border px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.14em] transition ${
+											isActive
+												? `border-cyan-400/40 bg-cyan-500/10 ${accent.text}`
+												: "border-slate-200/80 text-slate-500 dark:border-white/10 dark:text-slate-400"
+										}`}
+									>
+										{lane.label}
+									</button>
+								);
+							})}
+						</nav>
+
+						<div ref={featuredRef} className="skills-featured-strip mb-8 md:mb-12">
 							<div className="mb-3 flex items-center justify-between gap-3">
 								<p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 									Primary stack
 								</p>
-								<p className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+								<p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 sm:hidden">
+									Swipe →
+								</p>
+								<p className="hidden font-mono text-[9px] uppercase tracking-wider text-slate-400 sm:block">
 									Scroll →
 								</p>
 							</div>
-							<div className="skills-featured-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
-								{featured.map((item) => (
-									<FeaturedCard key={item.title} item={item} />
-								))}
+							<div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+								<div className="skills-featured-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
+									{featured.map((item) => (
+										<FeaturedCard key={item.title} item={item} />
+									))}
+								</div>
 							</div>
 						</div>
 

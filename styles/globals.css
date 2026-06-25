@@ -1118,7 +1118,38 @@ html.lenis.lenis-stopped {
 .dock-shelf {
 	pointer-events: auto;
 	transform-origin: bottom center;
-	overflow: visible;
+	overflow: hidden;
+	width: 100%;
+	min-width: 0;
+}
+
+@media (min-width: 640px) {
+	.dock-shelf {
+		overflow: visible;
+	}
+}
+
+.dock-scroll {
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+	scroll-snap-type: x proximity;
+	scroll-padding-inline: 0.75rem;
+	touch-action: pan-x;
+}
+
+.dock-scroll::-webkit-scrollbar {
+	display: none;
+}
+
+@media (min-width: 640px) {
+	.dock-scroll {
+		scroll-snap-type: none;
+	}
+}
+
+.dock-scroll .dock-item {
+	scroll-snap-align: center;
+	flex-shrink: 0;
 }
 
 .dock-shelf-bg {
@@ -1133,11 +1164,11 @@ html.lenis.lenis-stopped {
 .dock-icon-shell {
 	transform-origin: bottom center;
 	display: flex;
-	height: 2.75rem;
-	width: 2.75rem;
+	height: 2.5rem;
+	width: 2.5rem;
 	align-items: center;
 	justify-content: center;
-	border-radius: 0.75rem;
+	border-radius: 0.625rem;
 	border: 1px solid rgba(15, 23, 42, 0.08);
 	background: #ffffff;
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 3px
@@ -1155,6 +1186,7 @@ html.lenis.lenis-stopped {
 	.dock-icon-shell {
 		height: 3rem;
 		width: 3rem;
+		border-radius: 0.75rem;
 	}
 }
 
@@ -1240,6 +1272,40 @@ html.lenis.lenis-stopped {
 .skills-featured-scroll {
 	scrollbar-width: none;
 	-ms-overflow-style: none;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-x: contain;
+	scroll-padding-inline: 1rem;
+	touch-action: pan-x;
+}
+
+.skills-lane-tokens {
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-x: contain;
+	scroll-padding-inline: 0.25rem;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	touch-action: pan-x;
+}
+
+.skills-lane-tokens::-webkit-scrollbar {
+	display: none;
+}
+
+.skills-mobile-nav {
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	touch-action: pan-x;
+}
+
+.skills-mobile-nav::-webkit-scrollbar {
+	display: none;
+}
+
+@media (min-width: 640px) {
+	.skills-lane-tokens {
+		touch-action: auto;
+	}
 }
 
 .skills-featured-scroll::-webkit-scrollbar {
@@ -1666,12 +1732,18 @@ html.lenis.lenis-stopped {
 }
 
 .portfolio-chat--fullscreen {
-	inset: 0.75rem 0.75rem calc(5.75rem + env(safe-area-inset-bottom, 0px))
-		0.75rem;
+	inset: 0.5rem 0.5rem calc(4.75rem + env(safe-area-inset-bottom, 0px)) 0.5rem;
 	width: auto !important;
 	height: auto !important;
 	max-width: none;
 	transform-origin: center center;
+}
+
+@media (min-width: 640px) {
+	.portfolio-chat--fullscreen {
+		inset: 0.75rem 0.75rem calc(5.75rem + env(safe-area-inset-bottom, 0px))
+			0.75rem;
+	}
 }
 
 .portfolio-chat-messages {

@@ -18,13 +18,13 @@ const SECTION_MAP = [
 	{ id: "contact", href: "/#contact" },
 ];
 
-function DockIcon({ item, isActive, itemRef }) {
+function DockIcon({ item, isActive, itemRef, className = "" }) {
 	const Icon = item.icon;
 
 	return (
 		<Link
 			href={item.href}
-			className="dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end"
+			className={`dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`}
 			aria-label={item.label}
 			aria-current={isActive ? "page" : undefined}
 		>
@@ -63,9 +63,11 @@ function DockActionButton({
 	onClick,
 	href,
 	isActive = false,
+	className = "",
 	children,
 }) {
 	const shellClass = `dock-icon-shell ${isActive ? "is-active" : ""}`;
+	const itemClass = `dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`;
 
 	const inner = (
 		<span
@@ -89,11 +91,7 @@ function DockActionButton({
 
 	if (href) {
 		return (
-			<a
-				href={href}
-				className="dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end"
-				aria-label={label}
-			>
+			<a href={href} className={itemClass} aria-label={label}>
 				{inner}
 			</a>
 		);
@@ -103,7 +101,7 @@ function DockActionButton({
 		<button
 			type="button"
 			onClick={onClick}
-			className="dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end"
+			className={itemClass}
 			aria-label={label}
 			aria-pressed={isActive || undefined}
 		>
@@ -241,13 +239,14 @@ const Navbar = () => {
 
 				<div
 					ref={dockRef}
-					className="relative z-10 flex items-end gap-0.5 overflow-visible px-2 pb-2.5 pt-2 sm:gap-1 sm:px-3 sm:pb-3"
+					className="dock-scroll relative z-10 flex items-end justify-center gap-0.5 overflow-x-auto px-1.5 pb-2.5 pt-2 sm:gap-1 sm:overflow-visible sm:px-3 sm:pb-3"
 				>
 				{primaryItems.map((item, i) => (
 					<DockIcon
 						key={item.href}
 						item={item}
 						isActive={isActive(item.href)}
+						className={item.hideOnMobile ? "hidden sm:flex" : ""}
 						itemRef={(el) => {
 							itemRefs.current[i] = el;
 						}}
@@ -263,6 +262,7 @@ const Navbar = () => {
 						<DockIcon
 							item={resumeItem}
 							isActive={isActive(resumeItem.href)}
+							className="hidden sm:flex"
 							itemRef={(el) => {
 								itemRefs.current[primaryItems.length] = el;
 							}}
@@ -271,13 +271,14 @@ const Navbar = () => {
 				) : null}
 
 				<span
-					className="dock-divider mx-0.5 mb-2 h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 dark:bg-white/15"
+					className="dock-divider mx-0.5 mb-2 hidden h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 sm:block dark:bg-white/15"
 					aria-hidden
 				/>
 
 				<DockActionButton
 					label="Call me"
 					href={PHONE_HREF}
+					className="hidden sm:flex"
 					itemRef={(el) => {
 						itemRefs.current[phoneIndex] = el;
 					}}

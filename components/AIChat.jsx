@@ -47,6 +47,15 @@ function TerminalTitleBar({ onClose, onToggleFullscreen, isFullscreen }) {
 	);
 }
 
+function getDockClearance() {
+	if (typeof window === "undefined") return 92;
+	const dock = document.querySelector(".dock-nav");
+	if (dock) {
+		return Math.ceil(dock.getBoundingClientRect().height) + 10;
+	}
+	return window.innerWidth < 640 ? 72 : 92;
+}
+
 function useChatPanelPosition(chatOpen, chatAnchor, isFullscreen) {
 	const [layout, setLayout] = useState({
 		left: 16,
@@ -70,13 +79,16 @@ function useChatPanelPosition(chatOpen, chatAnchor, isFullscreen) {
 			if (chatAnchor) {
 				left = chatAnchor.centerX - width / 2;
 				left = Math.max(12, Math.min(left, vw - width - 12));
-				bottom = Math.max(12, vh - chatAnchor.top + PANEL_GAP);
+				bottom = Math.max(
+					getDockClearance(),
+					vh - chatAnchor.top + PANEL_GAP,
+				);
 			} else {
-				left = vw - width - 16;
-				bottom = 92;
+				left = Math.max(12, (vw - width) / 2);
+				bottom = getDockClearance();
 			}
 
-			const height = Math.min(580, vh - bottom - 16);
+			const height = Math.min(580, vh - bottom - 12);
 			const anchorX = chatAnchor?.centerX ?? left + width / 2;
 			const originX = `${Math.max(8, Math.min(92, ((anchorX - left) / width) * 100))}%`;
 
