@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,6 +6,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AboutImg from "../public/assets/download.png";
+import { useLenis } from "./LenisProvider";
+import { scrollTriggerBase, scrollToProgress } from "../lib/gsapScroll";
 
 const AboutWorkspacePly = dynamic(() => import("./AboutWorkspacePly"), {
 	ssr: false,
@@ -87,10 +89,10 @@ function PortraitFrame({ reduceMotion }) {
 				aria-hidden
 			/>
 			<div
-				className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-cyan-400/40 via-transparent to-violet-500/40 blur-md"
+				className="about-portrait-aura absolute -inset-3 rounded-2xl bg-gradient-to-br from-cyan-400/40 via-transparent to-violet-500/40 blur-md"
 				aria-hidden
 			/>
-			<div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-100/50 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_28px_70px_-24px_rgba(0,0,0,0.55)] dark:border-white/12 dark:bg-slate-900/40">
+			<div className="about-portrait-inner relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-100/50 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_28px_70px_-24px_rgba(0,0,0,0.55)] dark:border-white/12 dark:bg-slate-900/40">
 				<HudCorners />
 				<div className="relative aspect-[3/4] w-full overflow-hidden">
 					<Image
@@ -128,14 +130,14 @@ function PortraitFrame({ reduceMotion }) {
 function IntroScene() {
 	return (
 		<>
-			<p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
+			<p className="about-scene-eyebrow font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
 				01 · Intro
 			</p>
-			<h3 className="mt-4 font-display text-3xl font-bold leading-tight text-slate-900 dark:text-white md:text-4xl lg:text-[2.5rem]">
+			<h3 className="about-scene-heading mt-4 font-display text-3xl font-bold leading-tight text-slate-900 dark:text-white md:text-4xl lg:text-[2.5rem]">
 				Builder who ships{" "}
 				<span className="text-gradient-future">interfaces that feel alive.</span>
 			</h3>
-			<p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
+			<p className="about-scene-body mt-6 max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
 				Full-stack minded front-end engineer — I connect polished UI to real backends
 				so products stay fast, accessible, and ready to scale.
 			</p>
@@ -146,10 +148,10 @@ function IntroScene() {
 function CapabilitiesScene({ highlightRefs }) {
 	return (
 		<>
-			<p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
+			<p className="about-scene-eyebrow font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
 				02 · Capabilities
 			</p>
-			<h3 className="mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
+			<h3 className="about-scene-heading mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
 				What I bring to the <span className="text-gradient-future">build.</span>
 			</h3>
 			<div className="mt-8 space-y-3">
@@ -177,10 +179,10 @@ function CapabilitiesScene({ highlightRefs }) {
 function StoryScene({ bioExpanded, setBioExpanded, bioParaRefs }) {
 	return (
 		<>
-			<p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
+			<p className="about-scene-eyebrow font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
 				03 · Story
 			</p>
-			<h3 className="mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
+			<h3 className="about-scene-heading mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
 				The <span className="text-gradient-future">narrative.</span>
 			</h3>
 			<div className="relative mt-6">
@@ -245,13 +247,13 @@ function StoryScene({ bioExpanded, setBioExpanded, bioParaRefs }) {
 function WorkspaceScene({ workspaceRef }) {
 	return (
 		<>
-			<p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
+			<p className="about-scene-eyebrow font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
 				04 · Workspace
 			</p>
-			<h3 className="mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
+			<h3 className="about-scene-heading mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
 				My <span className="text-gradient-future">desk in 3D.</span>
 			</h3>
-			<p className="mt-2 max-w-lg text-sm text-slate-600 dark:text-slate-400">
+			<p className="about-scene-body mt-2 max-w-lg text-sm text-slate-600 dark:text-slate-400">
 				Tap the preview to open your personal projects archive.
 			</p>
 			<div
@@ -291,6 +293,7 @@ function MobileScene({ children, sceneRef }) {
 
 const About = () => {
 	const reduceMotion = useReducedMotion();
+	const lenis = useLenis();
 	const [bioExpanded, setBioExpanded] = useState(false);
 	const [activeScene, setActiveScene] = useState(0);
 
@@ -300,6 +303,8 @@ const About = () => {
 	const amSplitRef = useRef(null);
 	const theatreRef = useRef(null);
 	const pinRef = useRef(null);
+	const theatreGlowRef = useRef(null);
+	const stageDividerRef = useRef(null);
 	const portraitWrapRef = useRef(null);
 	const scanBeamRef = useRef(null);
 	const bgWhoRef = useRef(null);
@@ -313,24 +318,85 @@ const About = () => {
 	const workspaceRef = useRef(null);
 	const mobileSceneRefs = useRef([]);
 
+	const jumpToScene = useCallback(
+		(index) => {
+			if (index < 0 || index >= SCENES.length) return;
+			const progress = index / (SCENES.length - 1);
+			scrollToProgress(progress, { lenis, duration: 1.2 });
+		},
+		[lenis],
+	);
+
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") return;
 
 		gsap.registerPlugin(ScrollTrigger);
 
+		const cleanups = [];
+
 		const ctx = gsap.context(() => {
 			if (heroRef.current) {
-				gsap.from(heroRef.current.querySelectorAll("[data-about-reveal]"), {
-					y: 56,
-					opacity: 0,
-					duration: 1,
-					stagger: 0.1,
-					ease: "power3.out",
-					scrollTrigger: {
+				const heroTl = gsap.timeline({
+					scrollTrigger: scrollTriggerBase({
 						trigger: heroRef.current,
-						start: "top 88%",
-					},
+						start: "top 86%",
+						toggleActions: "play none none reverse",
+					}),
 				});
+
+				heroTl
+					.from(".about-eyebrow-line", {
+						scaleX: 0,
+						transformOrigin: "left center",
+						duration: 0.8,
+						ease: "power2.inOut",
+					})
+					.from(
+						".about-eyebrow-text",
+						{ opacity: 0, x: -20, duration: 0.5 },
+						"-=0.45",
+					)
+					.from(
+						".about-title-word",
+						{
+							y: 120,
+							opacity: 0,
+							rotateX: -78,
+							transformOrigin: "50% 100%",
+							stagger: 0.12,
+							duration: 1.05,
+							ease: "power3.out",
+						},
+						"-=0.15",
+					)
+					.from(
+						".about-title-char",
+						{
+							scale: 0.2,
+							opacity: 0,
+							rotateY: -95,
+							transformOrigin: "50% 50%",
+							stagger: 0.16,
+							duration: 0.9,
+							ease: "back.out(1.8)",
+						},
+						"-=0.6",
+					)
+					.from(
+						".about-hero-sub",
+						{ opacity: 0, y: 24, filter: "blur(10px)", duration: 0.65 },
+						"-=0.35",
+					)
+					.from(
+						".about-hero-tag",
+						{ x: 36, opacity: 0, stagger: 0.12, duration: 0.55, ease: "power3.out" },
+						"-=0.4",
+					)
+					.from(
+						".about-hero-hint",
+						{ opacity: 0, y: 12, duration: 0.45 },
+						"-=0.2",
+					);
 			}
 
 			const mm = gsap.matchMedia();
@@ -341,26 +407,48 @@ const About = () => {
 				const segments = segmentRefs.current.filter(Boolean);
 				if (!panels.length || !pinRef.current || !theatreRef.current) return;
 
-				gsap.set(panels, { autoAlpha: 0, x: 72, filter: "blur(10px)" });
-				gsap.set(panels[0], { autoAlpha: 1, x: 0, filter: "blur(0px)" });
-				gsap.set(chapters, { autoAlpha: 0, scale: 0.88 });
-				if (chapters[0]) gsap.set(chapters[0], { autoAlpha: 0.14, scale: 1 });
+				gsap.set(panels, {
+					autoAlpha: 0,
+					x: 88,
+					rotateY: -14,
+					scale: 0.92,
+					filter: "blur(14px)",
+					clipPath: "inset(0 0 0 100% round 14px)",
+				});
+				gsap.set(panels[0], {
+					autoAlpha: 1,
+					x: 0,
+					rotateY: 0,
+					scale: 1,
+					filter: "blur(0px)",
+					clipPath: "inset(0 0% 0 0 round 14px)",
+				});
+				gsap.set(chapters, { autoAlpha: 0, scale: 0.75, rotate: -6 });
+				if (chapters[0]) gsap.set(chapters[0], { autoAlpha: 0.16, scale: 1, rotate: 0 });
 
-				const scrollLen = () => window.innerHeight * 3.4;
+				if (stageDividerRef.current) {
+					gsap.set(stageDividerRef.current, { scaleY: 0, transformOrigin: "top center" });
+				}
+
+				const scrollLen = () => window.innerHeight * 3.1;
+				const pinTrigger = scrollTriggerBase({
+					trigger: theatreRef.current,
+					start: "top top+=88",
+					end: () => `+=${scrollLen()}`,
+				});
 
 				const tl = gsap.timeline({
 					scrollTrigger: {
-						trigger: theatreRef.current,
-						start: "top top+=88",
-						end: () => `+=${scrollLen()}`,
+						...pinTrigger,
+						id: "about-theatre-pin",
 						pin: pinRef.current,
-						scrub: 0.65,
+						scrub: 0.42,
 						anticipatePin: 1,
 						invalidateOnRefresh: true,
 						onUpdate: (self) => {
 							const idx = Math.min(
 								panels.length - 1,
-								Math.floor(self.progress * panels.length)
+								Math.floor(self.progress * panels.length),
 							);
 							setActiveScene(idx);
 							segments.forEach((seg, i) => {
@@ -373,6 +461,32 @@ const About = () => {
 				});
 
 				const step = 1 / (panels.length - 1);
+				const portraitMoves = [
+					{ scale: 1, rotateY: 0, rotateX: 0, y: 0 },
+					{ scale: 1.035, rotateY: -7, rotateX: -4, y: -10 },
+					{ scale: 1.055, rotateY: 6, rotateX: 3, y: 6 },
+					{ scale: 1.075, rotateY: -9, rotateX: -5, y: -14 },
+				];
+
+				const firstPanel = panels[0];
+				const firstEyebrow = firstPanel?.querySelector(".about-scene-eyebrow");
+				const firstHeading = firstPanel?.querySelector(".about-scene-heading");
+				const firstBody = firstPanel?.querySelector(".about-scene-body");
+				if (firstEyebrow && firstHeading) {
+					tl.from(
+						[firstEyebrow, firstHeading, firstBody].filter(Boolean),
+						{ y: 36, opacity: 0, stagger: 0.07, duration: step * 0.35, ease: "power3.out" },
+						0.02,
+					);
+				}
+
+				if (stageDividerRef.current) {
+					tl.to(
+						stageDividerRef.current,
+						{ scaleY: 1, duration: step * 0.5, ease: "power2.out" },
+						0,
+					);
+				}
 
 				for (let i = 1; i < panels.length; i++) {
 					const t = (i - 1) * step;
@@ -380,120 +494,291 @@ const About = () => {
 					const curr = panels[i];
 					const prevChapter = chapters[i - 1];
 					const currChapter = chapters[i];
+					const move = portraitMoves[i] ?? portraitMoves[portraitMoves.length - 1];
 
 					tl.to(
 						prev,
 						{
 							autoAlpha: 0,
-							x: -64,
-							filter: "blur(12px)",
-							duration: step * 0.42,
+							x: -96,
+							rotateY: 14,
+							scale: 0.9,
+							filter: "blur(18px)",
+							clipPath: "inset(0 100% 0 0 round 14px)",
+							duration: step * 0.48,
 							ease: "power2.in",
 						},
-						t
+						t,
 					);
 					tl.fromTo(
 						curr,
-						{ autoAlpha: 0, x: 72, filter: "blur(12px)" },
+						{
+							autoAlpha: 0,
+							x: 96,
+							rotateY: -16,
+							scale: 0.88,
+							filter: "blur(18px)",
+							clipPath: "inset(0 0 0 100% round 14px)",
+						},
 						{
 							autoAlpha: 1,
 							x: 0,
+							rotateY: 0,
+							scale: 1,
 							filter: "blur(0px)",
-							duration: step * 0.42,
-							ease: "power2.out",
+							clipPath: "inset(0 0% 0 0 round 14px)",
+							duration: step * 0.48,
+							ease: "power3.out",
 						},
-						t
+						t,
 					);
+
+					const eyebrow = curr.querySelector(".about-scene-eyebrow");
+					const heading = curr.querySelector(".about-scene-heading");
+					const body = curr.querySelector(".about-scene-body");
+					if (eyebrow && heading) {
+						tl.fromTo(
+							[eyebrow, heading, body].filter(Boolean),
+							{ y: 40, opacity: 0 },
+							{
+								y: 0,
+								opacity: 1,
+								stagger: 0.06,
+								duration: step * 0.28,
+								ease: "power2.out",
+							},
+							t + step * 0.14,
+						);
+					}
+
+					if (i === 1) {
+						const rows = highlightRefs.current.filter(Boolean);
+						tl.fromTo(
+							rows,
+							{ x: 64, opacity: 0, scale: 0.92 },
+							{
+								x: 0,
+								opacity: 1,
+								scale: 1,
+								stagger: 0.08,
+								duration: step * 0.34,
+								ease: "power3.out",
+							},
+							t + step * 0.2,
+						);
+					}
+
+					if (i === 2) {
+						const paras = bioParaRefs.current.filter(Boolean);
+						tl.fromTo(
+							paras,
+							{ y: 28, opacity: 0, filter: "blur(6px)" },
+							{
+								y: 0,
+								opacity: 1,
+								filter: "blur(0px)",
+								stagger: 0.07,
+								duration: step * 0.32,
+								ease: "power2.out",
+							},
+							t + step * 0.18,
+						);
+					}
+
+					if (i === 3 && workspaceRef.current) {
+						tl.fromTo(
+							workspaceRef.current,
+							{ y: 48, scale: 0.88, opacity: 0, rotateX: 10 },
+							{
+								y: 0,
+								scale: 1,
+								opacity: 1,
+								rotateX: 0,
+								duration: step * 0.38,
+								ease: "power3.out",
+								transformOrigin: "50% 100%",
+							},
+							t + step * 0.16,
+						);
+					}
 
 					if (prevChapter && currChapter) {
 						tl.to(
 							prevChapter,
-							{ autoAlpha: 0, scale: 0.82, duration: step * 0.2 },
-							t
+							{ autoAlpha: 0, scale: 0.7, rotate: 8, duration: step * 0.22 },
+							t,
 						);
-						tl.to(
+						tl.fromTo(
 							currChapter,
-							{ autoAlpha: 0.14, scale: 1, duration: step * 0.25 },
-							t + step * 0.08
+							{ autoAlpha: 0, scale: 1.2, rotate: -10 },
+							{ autoAlpha: 0.18, scale: 1, rotate: 0, duration: step * 0.3 },
+							t + step * 0.1,
 						);
 					}
 
 					if (portraitWrapRef.current) {
 						tl.to(
 							portraitWrapRef.current,
-							{
-								scale: 1 + i * 0.018,
-								rotateY: i % 2 === 0 ? -4 : 4,
-								duration: step,
-								ease: "none",
-							},
-							t
+							{ ...move, duration: step, ease: "none" },
+							t,
 						);
 					}
 				}
 
 				if (scanBeamRef.current) {
+					gsap.to(scanBeamRef.current, {
+						top: "100%",
+						duration: 2.8,
+						ease: "none",
+						repeat: -1,
+						yoyo: true,
+					});
+				}
+
+				if (theatreGlowRef.current) {
 					gsap.fromTo(
-						scanBeamRef.current,
-						{ top: "0%" },
+						theatreGlowRef.current,
+						{ opacity: 0.25, scale: 0.92 },
 						{
-							top: "100%",
+							opacity: 0.85,
+							scale: 1.08,
 							ease: "none",
-							scrollTrigger: {
-								trigger: theatreRef.current,
-								start: "top top+=88",
-								end: () => `+=${scrollLen()}`,
-								scrub: 0.4,
-							},
-						}
+							scrollTrigger: { ...pinTrigger, scrub: 0.6 },
+						},
 					);
 				}
 
-				if (bgWhoRef.current && bgAmRef.current) {
-					gsap.to(bgWhoRef.current, {
-						x: -120,
-						opacity: 0.04,
+				const theatreGrid = pinRef.current?.querySelector(".about-theatre-grid");
+				if (theatreGrid) {
+					gsap.to(theatreGrid, {
+						backgroundPosition: "128px 96px",
 						ease: "none",
-						scrollTrigger: {
-							trigger: theatreRef.current,
-							start: "top top+=88",
-							end: () => `+=${scrollLen()}`,
-							scrub: 0.6,
-						},
-					});
-					gsap.to(bgAmRef.current, {
-						x: 120,
-						opacity: 0.04,
-						ease: "none",
-						scrollTrigger: {
-							trigger: theatreRef.current,
-							start: "top top+=88",
-							end: () => `+=${scrollLen()}`,
-							scrub: 0.6,
-						},
+						scrollTrigger: { ...pinTrigger, scrub: 0.7 },
 					});
 				}
 
-				if (whoSplitRef.current && amSplitRef.current && theatreRef.current) {
-					gsap.to(whoSplitRef.current, {
-						x: -48,
+				gsap.utils.toArray(".about-particle").forEach((p, i) => {
+					gsap.to(p, {
+						y: i % 2 === 0 ? -24 : 18,
+						x: i % 3 === 0 ? 12 : -10,
+						opacity: 0.9,
+						duration: 2.8 + i * 0.4,
+						ease: "sine.inOut",
+						yoyo: true,
+						repeat: -1,
+					});
+				});
+
+				if (bgWhoRef.current && bgAmRef.current) {
+					gsap.to(bgWhoRef.current, {
+						x: -160,
+						y: -40,
+						opacity: 0.05,
+						rotate: -4,
 						ease: "none",
-						scrollTrigger: {
+						scrollTrigger: { ...pinTrigger, scrub: 0.65 },
+					});
+					gsap.to(bgAmRef.current, {
+						x: 160,
+						y: 40,
+						opacity: 0.06,
+						rotate: 4,
+						ease: "none",
+						scrollTrigger: { ...pinTrigger, scrub: 0.65 },
+					});
+				}
+
+				if (whoSplitRef.current && amSplitRef.current) {
+					gsap.to(whoSplitRef.current, {
+						x: -72,
+						y: -12,
+						ease: "none",
+						scrollTrigger: scrollTriggerBase({
 							trigger: theatreRef.current,
 							start: "top bottom",
 							end: "top top+=88",
-							scrub: 0.5,
-						},
+							scrub: 0.45,
+						}),
 					});
 					gsap.to(amSplitRef.current, {
-						x: 48,
+						x: 72,
+						y: 12,
+						scale: 1.06,
 						ease: "none",
-						scrollTrigger: {
+						scrollTrigger: scrollTriggerBase({
 							trigger: theatreRef.current,
 							start: "top bottom",
 							end: "top top+=88",
-							scrub: 0.5,
-						},
+							scrub: 0.45,
+						}),
+					});
+				}
+
+				gsap.to(".about-scroll-cue", {
+					y: 10,
+					opacity: 0.45,
+					duration: 1.1,
+					ease: "sine.inOut",
+					yoyo: true,
+					repeat: -1,
+				});
+
+				if (portraitWrapRef.current) {
+					const portrait = portraitWrapRef.current;
+					const inner = portrait.querySelector(".about-portrait-inner");
+					const aura = portrait.querySelector(".about-portrait-aura");
+
+					const onMove = (e) => {
+						const rect = portrait.getBoundingClientRect();
+						const x = (e.clientX - rect.left) / rect.width - 0.5;
+						const y = (e.clientY - rect.top) / rect.height - 0.5;
+						if (inner) {
+							gsap.to(inner, {
+								rotateY: x * 14,
+								rotateX: -y * 10,
+								y: -y * 8,
+								duration: 0.5,
+								ease: "power2.out",
+								overwrite: "auto",
+							});
+						}
+						if (aura) {
+							gsap.to(aura, {
+								x: x * 16,
+								y: y * 16,
+								scale: 1.08,
+								duration: 0.5,
+								overwrite: "auto",
+							});
+						}
+					};
+
+					const onLeave = () => {
+						if (inner) {
+							gsap.to(inner, {
+								rotateY: 0,
+								rotateX: 0,
+								y: 0,
+								duration: 0.75,
+								ease: "elastic.out(1, 0.55)",
+							});
+						}
+						if (aura) {
+							gsap.to(aura, {
+								x: 0,
+								y: 0,
+								scale: 1,
+								duration: 0.65,
+								ease: "power2.out",
+							});
+						}
+					};
+
+					portrait.addEventListener("mousemove", onMove);
+					portrait.addEventListener("mouseleave", onLeave);
+					cleanups.push(() => {
+						portrait.removeEventListener("mousemove", onMove);
+						portrait.removeEventListener("mouseleave", onLeave);
 					});
 				}
 			});
@@ -502,19 +787,39 @@ const About = () => {
 				mobileSceneRefs.current.filter(Boolean).forEach((el, i) => {
 					gsap.fromTo(
 						el,
-						{ y: 48, opacity: 0, scale: 0.97 },
+						{ y: 64, opacity: 0, scale: 0.94, rotateX: 8 },
 						{
 							y: 0,
 							opacity: 1,
 							scale: 1,
-							duration: 0.85,
+							rotateX: 0,
+							duration: 0.95,
 							ease: "power3.out",
-							scrollTrigger: {
+							transformOrigin: "50% 100%",
+							scrollTrigger: scrollTriggerBase({
 								trigger: el,
-								start: "top 90%",
-							},
-						}
+								start: "top 88%",
+								toggleActions: "play none none reverse",
+							}),
+						},
 					);
+
+					const children = el.querySelectorAll(
+						".about-scene-eyebrow, .about-scene-heading, .about-scene-body, .about-highlight-row, .about-portrait-frame",
+					);
+					gsap.from(children, {
+						y: 28,
+						opacity: 0,
+						stagger: 0.07,
+						duration: 0.6,
+						ease: "power2.out",
+						scrollTrigger: scrollTriggerBase({
+							trigger: el,
+							start: "top 85%",
+							toggleActions: "play none none reverse",
+						}),
+					});
+
 					ScrollTrigger.create({
 						trigger: el,
 						start: "top center",
@@ -526,10 +831,14 @@ const About = () => {
 			});
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 650);
+		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 700);
+		const onLenisReady = () => ScrollTrigger.refresh();
+		window.addEventListener("lenis-ready", onLenisReady);
 
 		return () => {
 			window.clearTimeout(refreshTimer);
+			window.removeEventListener("lenis-ready", onLenisReady);
+			for (const fn of cleanups) fn();
 			ctx.revert();
 		};
 	}, [reduceMotion]);
@@ -562,15 +871,18 @@ const About = () => {
 			<div className="relative z-10 px-4 pb-8 pt-20 md:pb-12 md:pt-28">
 				<div className="mx-auto max-w-[1240px]">
 					{/* Title — splits apart as theatre approaches */}
-					<div ref={heroRef} className="about-hero mb-10 md:mb-14">
-						<p className="section-eyebrow mb-5" data-about-reveal>
+					<div ref={heroRef} className="about-hero about-hero-perspective mb-10 md:mb-14">
+						<p className="section-eyebrow mb-5">
 							<span
-								className="h-px w-8 bg-gradient-to-r from-cyan-400 to-violet-500"
+								className="about-eyebrow-line h-px w-8 bg-gradient-to-r from-cyan-400 to-violet-500"
 								aria-hidden
 							/>
-							About
-							<span className="font-mono text-[0.65rem] font-normal tracking-[0.15em] text-slate-400 dark:text-slate-500">
-								/ SEC 01
+							<span className="about-eyebrow-text">
+								About
+								<span className="font-mono text-[0.65rem] font-normal tracking-[0.15em] text-slate-400 dark:text-slate-500">
+									{" "}
+									/ SEC 01
+								</span>
 							</span>
 						</p>
 						<h2
@@ -581,36 +893,35 @@ const About = () => {
 								ref={whoSplitRef}
 								className="about-title-who inline-block text-[clamp(2.6rem,10vw,5.5rem)]"
 							>
-								WHO I
+								<span className="about-title-word inline-block">WHO</span>{" "}
+								<span className="about-title-word inline-block">I</span>
 							</span>{" "}
 							<span
 								ref={amSplitRef}
 								className="about-title-am inline-block text-[clamp(3rem,12vw,7rem)] text-gradient-future"
 							>
-								AM
+								{["A", "M"].map((char) => (
+									<span key={char} className="about-title-char inline-block">
+										{char}
+									</span>
+								))}
 							</span>
 						</h2>
-						<div
-							className="mt-8 flex flex-wrap items-end justify-between gap-6"
-							data-about-reveal
-						>
-							<p className="max-w-lg text-lg font-medium text-slate-700 dark:text-slate-200 md:text-xl">
+						<div className="mt-8 flex flex-wrap items-end justify-between gap-6">
+							<p className="about-hero-sub max-w-lg text-lg font-medium text-slate-700 dark:text-slate-200 md:text-xl">
 								I am not your typical developer.
 							</p>
 							<div className="flex flex-col gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-								<span className="rounded border border-slate-300/80 bg-white/60 px-3 py-1.5 dark:border-white/15 dark:bg-slate-950/40">
+								<span className="about-hero-tag rounded border border-slate-300/80 bg-white/60 px-3 py-1.5 dark:border-white/15 dark:bg-slate-950/40">
 									ID · NAHOM_D
 								</span>
-								<span className="text-cyan-600 dark:text-cyan-400">
+								<span className="about-hero-tag text-cyan-600 dark:text-cyan-400">
 									Status / Available for build
 								</span>
 							</div>
 						</div>
-						<p
-							className="mt-6 hidden font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400 lg:block dark:text-slate-500"
-							data-about-reveal
-						>
-							Scroll to scan identity layers · 4 scenes
+						<p className="about-hero-hint mt-6 hidden font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400 lg:block dark:text-slate-500">
+							Desktop: scroll the pinned panel or tap scene buttons · 4 layers
 						</p>
 					</div>
 
@@ -621,10 +932,55 @@ const About = () => {
 							className="about-theatre-pin relative min-h-[calc(100dvh-5.5rem)] overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/40 shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_40px_100px_-40px_rgba(15,23,42,0.35)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/60"
 						>
 							<div
-								ref={scanBeamRef}
-								className="about-scan-beam pointer-events-none absolute inset-x-0 z-30 h-[3px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_24px_rgba(34,211,238,0.75)]"
+								ref={theatreGlowRef}
+								className="about-theatre-glow pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(34,211,238,0.14),transparent_70%)] opacity-40"
 								aria-hidden
 							/>
+							{[
+								{ top: "12%", left: "18%" },
+								{ top: "28%", left: "72%" },
+								{ top: "58%", left: "12%" },
+								{ top: "72%", left: "82%" },
+								{ top: "44%", left: "48%" },
+								{ top: "85%", left: "38%" },
+							].map((pos, i) => (
+								<span
+									key={`particle-${i}`}
+									className="about-particle pointer-events-none absolute z-[1] h-2 w-2 rounded-full bg-cyan-400/80 shadow-[0_0_14px_rgba(34,211,238,0.95)]"
+									style={{ top: pos.top, left: pos.left }}
+									aria-hidden
+								/>
+							))}
+							<div
+								ref={scanBeamRef}
+								className="about-scan-beam pointer-events-none absolute inset-x-0 z-30 h-1 bg-gradient-to-r from-transparent via-cyan-300 to-transparent shadow-[0_0_32px_rgba(34,211,238,0.9)]"
+								aria-hidden
+							/>
+							<nav
+								className="about-theatre-nav absolute right-6 top-5 z-40 flex flex-wrap justify-end gap-2"
+								aria-label="Jump to identity scene"
+							>
+								{SCENES.map((scene, i) => (
+									<button
+										key={scene.id}
+										type="button"
+										onClick={() => jumpToScene(i)}
+										className={`unstyled about-scene-pill rounded-lg border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] transition duration-300 ${
+											activeScene === i
+												? "border-cyan-400/60 bg-cyan-500/15 text-cyan-600 shadow-[0_0_20px_rgba(34,211,238,0.25)] dark:text-cyan-300"
+												: "border-slate-300/60 bg-white/50 text-slate-500 hover:border-cyan-400/40 dark:border-white/12 dark:bg-slate-950/50 dark:text-slate-400"
+										}`}
+									>
+										{scene.code} · {scene.label}
+									</button>
+								))}
+							</nav>
+							<div
+								className="about-scene-badge absolute left-6 top-5 z-40 rounded-lg border border-violet-400/35 bg-violet-500/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-violet-600 dark:text-violet-300"
+								aria-live="polite"
+							>
+								Scene {SCENES[activeScene]?.code} / 04
+							</div>
 							<div
 								className="about-theatre-grid pointer-events-none absolute inset-0 opacity-[0.12] dark:opacity-[0.08]"
 								style={{
@@ -649,7 +1005,7 @@ const About = () => {
 								AM
 							</span>
 
-							<div className="relative z-10 grid h-full min-h-[calc(100dvh-5.5rem)] grid-cols-[minmax(280px,38%)_1fr] gap-8 p-8 xl:gap-12 xl:p-10">
+							<div className="relative z-10 grid h-full min-h-[calc(100dvh-5.5rem)] grid-cols-[minmax(280px,38%)_1fr] gap-10 p-8 xl:gap-14 xl:p-10">
 								<div className="relative flex flex-col justify-center">
 									{SCENES.map((scene, i) => (
 										<span
@@ -676,10 +1032,11 @@ const About = () => {
 									className="about-scene-stage relative flex items-center overflow-hidden"
 								>
 									<div
-										className="pointer-events-none absolute left-0 top-0 z-20 h-full w-px bg-gradient-to-b from-cyan-400/60 via-violet-500/40 to-fuchsia-500/30"
+										ref={stageDividerRef}
+										className="about-stage-divider pointer-events-none absolute left-0 top-0 z-20 h-full w-px origin-top bg-gradient-to-b from-cyan-400/60 via-violet-500/40 to-fuchsia-500/30"
 										aria-hidden
 									/>
-									<div className="relative h-full w-full py-4">
+									<div className="relative h-full w-full py-4 pl-8 xl:pl-12">
 										<div
 											ref={(el) => {
 												sceneRefs.current[0] = el;
@@ -721,18 +1078,34 @@ const About = () => {
 							</div>
 
 							<div
-								className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3"
+								className="about-scroll-cue pointer-events-none absolute bottom-24 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2"
 								aria-hidden
+							>
+								<span className="rounded-full border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 font-mono text-[9px] uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">
+									Scroll or tap scenes above
+								</span>
+								<span className="text-lg text-cyan-400">↓</span>
+							</div>
+
+							<div
+								className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3"
+								role="tablist"
+								aria-label="Scene progress"
 							>
 								{SCENES.map((scene, i) => (
 									<div key={scene.id} className="flex items-center gap-2">
-										<span
+										<button
+											type="button"
+											role="tab"
+											aria-selected={activeScene === i}
+											aria-label={`Go to scene ${scene.code}: ${scene.label}`}
+											onClick={() => jumpToScene(i)}
 											ref={(el) => {
 												segmentRefs.current[i] = el;
 											}}
-											className={`about-scene-segment h-1.5 w-10 rounded-full bg-slate-300/80 transition-all duration-300 dark:bg-white/15 ${
+											className={`about-scene-segment unstyled h-2 w-10 rounded-full bg-slate-300/80 transition-all duration-300 dark:bg-white/15 ${
 												activeScene === i ? "is-active" : ""
-											}`}
+											} ${i < activeScene ? "is-passed" : ""}`}
 										/>
 										<span className="hidden font-mono text-[9px] uppercase tracking-wider text-slate-400 xl:inline">
 											{scene.code}

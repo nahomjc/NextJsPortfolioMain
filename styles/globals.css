@@ -819,8 +819,23 @@ html.lenis.lenis-stopped {
 }
 
 /* Who I Am — identity scroll theatre */
+.about-hero-perspective {
+	perspective: 1000px;
+}
+
+.about-title-word,
+.about-title-char {
+	transform-style: preserve-3d;
+	will-change: transform, opacity;
+}
+
 .about-theatre-pin {
-	perspective: 1400px;
+	perspective: 1600px;
+	transform-style: preserve-3d;
+}
+
+.about-scene-stage {
+	perspective: 1200px;
 	transform-style: preserve-3d;
 }
 
@@ -829,8 +844,18 @@ html.lenis.lenis-stopped {
 	will-change: transform;
 }
 
+.about-portrait-inner {
+	transform-style: preserve-3d;
+	will-change: transform;
+}
+
+.about-portrait-aura {
+	will-change: transform;
+}
+
 .about-scene-panel {
-	will-change: transform, opacity, filter;
+	transform-style: preserve-3d;
+	will-change: transform, opacity, filter, clip-path;
 }
 
 .about-chapter-ghost {
@@ -838,7 +863,11 @@ html.lenis.lenis-stopped {
 }
 
 .about-scan-beam {
-	will-change: top;
+	will-change: top, opacity;
+}
+
+.about-theatre-glow {
+	will-change: transform, opacity;
 }
 
 .about-bg-type {
@@ -850,7 +879,16 @@ html.lenis.lenis-stopped {
 	will-change: transform;
 }
 
+.about-stage-divider {
+	will-change: transform;
+}
+
+.about-particle {
+	will-change: transform, opacity;
+}
+
 .about-scene-segment.is-active {
+	height: 0.625rem;
 	width: 2.75rem;
 	background: linear-gradient(
 		90deg,
@@ -863,6 +901,19 @@ html.lenis.lenis-stopped {
 
 .about-scene-segment.is-passed {
 	background: rgba(34, 211, 238, 0.35);
+}
+
+.about-scene-pill:focus-visible {
+	outline: 2px solid rgba(34, 211, 238, 0.6);
+	outline-offset: 2px;
+}
+
+.about-scroll-cue {
+	will-change: transform, opacity;
+}
+
+.about-scene-badge {
+	box-shadow: 0 0 24px rgba(139, 92, 246, 0.2);
 }
 
 .about-orbit-ring {
@@ -894,16 +945,23 @@ html.lenis.lenis-stopped {
 	}
 
 	.about-portrait-wrap,
+	.about-portrait-inner,
 	.about-scene-panel,
 	.about-chapter-ghost,
 	.about-scan-beam,
+	.about-theatre-glow,
 	.about-bg-type,
 	.about-title-who,
-	.about-title-am {
+	.about-title-am,
+	.about-title-word,
+	.about-title-char,
+	.about-stage-divider,
+	.about-particle {
 		will-change: auto;
 		transform: none !important;
 		filter: none !important;
 		opacity: 1 !important;
+		clip-path: none !important;
 	}
 
 	.about-theatre {
@@ -1294,7 +1352,7 @@ html.lenis.lenis-stopped {
 
 .skills-tab-indicator {
 	z-index: 0;
-	opacity: 0;
+	opacity: 1;
 	border-width: 1px;
 	transition: box-shadow 0.4s ease;
 }
@@ -1858,6 +1916,51 @@ button.mac-dot--green:hover {
 }
 
 /* Technical Skills — proficiency HUD */
+.tech-skills-section {
+	overflow: visible;
+}
+
+.tech-skills-body {
+	align-items: stretch;
+}
+
+.tech-diagnostics-card {
+	will-change: transform;
+	z-index: 30;
+	transition:
+		box-shadow 0.35s ease,
+		border-color 0.35s ease,
+		transform 0.35s ease;
+}
+
+.tech-diagnostics-card.is-floating {
+	border-color: rgba(34, 211, 238, 0.45);
+	box-shadow:
+		0 0 0 1px rgba(34, 211, 238, 0.12),
+		0 24px 64px -16px rgba(34, 211, 238, 0.28),
+		0 12px 40px -20px rgba(139, 92, 246, 0.2);
+	transform: translateY(-2px);
+}
+
+.dark .tech-diagnostics-card.is-floating {
+	border-color: rgba(34, 211, 238, 0.38);
+	box-shadow:
+		0 0 0 1px rgba(34, 211, 238, 0.15),
+		0 28px 72px -18px rgba(34, 211, 238, 0.22),
+		0 16px 48px -24px rgba(139, 92, 246, 0.25);
+}
+
+.tech-skills-sidebar {
+	align-self: stretch;
+	position: relative;
+}
+
+@media (min-width: 1024px) {
+	.tech-skills-sidebar {
+		min-height: 100%;
+	}
+}
+
 .tech-skill-fill {
 	will-change: transform;
 }
@@ -1892,6 +1995,14 @@ button.mac-dot--green:hover {
 	outline-offset: 2px;
 }
 
+.tech-skill-row .truncate {
+	color: rgb(15 23 42);
+}
+
+.dark .tech-skill-row .truncate {
+	color: rgb(248 250 252);
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.tech-skill-shimmer {
 		animation: none;
@@ -1901,5 +2012,7 @@ button.mac-dot--green:hover {
 	.tech-section-progress,
 	.tech-word {
 		will-change: auto;
+		opacity: 1 !important;
+		transform: none !important;
 	}
 }

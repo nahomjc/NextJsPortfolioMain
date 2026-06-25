@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scrollTriggerBase } from "../lib/gsapScroll";
 import Css from "../public/assets/skills/css.png";
 import Javascript from "../public/assets/skills/javascript.png";
 import ReactImg from "../public/assets/skills/react.png";
@@ -455,11 +456,11 @@ const Skills = () => {
 
 		const ctx = gsap.context(() => {
 			const headerTl = gsap.timeline({
-				scrollTrigger: {
+				scrollTrigger: scrollTriggerBase({
 					trigger: headerRef.current,
 					start: "top 86%",
 					toggleActions: "play none none reverse",
-				},
+				}),
 			});
 
 			headerTl
@@ -497,11 +498,11 @@ const Skills = () => {
 					opacity: 0,
 					x: -20,
 					duration: 0.5,
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: featuredRef.current,
 						start: "top 88%",
 						toggleActions: "play none none reverse",
-					},
+					}),
 				});
 
 				gsap.from(".skills-featured-tile", {
@@ -513,23 +514,23 @@ const Skills = () => {
 					stagger: { amount: 0.55, from: "center" },
 					duration: 0.95,
 					ease: "power3.out",
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: featuredRef.current,
 						start: "top 85%",
 						toggleActions: "play none none reverse",
-					},
+					}),
 				});
 
 				gsap.utils.toArray(".skills-featured-tile").forEach((tile, i) => {
 					gsap.to(tile, {
 						y: i % 2 === 0 ? -18 : -28,
 						ease: "none",
-						scrollTrigger: {
+						scrollTrigger: scrollTriggerBase({
 							trigger: featuredRef.current,
 							start: "top bottom",
 							end: "bottom top",
 							scrub: 0.9,
-						},
+						}),
 					});
 				});
 
@@ -606,11 +607,11 @@ const Skills = () => {
 					stagger: 0.08,
 					duration: 0.55,
 					ease: "back.out(1.4)",
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: tabsRef.current,
 						start: "top 90%",
 						toggleActions: "play none none reverse",
-					},
+					}),
 					onComplete: () => moveTabIndicator(activeLaneRef.current, true),
 				});
 			}
@@ -619,24 +620,24 @@ const Skills = () => {
 				y: -100,
 				x: 40,
 				ease: "none",
-				scrollTrigger: {
+				scrollTrigger: scrollTriggerBase({
 					trigger: sectionRef.current,
 					start: "top bottom",
 					end: "bottom top",
 					scrub: 1.2,
-				},
+				}),
 			});
 
 			gsap.to(".skills-orb-2", {
 				y: 80,
 				x: -50,
 				ease: "none",
-				scrollTrigger: {
+				scrollTrigger: scrollTriggerBase({
 					trigger: sectionRef.current,
 					start: "top bottom",
 					end: "bottom top",
 					scrub: 0.8,
-				},
+				}),
 			});
 
 			gsap.utils.toArray(".skills-card").forEach((card) => {
@@ -697,7 +698,9 @@ const Skills = () => {
 		}, sectionRef);
 
 		const onResize = () => moveTabIndicator(activeLaneRef.current, true);
+		const onLenisReady = () => ScrollTrigger.refresh();
 		window.addEventListener("resize", onResize);
+		window.addEventListener("lenis-ready", onLenisReady);
 
 		requestAnimationFrame(() => {
 			moveTabIndicator(activeLaneRef.current, true);
@@ -708,6 +711,7 @@ const Skills = () => {
 
 		return () => {
 			window.removeEventListener("resize", onResize);
+			window.removeEventListener("lenis-ready", onLenisReady);
 			panelTweenRef.current?.kill();
 			for (const fn of cleanups) fn();
 			ctx.revert();

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scrollTriggerBase } from "../lib/gsapScroll";
 import {
 	FaBolt,
 	FaDatabase,
@@ -89,7 +90,11 @@ function HudCorners() {
 function SplitWords({ text, className = "" }) {
 	return text.split(" ").map((word, i) => (
 		<span key={`${word}-${i}`} className="tech-word-wrap inline-block overflow-hidden">
-			<span className={`tech-word inline-block ${className}`}>{word}&nbsp;</span>
+			<span
+				className={`tech-word inline-block text-slate-900 dark:text-white ${className}`}
+			>
+				{word}&nbsp;
+			</span>
 		</span>
 	));
 }
@@ -122,10 +127,10 @@ function StackRing({ value, reduceMotion }) {
 					strokeDashoffset: offset,
 					duration: 1.6,
 					ease: "power2.out",
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: ringRef.current,
 						start: "top 88%",
-					},
+					}),
 				}
 			);
 			if (numRef.current) {
@@ -134,10 +139,10 @@ function StackRing({ value, reduceMotion }) {
 					val: value,
 					duration: 1.6,
 					ease: "power2.out",
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: ringRef.current,
 						start: "top 88%",
-					},
+					}),
 					onUpdate: () => {
 						if (numRef.current) numRef.current.textContent = String(Math.round(obj.val));
 					},
@@ -214,10 +219,10 @@ function SkillMeter({ skill, pillarColor, reduceMotion }) {
 					scaleX: skill.level / 100,
 					ease: "power2.out",
 					duration: 1.1,
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: rowRef.current,
 						start: "top 92%",
-					},
+					}),
 				}
 			);
 
@@ -227,10 +232,10 @@ function SkillMeter({ skill, pillarColor, reduceMotion }) {
 					val: skill.level,
 					duration: 1.1,
 					ease: "power2.out",
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: rowRef.current,
 						start: "top 92%",
-					},
+					}),
 					onUpdate: () => {
 						if (numRef.current) numRef.current.textContent = String(Math.round(obj.val));
 					},
@@ -270,7 +275,7 @@ function SkillMeter({ skill, pillarColor, reduceMotion }) {
 				</div>
 				<div className="min-w-0 flex-1">
 					<div className="flex items-baseline justify-between gap-2">
-						<span className="truncate text-sm font-medium text-slate-800 dark:text-slate-100 md:text-base">
+						<span className="truncate text-sm font-medium text-slate-900 dark:text-slate-50 md:text-base">
 							{skill.name}
 						</span>
 						<span className="font-mono text-xs tabular-nums text-cyan-600 dark:text-cyan-400">
@@ -421,6 +426,9 @@ const SkillsProgress = () => {
 	const sectionRef = useRef(null);
 	const headerRef = useRef(null);
 	const progressRef = useRef(null);
+	const bodyGridRef = useRef(null);
+	const diagnosticsRef = useRef(null);
+	const panelsColRef = useRef(null);
 	const panelRefs = useRef([]);
 	const sidebarRefs = useRef([]);
 
@@ -442,17 +450,57 @@ const SkillsProgress = () => {
 		gsap.registerPlugin(ScrollTrigger);
 
 		const ctx = gsap.context(() => {
-			gsap.from(".tech-word", {
-				yPercent: 110,
-				opacity: 0,
-				duration: 0.8,
-				stagger: 0.04,
-				ease: "power3.out",
-				scrollTrigger: {
-					trigger: headerRef.current,
-					start: "top 88%",
-				},
+			const mm = gsap.matchMedia();
+
+			mm.add("(min-width: 1024px)", () => {
+				if (
+					!diagnosticsRef.current ||
+					!panelsColRef.current ||
+					!bodyGridRef.current
+				) {
+					return;
+				}
+
+				const pinStart = "top 7.5rem";
+
+				ScrollTrigger.create(
+					scrollTriggerBase({
+						trigger: panelsColRef.current,
+						start: pinStart,
+						end: () => {
+							const cardH = diagnosticsRef.current?.offsetHeight ?? 0;
+							return `bottom-=${cardH} top`;
+						},
+						pin: diagnosticsRef.current,
+						pinSpacing: false,
+						invalidateOnRefresh: true,
+						anticipatePin: 1,
+						onToggle: (self) => {
+							diagnosticsRef.current?.classList.toggle(
+								"is-floating",
+								self.isActive,
+							);
+						},
+					}),
+				);
 			});
+
+			gsap.fromTo(
+				".tech-word",
+				{ yPercent: 110, opacity: 0 },
+				{
+					yPercent: 0,
+					opacity: 1,
+					duration: 0.8,
+					stagger: 0.04,
+					ease: "power3.out",
+					scrollTrigger: scrollTriggerBase({
+						trigger: headerRef.current,
+						start: "top 88%",
+						toggleActions: "play none none none",
+					}),
+				},
+			);
 
 			if (progressRef.current && sectionRef.current) {
 				gsap.fromTo(
@@ -461,36 +509,46 @@ const SkillsProgress = () => {
 					{
 						scaleX: 1,
 						ease: "none",
-						scrollTrigger: {
+						scrollTrigger: scrollTriggerBase({
 							trigger: sectionRef.current,
 							start: "top 75%",
 							end: "bottom 25%",
 							scrub: 0.45,
-						},
-					}
+						}),
+					},
 				);
 			}
 
 			panelRefs.current.forEach((panel, i) => {
 				if (!panel) return;
-				ScrollTrigger.create({
-					trigger: panel,
-					start: "top 55%",
-					end: "bottom 45%",
-					onEnter: () => setActivePillar(PILLARS[i].id),
-					onEnterBack: () => setActivePillar(PILLARS[i].id),
-				});
+				ScrollTrigger.create(
+					scrollTriggerBase({
+						trigger: panel,
+						start: "top 55%",
+						end: "bottom 45%",
+						onEnter: () => setActivePillar(PILLARS[i].id),
+						onEnterBack: () => setActivePillar(PILLARS[i].id),
+					}),
+				);
 			});
 		}, sectionRef);
 
-		return () => ctx.revert();
+		const onLenisReady = () => ScrollTrigger.refresh();
+		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 800);
+		window.addEventListener("lenis-ready", onLenisReady);
+
+		return () => {
+			window.clearTimeout(refreshTimer);
+			window.removeEventListener("lenis-ready", onLenisReady);
+			ctx.revert();
+		};
 	}, [reduceMotion]);
 
 	return (
 		<section
 			id="technical-skills"
 			ref={sectionRef}
-			className="tech-skills-section relative scroll-mt-24 overflow-hidden px-4 py-20 md:py-28 lg:min-h-screen"
+			className="tech-skills-section relative scroll-mt-24 px-4 py-20 md:py-28 lg:min-h-screen"
 		>
 			<div
 				className="pointer-events-none absolute inset-0 bg-grid-future opacity-[0.3] dark:opacity-[0.18]"
@@ -566,9 +624,15 @@ const SkillsProgress = () => {
 					/>
 				</div>
 
-				<div className="grid gap-10 lg:grid-cols-[minmax(240px,280px)_1fr] lg:gap-12 xl:gap-16">
-					<aside className="tech-skills-sidebar lg:sticky lg:top-28 lg:self-start">
-						<div className="rounded-2xl border border-slate-200/85 bg-white/70 p-5 shadow-card-light backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/55 dark:shadow-card-dark">
+				<div
+					ref={bodyGridRef}
+					className="tech-skills-body grid gap-10 lg:grid-cols-[minmax(240px,280px)_1fr] lg:gap-12 xl:gap-16"
+				>
+					<aside className="tech-skills-sidebar relative">
+						<div
+							ref={diagnosticsRef}
+							className="tech-diagnostics-card mx-auto w-full max-w-[280px] rounded-2xl border border-slate-200/85 bg-white/70 p-5 shadow-card-light backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/55 dark:shadow-card-dark lg:mx-0 lg:max-h-[min(32rem,calc(100dvh-8.5rem))] lg:overflow-y-auto"
+						>
 							<HudCorners />
 							<p className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
 								Diagnostics
@@ -607,10 +671,10 @@ const SkillsProgress = () => {
 												<Icon className="text-sm" aria-hidden />
 											</div>
 											<div className="min-w-0 flex-1">
-												<p className="truncate font-mono text-[9px] uppercase tracking-[0.16em] text-slate-400">
+												<p className="truncate font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
 													{pillar.categoryKey}
 												</p>
-												<p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+												<p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-50">
 													{pillar.title.split(" ")[0]}
 												</p>
 											</div>
@@ -657,7 +721,7 @@ const SkillsProgress = () => {
 						</div>
 					</aside>
 
-					<div className="space-y-8 lg:space-y-10">
+					<div ref={panelsColRef} className="tech-skills-panels space-y-8 lg:space-y-10">
 						{PILLARS.map((pillar, i) => (
 							<PillarPanel
 								key={pillar.id}

@@ -67,6 +67,12 @@ export default function LenisProvider({ children }) {
 					height: window.innerHeight,
 				};
 			},
+			pinType: "transform",
+		});
+
+		requestAnimationFrame(() => {
+			ScrollTrigger.refresh();
+			window.dispatchEvent(new Event("lenis-ready"));
 		});
 
 		const onRefresh = () => lenisInstance.resize();
