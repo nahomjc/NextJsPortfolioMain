@@ -253,16 +253,20 @@ const HeroGltfRobot = () => {
 				return a;
 			};
 
-			/** Aim from robot center on screen toward cursor — horizontal (yaw) only */
+			/** Aim from robot center — horizontal yaw + vertical parallax (no pitch tilt) */
 			const syncNdcLookAtCursor = (e) => {
 				const rect = wrap.getBoundingClientRect();
 				if (rect.width < 1 || rect.height < 1) return;
 				const cx = rect.left + rect.width * 0.5;
+				const cy = rect.top + rect.height * 0.5;
 				const dx = e.clientX - cx;
+				const dy = e.clientY - cy;
 				const vw = window.innerWidth;
+				const vh = window.innerHeight;
 				const scaleX = Math.max(vw * 0.46, rect.width * 0.7);
+				const scaleY = Math.max(vh * 0.46, rect.height * 0.7);
 				rawNdc.x = THREE.MathUtils.clamp(dx / scaleX, -1, 1);
-				rawNdc.y = 0;
+				rawNdc.y = THREE.MathUtils.clamp(dy / scaleY, -1, 1);
 			};
 
 			const pointerInfluence = () =>
@@ -606,6 +610,7 @@ const HeroGltfRobot = () => {
 			/** Cursor follow when not click-dragging; drag adds extra yaw/pitch (unbounded yaw via dragYawAcc) */
 			const maxYaw = 0.72;
 			const maxParallaxX = 0.18;
+			const maxParallaxY = 0.1;
 
 			const schedule = () => {
 				if (cancelled || paused) return;
@@ -790,7 +795,7 @@ const HeroGltfRobot = () => {
 					targetPitch = touchPitchOff;
 					targetRoll = 0;
 					targetPx = srcNdc.x * maxParallaxX + touchPanXOff;
-					targetPy = touchPanYOff;
+					targetPy = -srcNdc.y * maxParallaxY + touchPanYOff;
 				}
 
 				/** Eased follow while tracking cursor — slower easing when idle */
