@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -123,6 +123,7 @@ const ACCENT = {
 		dot: "bg-cyan-400",
 		ring: "ring-cyan-400/30",
 		panel: "skills-panel--cyan",
+		indicator: "skills-tab-indicator--cyan",
 	},
 	violet: {
 		border: "border-violet-400/25",
@@ -134,6 +135,7 @@ const ACCENT = {
 		dot: "bg-violet-400",
 		ring: "ring-violet-400/30",
 		panel: "skills-panel--violet",
+		indicator: "skills-tab-indicator--violet",
 	},
 	fuchsia: {
 		border: "border-fuchsia-400/25",
@@ -145,6 +147,7 @@ const ACCENT = {
 		dot: "bg-fuchsia-400",
 		ring: "ring-fuchsia-400/30",
 		panel: "skills-panel--fuchsia",
+		indicator: "skills-tab-indicator--fuchsia",
 	},
 	emerald: {
 		border: "border-emerald-400/25",
@@ -156,6 +159,7 @@ const ACCENT = {
 		dot: "bg-emerald-400",
 		ring: "ring-emerald-400/30",
 		panel: "skills-panel--emerald",
+		indicator: "skills-tab-indicator--emerald",
 	},
 };
 
@@ -167,7 +171,7 @@ function accentForCategory(category) {
 }
 
 function SkillIcon({ item, size = 56 }) {
-	const common = "shrink-0 object-contain transition duration-300 group-hover:scale-110";
+	const common = "shrink-0 object-contain";
 	if (item.image) {
 		return (
 			<Image
@@ -199,9 +203,9 @@ function FeaturedTile({ item, large = false }) {
 		<article
 			className={`skills-featured-tile group relative overflow-hidden rounded-2xl border bg-gradient-to-br p-px ${accent.border} ${accent.bg} ${large ? "skills-featured-tile--large" : ""}`}
 		>
-			<div className="relative flex h-full flex-col rounded-[0.94rem] bg-white/85 p-4 dark:bg-slate-950/90 sm:p-5">
+			<div className="skills-featured-tile-inner relative flex h-full flex-col rounded-[0.94rem] bg-white/85 p-4 dark:bg-slate-950/90 sm:p-5">
 				<div
-					className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${accent.bgSolid} opacity-60`}
+					className={`skills-featured-glow pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${accent.bgSolid} opacity-60`}
 					aria-hidden
 				/>
 				<div className="flex items-start justify-between gap-2">
@@ -213,7 +217,7 @@ function FeaturedTile({ item, large = false }) {
 					</span>
 				</div>
 				<div
-					className={`mx-auto flex items-center justify-center rounded-2xl bg-slate-100/80 dark:bg-slate-900/70 ${large ? "my-5 h-20 w-20" : "my-4 h-14 w-14"}`}
+					className={`skills-featured-icon mx-auto flex items-center justify-center rounded-2xl bg-slate-100/80 dark:bg-slate-900/70 ${large ? "my-5 h-20 w-20" : "my-4 h-14 w-14"}`}
 				>
 					<SkillIcon item={item} size={large ? 48 : 36} />
 				</div>
@@ -231,14 +235,14 @@ function SkillCard({ item, accentKey }) {
 	const accent = ACCENT[accentKey];
 	return (
 		<article
-			className={`skills-card group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/70 p-3.5 transition duration-300 dark:border-white/8 dark:bg-slate-950/55 sm:p-4 ${accent.glow}`}
+			className={`skills-card group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/70 p-3.5 dark:border-white/8 dark:bg-slate-950/55 sm:p-4 ${accent.glow}`}
 		>
 			<div
-				className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-current to-transparent opacity-0 transition duration-300 group-hover:opacity-30 ${accent.text}`}
+				className={`skills-card-shine pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-current to-transparent opacity-0 ${accent.text}`}
 				aria-hidden
 			/>
 			<div className="flex items-center gap-3">
-				<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100/90 dark:bg-slate-900/80">
+				<div className="skills-card-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100/90 dark:bg-slate-900/80">
 					<SkillIcon item={item} size={26} />
 				</div>
 				<div className="min-w-0">
@@ -265,10 +269,14 @@ function CategoryPanel({ lane, items, isActive }) {
 			className={`skills-panel ${accent.panel} ${isActive ? "skills-panel--active" : ""}`}
 		>
 			<div
-				className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br p-px ${accent.border} ${accent.bg}`}
+				className={`skills-panel-shell relative overflow-hidden rounded-2xl border bg-gradient-to-br p-px ${accent.border} ${accent.bg}`}
 			>
+				<div
+					className="skills-panel-scan pointer-events-none absolute inset-y-0 left-0 z-10 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 dark:via-cyan-400/15"
+					aria-hidden
+				/>
 				<div className="relative rounded-[0.94rem] bg-white/80 p-4 dark:bg-slate-950/85 sm:p-6">
-					<header className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200/60 pb-4 dark:border-white/8">
+					<header className="skills-panel-header mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200/60 pb-4 dark:border-white/8">
 						<div>
 							<p className={`font-mono text-[10px] uppercase tracking-[0.22em] ${accent.text}`}>
 								{lane.index} — {lane.label}
@@ -278,7 +286,7 @@ function CategoryPanel({ lane, items, isActive }) {
 							</h3>
 						</div>
 						<span
-							className={`rounded-full border px-3 py-1 font-mono text-[9px] uppercase tracking-wider ${accent.border} ${accent.bgSolid} ${accent.text}`}
+							className={`skills-panel-count rounded-full border px-3 py-1 font-mono text-[9px] uppercase tracking-wider ${accent.border} ${accent.bgSolid} ${accent.text}`}
 						>
 							{items.length} tools
 						</span>
@@ -294,6 +302,8 @@ function CategoryPanel({ lane, items, isActive }) {
 	);
 }
 
+const TITLE_WORDS = ["What", "I", "Can", "Do"];
+
 const Skills = () => {
 	const reduceMotion = useReducedMotion();
 	const [activeLane, setActiveLane] = useState("frontend");
@@ -301,6 +311,9 @@ const Skills = () => {
 	const headerRef = useRef(null);
 	const featuredRef = useRef(null);
 	const tabsRef = useRef(null);
+	const indicatorRef = useRef(null);
+	const statusRef = useRef(null);
+	const panelTweenRef = useRef(null);
 
 	const featured = useMemo(() => skillItems.filter((s) => s.featured), []);
 	const lanesWithItems = useMemo(
@@ -314,59 +327,410 @@ const Skills = () => {
 
 	const activeLaneData = lanesWithItems.find(({ lane }) => lane.id === activeLane);
 
+	const activeLaneRef = useRef(activeLane);
+	activeLaneRef.current = activeLane;
+
+	const moveTabIndicator = useCallback(
+		(laneId, immediate = false) => {
+			const tab = document.getElementById(`skills-tab-${laneId}`);
+			const tabs = tabsRef.current;
+			const indicator = indicatorRef.current;
+			if (!tab || !tabs || !indicator) return;
+
+			const tabRect = tab.getBoundingClientRect();
+			const tabsRect = tabs.getBoundingClientRect();
+			const lane = LANES.find((l) => l.id === laneId);
+			const accentClass = lane ? ACCENT[lane.accent].indicator : "";
+
+			indicator.className = `skills-tab-indicator pointer-events-none absolute left-0 top-0 rounded-xl border ${accentClass}`;
+
+			gsap.to(indicator, {
+				x: tabRect.left - tabsRect.left,
+				y: tabRect.top - tabsRect.top,
+				width: tabRect.width,
+				height: tabRect.height,
+				duration: immediate ? 0 : 0.55,
+				ease: immediate ? "none" : "power3.inOut",
+				overwrite: true,
+			});
+		},
+		[],
+	);
+
+	const animatePanel = useCallback(
+		(laneId) => {
+			if (reduceMotion) return;
+
+			panelTweenRef.current?.kill();
+			gsap.utils.toArray(".skills-panel-scan").forEach((scan) => gsap.killTweensOf(scan));
+
+			const panel = document.getElementById(`skills-panel-${laneId}`);
+			if (!panel) return;
+
+			const shell = panel.querySelector(".skills-panel-shell");
+			const headerParts = panel.querySelectorAll(".skills-panel-header > *");
+			const cards = panel.querySelectorAll(".skills-card");
+			const scan = panel.querySelector(".skills-panel-scan");
+
+			const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+			tl.fromTo(
+				shell,
+				{
+					clipPath: "inset(0 100% 0 0 round 16px)",
+					opacity: 0.5,
+					scale: 0.98,
+				},
+				{
+					clipPath: "inset(0 0% 0 0 round 16px)",
+					opacity: 1,
+					scale: 1,
+					duration: 0.7,
+				},
+			)
+				.from(
+					headerParts,
+					{ x: -28, opacity: 0, stagger: 0.07, duration: 0.45 },
+					"-=0.4",
+				)
+				.from(
+					cards,
+					{
+						y: 36,
+						opacity: 0,
+						scale: 0.9,
+						rotateX: 14,
+						transformOrigin: "50% 100%",
+						stagger: { amount: 0.45, from: "start" },
+						duration: 0.5,
+					},
+					"-=0.3",
+				);
+
+			if (scan) {
+				gsap.fromTo(
+					scan,
+					{ xPercent: -120, opacity: 0 },
+					{
+						xPercent: 220,
+						opacity: 0.7,
+						duration: 2.2,
+						ease: "power2.inOut",
+						repeat: -1,
+						repeatDelay: 3.5,
+					},
+				);
+			}
+
+			panelTweenRef.current = tl;
+		},
+		[reduceMotion],
+	);
+
+	const handleTabClick = useCallback(
+		(laneId) => {
+			if (laneId === activeLane) return;
+
+			const tab = document.getElementById(`skills-tab-${laneId}`);
+			if (tab && !reduceMotion) {
+				gsap.fromTo(
+					tab,
+					{ scale: 0.94 },
+					{ scale: 1, duration: 0.5, ease: "elastic.out(1, 0.55)" },
+				);
+			}
+
+			setActiveLane(laneId);
+			moveTabIndicator(laneId);
+		},
+		[activeLane, moveTabIndicator, reduceMotion],
+	);
+
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") return;
 
 		gsap.registerPlugin(ScrollTrigger);
 
+		const cleanups = [];
+
 		const ctx = gsap.context(() => {
-			gsap.from(".skills-header-block", {
-				y: 40,
-				opacity: 0,
-				filter: "blur(8px)",
-				duration: 0.85,
-				ease: "power3.out",
+			const headerTl = gsap.timeline({
 				scrollTrigger: {
 					trigger: headerRef.current,
-					start: "top 88%",
+					start: "top 86%",
 					toggleActions: "play none none reverse",
 				},
 			});
 
-			if (featuredRef.current) {
-				gsap.from(".skills-featured-tile", {
-					y: 36,
-					opacity: 0,
-					scale: 0.96,
-					stagger: 0.07,
+			headerTl
+				.from(".skills-eyebrow-line", {
+					scaleX: 0,
+					transformOrigin: "left center",
 					duration: 0.7,
+					ease: "power2.inOut",
+				})
+				.from(
+					".skills-eyebrow-text",
+					{ opacity: 0, x: -16, duration: 0.45 },
+					"-=0.4",
+				)
+				.from(
+					".skills-title-word",
+					{
+						y: 72,
+						opacity: 0,
+						rotateX: -55,
+						transformOrigin: "50% 100%",
+						stagger: 0.09,
+						duration: 0.85,
+					},
+					"-=0.15",
+				)
+				.from(
+					".skills-header-desc",
+					{ opacity: 0, y: 20, filter: "blur(6px)", duration: 0.55 },
+					"-=0.35",
+				);
+
+			if (featuredRef.current) {
+				gsap.from(".skills-featured-label", {
+					opacity: 0,
+					x: -20,
+					duration: 0.5,
+					scrollTrigger: {
+						trigger: featuredRef.current,
+						start: "top 88%",
+						toggleActions: "play none none reverse",
+					},
+				});
+
+				gsap.from(".skills-featured-tile", {
+					y: 90,
+					opacity: 0,
+					scale: 0.82,
+					rotateY: (i) => (i % 2 === 0 ? -18 : 18),
+					transformOrigin: "50% 100%",
+					stagger: { amount: 0.55, from: "center" },
+					duration: 0.95,
 					ease: "power3.out",
 					scrollTrigger: {
 						trigger: featuredRef.current,
-						start: "top 86%",
+						start: "top 85%",
 						toggleActions: "play none none reverse",
 					},
+				});
+
+				gsap.utils.toArray(".skills-featured-tile").forEach((tile, i) => {
+					gsap.to(tile, {
+						y: i % 2 === 0 ? -18 : -28,
+						ease: "none",
+						scrollTrigger: {
+							trigger: featuredRef.current,
+							start: "top bottom",
+							end: "bottom top",
+							scrub: 0.9,
+						},
+					});
+				});
+
+				gsap.to(".skills-featured-icon", {
+					y: -7,
+					duration: 2.4,
+					ease: "sine.inOut",
+					yoyo: true,
+					repeat: -1,
+					stagger: { each: 0.35, from: "random" },
+				});
+
+				gsap.utils.toArray(".skills-featured-tile").forEach((tile) => {
+					const inner = tile.querySelector(".skills-featured-tile-inner");
+					const glow = tile.querySelector(".skills-featured-glow");
+					if (!inner) return;
+
+					const onMove = (e) => {
+						const rect = tile.getBoundingClientRect();
+						const x = (e.clientX - rect.left) / rect.width - 0.5;
+						const y = (e.clientY - rect.top) / rect.height - 0.5;
+						gsap.to(inner, {
+							rotateY: x * 12,
+							rotateX: -y * 10,
+							y: -6,
+							duration: 0.45,
+							ease: "power2.out",
+							overwrite: "auto",
+						});
+						if (glow) {
+							gsap.to(glow, {
+								x: x * 20,
+								y: y * 20,
+								scale: 1.2,
+								duration: 0.45,
+								overwrite: "auto",
+							});
+						}
+					};
+
+					const onLeave = () => {
+						gsap.to(inner, {
+							rotateY: 0,
+							rotateX: 0,
+							y: 0,
+							duration: 0.65,
+							ease: "elastic.out(1, 0.6)",
+						});
+						if (glow) {
+							gsap.to(glow, {
+								x: 0,
+								y: 0,
+								scale: 1,
+								duration: 0.65,
+								ease: "power2.out",
+							});
+						}
+					};
+
+					tile.addEventListener("mousemove", onMove);
+					tile.addEventListener("mouseleave", onLeave);
+					cleanups.push(() => {
+						tile.removeEventListener("mousemove", onMove);
+						tile.removeEventListener("mouseleave", onLeave);
+					});
 				});
 			}
 
 			if (tabsRef.current) {
 				gsap.from(".skills-tab", {
-					y: 16,
+					y: 24,
 					opacity: 0,
-					stagger: 0.06,
-					duration: 0.5,
-					ease: "power3.out",
+					scale: 0.92,
+					stagger: 0.08,
+					duration: 0.55,
+					ease: "back.out(1.4)",
 					scrollTrigger: {
 						trigger: tabsRef.current,
-						start: "top 88%",
+						start: "top 90%",
 						toggleActions: "play none none reverse",
 					},
+					onComplete: () => moveTabIndicator(activeLaneRef.current, true),
 				});
 			}
+
+			gsap.to(".skills-orb-1", {
+				y: -100,
+				x: 40,
+				ease: "none",
+				scrollTrigger: {
+					trigger: sectionRef.current,
+					start: "top bottom",
+					end: "bottom top",
+					scrub: 1.2,
+				},
+			});
+
+			gsap.to(".skills-orb-2", {
+				y: 80,
+				x: -50,
+				ease: "none",
+				scrollTrigger: {
+					trigger: sectionRef.current,
+					start: "top bottom",
+					end: "bottom top",
+					scrub: 0.8,
+				},
+			});
+
+			gsap.utils.toArray(".skills-card").forEach((card) => {
+				const icon = card.querySelector(".skills-card-icon");
+				const shine = card.querySelector(".skills-card-shine");
+
+				const onEnter = () => {
+					gsap.to(card, {
+						y: -5,
+						scale: 1.02,
+						duration: 0.35,
+						ease: "power2.out",
+						overwrite: "auto",
+					});
+					if (icon) {
+						gsap.to(icon, {
+							rotate: 8,
+							scale: 1.08,
+							duration: 0.35,
+							ease: "back.out(2)",
+							overwrite: "auto",
+						});
+					}
+					if (shine) {
+						gsap.to(shine, { opacity: 0.45, duration: 0.3 });
+					}
+				};
+
+				const onLeave = () => {
+					gsap.to(card, {
+						y: 0,
+						scale: 1,
+						duration: 0.4,
+						ease: "power2.out",
+						overwrite: "auto",
+					});
+					if (icon) {
+						gsap.to(icon, {
+							rotate: 0,
+							scale: 1,
+							duration: 0.4,
+							ease: "power2.out",
+							overwrite: "auto",
+						});
+					}
+					if (shine) {
+						gsap.to(shine, { opacity: 0, duration: 0.3 });
+					}
+				};
+
+				card.addEventListener("mouseenter", onEnter);
+				card.addEventListener("mouseleave", onLeave);
+				cleanups.push(() => {
+					card.removeEventListener("mouseenter", onEnter);
+					card.removeEventListener("mouseleave", onLeave);
+				});
+			});
 		}, sectionRef);
 
-		return () => ctx.revert();
-	}, [reduceMotion]);
+		const onResize = () => moveTabIndicator(activeLaneRef.current, true);
+		window.addEventListener("resize", onResize);
+
+		requestAnimationFrame(() => {
+			moveTabIndicator(activeLaneRef.current, true);
+			if (indicatorRef.current) {
+				gsap.set(indicatorRef.current, { opacity: 1 });
+			}
+		});
+
+		return () => {
+			window.removeEventListener("resize", onResize);
+			panelTweenRef.current?.kill();
+			for (const fn of cleanups) fn();
+			ctx.revert();
+		};
+	}, [reduceMotion, moveTabIndicator]);
+
+	useEffect(() => {
+		if (reduceMotion) return;
+
+		const raf = requestAnimationFrame(() => {
+			animatePanel(activeLane);
+
+			if (statusRef.current) {
+				gsap.fromTo(
+					statusRef.current,
+					{ opacity: 0, y: 8 },
+					{ opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
+				);
+			}
+		});
+
+		return () => cancelAnimationFrame(raf);
+	}, [activeLane, animatePanel, reduceMotion]);
 
 	return (
 		<section
@@ -375,41 +739,58 @@ const Skills = () => {
 			className="skills-section relative w-full scroll-mt-28 overflow-x-clip px-4 py-16 sm:scroll-mt-32 sm:py-20 lg:py-28"
 		>
 			<div
-				className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(139,92,246,0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(139,92,246,0.12),transparent)]"
+				className="skills-orb-1 pointer-events-none absolute left-[8%] top-[12%] h-56 w-56 rounded-full bg-violet-500/12 blur-[90px]"
 				aria-hidden
 			/>
 			<div
-				className="pointer-events-none absolute bottom-0 left-1/2 h-64 w-[min(100%,48rem)] -translate-x-1/2 translate-y-1/2 rounded-full bg-cyan-400/8 blur-[100px]"
+				className="skills-orb-2 pointer-events-none absolute bottom-[18%] right-[5%] h-64 w-64 rounded-full bg-cyan-400/10 blur-[100px]"
+				aria-hidden
+			/>
+			<div
+				className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(139,92,246,0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(139,92,246,0.12),transparent)]"
 				aria-hidden
 			/>
 
 			<div className="relative z-10 mx-auto max-w-[1100px]">
-				<header ref={headerRef} className="skills-header-block mb-10 md:mb-12">
+				<header
+					ref={headerRef}
+					className="skills-header-block skills-header-perspective mb-10 md:mb-12"
+				>
 					<p className="section-eyebrow">
 						<span
-							className="h-px w-8 bg-gradient-to-r from-violet-400 to-cyan-400"
+							className="skills-eyebrow-line h-px w-8 bg-gradient-to-r from-violet-400 to-cyan-400"
 							aria-hidden
 						/>
-						Skills
-						<span className="font-mono text-[0.65rem] font-normal tracking-[0.15em] text-slate-400 dark:text-slate-500">
-							/ SEC 02
+						<span className="skills-eyebrow-text">
+							Skills
+							<span className="font-mono text-[0.65rem] font-normal tracking-[0.15em] text-slate-400 dark:text-slate-500">
+								{" "}
+								/ SEC 02
+							</span>
 						</span>
 					</p>
 					<h2 className="mt-3 font-display text-xl font-bold text-slate-900 sm:text-2xl dark:text-white md:text-3xl lg:text-[2.35rem]">
-						What I{" "}
-						<span className="text-gradient-future">Can Do</span>
+						{TITLE_WORDS.map((word, i) => (
+							<span
+								key={word}
+								className={`skills-title-word inline-block ${i >= 2 ? "text-gradient-future" : ""}`}
+							>
+								{word}
+								{i < TITLE_WORDS.length - 1 ? "\u00a0" : ""}
+							</span>
+						))}
 					</h2>
-					<p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+					<p className="skills-header-desc mt-3 max-w-lg text-sm leading-relaxed text-slate-600 dark:text-slate-400">
 						Production stack across UI engineering, APIs, data layers, and
 						delivery tooling — pick a lane to explore.
 					</p>
 				</header>
 
 				<div ref={featuredRef} className="skills-featured-bento mb-8 md:mb-10">
-					<p className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+					<p className="skills-featured-label mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 						Primary stack
 					</p>
-					<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+					<div className="skills-featured-grid grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
 						{featured.map((item, i) => (
 							<FeaturedTile key={item.title} item={item} large={i < 2} />
 						))}
@@ -418,10 +799,11 @@ const Skills = () => {
 
 				<div
 					ref={tabsRef}
-					className="skills-tabs mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3"
+					className="skills-tabs relative mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3"
 					role="tablist"
 					aria-label="Skill categories"
 				>
+					<div ref={indicatorRef} className="skills-tab-indicator" aria-hidden />
 					{LANES.map((lane) => {
 						const accent = ACCENT[lane.accent];
 						const isActive = activeLane === lane.id;
@@ -434,10 +816,10 @@ const Skills = () => {
 								role="tab"
 								aria-selected={isActive}
 								aria-controls={`skills-panel-${lane.id}`}
-								onClick={() => setActiveLane(lane.id)}
-								className={`skills-tab unstyled group relative overflow-hidden rounded-xl border px-3 py-3 text-left transition duration-300 sm:px-4 sm:py-3.5 ${
+								onClick={() => handleTabClick(lane.id)}
+								className={`skills-tab unstyled relative z-[1] overflow-hidden rounded-xl border px-3 py-3 text-left transition-colors duration-300 sm:px-4 sm:py-3.5 ${
 									isActive
-										? `${accent.borderActive} ${accent.bgSolid} ring-1 ${accent.ring}`
+										? `border-transparent bg-transparent ${accent.text}`
 										: "border-slate-200/70 bg-white/50 hover:border-slate-300/80 dark:border-white/8 dark:bg-slate-950/40 dark:hover:border-white/15"
 								}`}
 							>
@@ -454,18 +836,12 @@ const Skills = () => {
 								<span className="mt-0.5 block font-mono text-[9px] text-slate-400">
 									{count} skills
 								</span>
-								{isActive && (
-									<span
-										className={`absolute bottom-0 left-3 right-3 h-0.5 rounded-full ${accent.dot}`}
-										aria-hidden
-									/>
-								)}
 							</button>
 						);
 					})}
 				</div>
 
-				<div className="skills-panels">
+				<div className="skills-panels skills-panels-perspective">
 					{lanesWithItems.map(({ lane, items }) => (
 						<CategoryPanel
 							key={lane.id}
@@ -477,7 +853,11 @@ const Skills = () => {
 				</div>
 
 				{activeLaneData && (
-					<p className="mt-6 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400">
+					<p
+						ref={statusRef}
+						key={activeLane}
+						className="skills-status mt-6 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-slate-400"
+					>
 						Showing {activeLaneData.items.length} in {activeLaneData.lane.label}
 					</p>
 				)}

@@ -1252,16 +1252,34 @@ html.lenis.lenis-stopped {
 	}
 }
 
-/* Skills — tabbed bento grid */
+/* Skills — tabbed bento grid + GSAP */
 .skills-section {
+	perspective: 1200px;
+}
+
+.skills-header-perspective {
+	perspective: 900px;
+}
+
+.skills-panels-perspective {
 	perspective: 1000px;
 }
 
 .skills-header-block,
 .skills-featured-tile,
 .skills-tab,
-.skills-card {
+.skills-card,
+.skills-panel-shell {
 	will-change: transform, opacity;
+}
+
+.skills-featured-grid {
+	transform-style: preserve-3d;
+}
+
+.skills-featured-tile-inner {
+	transform-style: preserve-3d;
+	will-change: transform;
 }
 
 .skills-featured-bento .skills-featured-tile--large {
@@ -1274,24 +1292,43 @@ html.lenis.lenis-stopped {
 	}
 }
 
+.skills-tab-indicator {
+	z-index: 0;
+	opacity: 0;
+	border-width: 1px;
+	transition: box-shadow 0.4s ease;
+}
+
+.skills-tab-indicator--cyan {
+	border-color: rgba(34, 211, 238, 0.45);
+	background: rgba(34, 211, 238, 0.1);
+	box-shadow: 0 0 24px rgba(34, 211, 238, 0.12);
+}
+
+.skills-tab-indicator--violet {
+	border-color: rgba(139, 92, 246, 0.45);
+	background: rgba(139, 92, 246, 0.1);
+	box-shadow: 0 0 24px rgba(139, 92, 246, 0.12);
+}
+
+.skills-tab-indicator--fuchsia {
+	border-color: rgba(217, 70, 239, 0.45);
+	background: rgba(217, 70, 239, 0.1);
+	box-shadow: 0 0 24px rgba(217, 70, 239, 0.12);
+}
+
+.skills-tab-indicator--emerald {
+	border-color: rgba(52, 211, 153, 0.45);
+	background: rgba(52, 211, 153, 0.1);
+	box-shadow: 0 0 24px rgba(52, 211, 153, 0.12);
+}
+
 .skills-panel {
 	display: none;
 }
 
 .skills-panel--active {
 	display: block;
-	animation: skills-panel-in 0.35s ease-out;
-}
-
-@keyframes skills-panel-in {
-	from {
-		opacity: 0;
-		transform: translateY(10px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
 }
 
 .skills-panel--cyan {
@@ -1310,23 +1347,22 @@ html.lenis.lenis-stopped {
 	--skills-panel-glow: rgba(52, 211, 153, 0.06);
 }
 
-.skills-card-grid .skills-card:hover {
-	transform: translateY(-2px);
+.skills-card-icon {
+	will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.skills-header-block,
 	.skills-featured-tile,
 	.skills-tab,
-	.skills-card {
+	.skills-card,
+	.skills-panel-shell,
+	.skills-featured-tile-inner {
 		will-change: auto;
 		transform: none !important;
 		filter: none !important;
 		opacity: 1 !important;
-	}
-
-	.skills-panel--active {
-		animation: none;
+		clip-path: none !important;
 	}
 }
 
