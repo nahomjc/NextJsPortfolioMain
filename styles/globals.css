@@ -112,12 +112,7 @@
 
 /* Intro loader — cinematic rain + CRT stack (site cyan / violet palette) */
 .intro-matrix-loader {
-	background: linear-gradient(
-		180deg,
-		#06030c 0%,
-		#07040f 50%,
-		#06030c 100%
-	);
+	background: linear-gradient(180deg, #06030c 0%, #07040f 50%, #06030c 100%);
 }
 
 .matrix-rain-canvas {
@@ -160,13 +155,14 @@
 }
 
 .matrix-status-text {
-	text-shadow: 0 0 12px rgba(34, 211, 238, 0.65), 0 0 28px rgba(139, 92, 246, 0.35),
-		0.05em 0 0 rgba(34, 211, 238, 0.35);
+	text-shadow: 0 0 12px rgba(34, 211, 238, 0.65), 0 0 28px
+		rgba(139, 92, 246, 0.35), 0.05em 0 0 rgba(34, 211, 238, 0.35);
 }
 
 .matrix-progress-bar {
 	background: linear-gradient(90deg, #22d3ee, #8b5cf6, #e879f9);
-	box-shadow: 0 0 14px rgba(34, 211, 238, 0.75), 0 0 32px rgba(139, 92, 246, 0.35);
+	box-shadow: 0 0 14px rgba(34, 211, 238, 0.75), 0 0 32px
+		rgba(139, 92, 246, 0.35);
 	border-radius: 2px;
 }
 

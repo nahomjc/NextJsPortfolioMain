@@ -246,20 +246,23 @@ const HeroGltfRobot = () => {
 				typeof window !== "undefined" &&
 				window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-			/** Aim from robot center on screen toward cursor — works anywhere in the viewport */
+			const normalizeYaw = (angle) => {
+				let a = angle;
+				while (a > Math.PI) a -= Math.PI * 2;
+				while (a < -Math.PI) a += Math.PI * 2;
+				return a;
+			};
+
+			/** Aim from robot center on screen toward cursor — horizontal (yaw) only */
 			const syncNdcLookAtCursor = (e) => {
 				const rect = wrap.getBoundingClientRect();
 				if (rect.width < 1 || rect.height < 1) return;
 				const cx = rect.left + rect.width * 0.5;
-				const cy = rect.top + rect.height * 0.5;
 				const dx = e.clientX - cx;
-				const dy = e.clientY - cy;
 				const vw = window.innerWidth;
-				const vh = window.innerHeight;
 				const scaleX = Math.max(vw * 0.46, rect.width * 0.7);
-				const scaleY = Math.max(vh * 0.46, rect.height * 0.7);
 				rawNdc.x = THREE.MathUtils.clamp(dx / scaleX, -1, 1);
-				rawNdc.y = THREE.MathUtils.clamp(dy / scaleY, -1, 1);
+				rawNdc.y = 0;
 			};
 
 			const pointerInfluence = () =>
@@ -279,6 +282,8 @@ const HeroGltfRobot = () => {
 
 			const onPointerEnter = (e) => {
 				hoverInside = true;
+				dragYawAcc = normalizeYaw(dragYawAcc);
+				idleAutoYaw = normalizeYaw(idleAutoYaw);
 				if (!reduceMotion) syncNdcLookAtCursor(e);
 			};
 
@@ -296,16 +301,8 @@ const HeroGltfRobot = () => {
 					if (dx !== 0 || dy !== 0) {
 						const rect = wrap.getBoundingClientRect();
 						const invW = 1 / Math.max(rect.width, 1);
-						const invH = 1 / Math.max(rect.height, 1);
 						const yawGain = 6.8;
-						const pitchGain = 4.2;
 						dragYawAcc += dx * invW * yawGain;
-						const pitchLimit = Math.PI * 0.95;
-						dragPitchAcc = THREE.MathUtils.clamp(
-							dragPitchAcc + dy * invH * pitchGain * 0.62,
-							-pitchLimit,
-							pitchLimit,
-						);
 					}
 					if (
 						clickStart &&
@@ -331,17 +328,9 @@ const HeroGltfRobot = () => {
 					if (dx !== 0 || dy !== 0) {
 						const rect = wrap.getBoundingClientRect();
 						const invW = 1 / Math.max(rect.width, 1);
-						const invH = 1 / Math.max(rect.height, 1);
-						/* Same direct orbit as mouse — avoids damping lag that felt “slippery” on touch */
+						/* Same direct orbit as mouse — yaw only */
 						const yawGain = 6.8;
-						const pitchGain = 4.2;
-						const pitchLimit = Math.PI * 0.95;
 						dragYawAcc += dx * invW * yawGain;
-						dragPitchAcc = THREE.MathUtils.clamp(
-							dragPitchAcc + dy * invH * pitchGain * 0.62,
-							-pitchLimit,
-							pitchLimit,
-						);
 					}
 					if (clickStart && clickStart.pointerType === "touch") {
 						const dx0 = e.clientX - clickStart.x;
@@ -616,9 +605,7 @@ const HeroGltfRobot = () => {
 
 			/** Cursor follow when not click-dragging; drag adds extra yaw/pitch (unbounded yaw via dragYawAcc) */
 			const maxYaw = 0.72;
-			const maxPitch = 0.42;
 			const maxParallaxX = 0.18;
-			const maxParallaxY = 0.045;
 
 			const schedule = () => {
 				if (cancelled || paused) return;
@@ -754,11 +741,13 @@ const HeroGltfRobot = () => {
 				const mouseOrbiting =
 					captureId !== null &&
 					(activePointerType === "mouse" || activePointerType === "pen");
+				const ptrOn = pointerInfluence();
 				const pointerQuietMs = performance.now() - lastPointerActivityAt;
 				const canIdleSpin =
 					!reduceMotion &&
 					!mouseOrbiting &&
 					!touchDragging &&
+					!ptrOn &&
 					pointerQuietMs >= IDLE_SPIN_DELAY_MS;
 				if (canIdleSpin) {
 					idleAutoYaw += IDLE_SPIN_RAD_PER_SEC * dt;
@@ -768,10 +757,29 @@ const HeroGltfRobot = () => {
 					touchPitchOff = THREE.MathUtils.damp(touchPitchOff, 0, 5.5, dt);
 					touchPanXOff = THREE.MathUtils.damp(touchPanXOff, 0, 5.5, dt);
 					touchPanYOff = THREE.MathUtils.damp(touchPanYOff, 0, 5.5, dt);
+					dragPitchAcc = THREE.MathUtils.damp(dragPitchAcc, 0, 5.5, dt);
+				}
+				/** After orbit / idle spin, ease back to front when cursor is active (not dragging) */
+				if (!mouseOrbiting && !touchDragging && ptrOn) {
+					dragYawAcc = normalizeYaw(dragYawAcc);
+					idleAutoYaw = normalizeYaw(idleAutoYaw);
+					const faceFrontLambda = 8.5;
+					dragYawAcc = THREE.MathUtils.damp(
+						dragYawAcc,
+						0,
+						faceFrontLambda,
+						dt,
+					);
+					idleAutoYaw = THREE.MathUtils.damp(
+						idleAutoYaw,
+						0,
+						faceFrontLambda,
+						dt,
+					);
 				}
 
 				const srcNdc = rawNdcFrozen ?? rawNdc;
-				const active = !reduceMotion && pointerInfluence();
+				const active = !reduceMotion && ptrOn;
 				let targetYaw = 0;
 				let targetPitch = 0;
 				let targetRoll = 0;
@@ -779,13 +787,12 @@ const HeroGltfRobot = () => {
 				let targetPy = 0;
 				if (active && !mouseOrbiting) {
 					targetYaw = srcNdc.x * maxYaw + touchYawOff;
-					targetPitch = srcNdc.y * maxPitch + touchPitchOff;
-					targetRoll = srcNdc.x * 0.1;
+					targetPitch = touchPitchOff;
+					targetRoll = 0;
 					targetPx = srcNdc.x * maxParallaxX + touchPanXOff;
-					targetPy = srcNdc.y * maxParallaxY + touchPanYOff;
+					targetPy = touchPanYOff;
 				}
 
-				const ptrOn = pointerInfluence();
 				/** Eased follow while tracking cursor — slower easing when idle */
 				const followLambda = ptrOn ? 14 : 5;
 
@@ -829,9 +836,9 @@ const HeroGltfRobot = () => {
 						pivotRef.current.rotation.y =
 							baseYaw + cursorYaw + dragYawAcc + idleAutoYaw;
 						pivotRef.current.rotation.x =
-							wigglePitch + cursorPitch + dragPitchAcc + introShake * 1.8;
+							wigglePitch + introShake * 1.8;
 						pivotRef.current.rotation.z =
-							wiggleRoll + cursorRoll + introShake * 2.2;
+							wiggleRoll + introShake * 2.2;
 					}
 				}
 				renderer.render(scene, camera);
