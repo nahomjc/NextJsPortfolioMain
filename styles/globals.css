@@ -1252,111 +1252,81 @@ html.lenis.lenis-stopped {
 	}
 }
 
-/* Skills — capability lanes */
+/* Skills — tabbed bento grid */
 .skills-section {
-	perspective: 1200px;
+	perspective: 1000px;
 }
 
-.skills-header-block {
-	will-change: transform, opacity, filter;
-}
-
-.skills-featured-card {
+.skills-header-block,
+.skills-featured-tile,
+.skills-tab,
+.skills-card {
 	will-change: transform, opacity;
 }
 
-.skills-featured-scroll {
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-	-webkit-overflow-scrolling: touch;
-	overscroll-behavior-x: contain;
-	scroll-padding-inline: 1rem;
-	touch-action: pan-x;
-}
-
-.skills-lane-tokens {
-	-webkit-overflow-scrolling: touch;
-	overscroll-behavior-x: contain;
-	scroll-padding-inline: 0.25rem;
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-	touch-action: pan-x;
-}
-
-.skills-lane-tokens::-webkit-scrollbar {
-	display: none;
-}
-
-.skills-mobile-nav {
-	-webkit-overflow-scrolling: touch;
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-	touch-action: pan-x;
-}
-
-.skills-mobile-nav::-webkit-scrollbar {
-	display: none;
+.skills-featured-bento .skills-featured-tile--large {
+	grid-column: span 1;
 }
 
 @media (min-width: 640px) {
-	.skills-lane-tokens {
-		touch-action: auto;
+	.skills-featured-bento .skills-featured-tile--large {
+		grid-column: span 2;
 	}
 }
 
-.skills-featured-scroll::-webkit-scrollbar {
+.skills-panel {
 	display: none;
 }
 
-.skills-lane {
-	will-change: clip-path, opacity;
+.skills-panel--active {
+	display: block;
+	animation: skills-panel-in 0.35s ease-out;
 }
 
-.skills-lane-inner {
-	transform-style: preserve-3d;
+@keyframes skills-panel-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
-.skills-token {
-	will-change: transform, opacity;
+.skills-panel--cyan {
+	--skills-panel-glow: rgba(34, 211, 238, 0.06);
 }
 
-.skills-lane-watermark {
-	will-change: transform, opacity;
+.skills-panel--violet {
+	--skills-panel-glow: rgba(139, 92, 246, 0.06);
 }
 
-.skills-index-fill {
-	height: 100%;
-	will-change: transform;
+.skills-panel--fuchsia {
+	--skills-panel-glow: rgba(217, 70, 239, 0.06);
 }
 
-.skills-lane--cyan .skills-lane-beam {
-	background: linear-gradient(to bottom, rgba(34, 211, 238, 0.5), transparent);
+.skills-panel--emerald {
+	--skills-panel-glow: rgba(52, 211, 153, 0.06);
 }
 
-.skills-lane--violet .skills-lane-beam {
-	background: linear-gradient(to bottom, rgba(139, 92, 246, 0.5), transparent);
-}
-
-.skills-lane--fuchsia .skills-lane-beam {
-	background: linear-gradient(to bottom, rgba(217, 70, 239, 0.5), transparent);
-}
-
-.skills-lane--emerald .skills-lane-beam {
-	background: linear-gradient(to bottom, rgba(52, 211, 153, 0.5), transparent);
+.skills-card-grid .skills-card:hover {
+	transform: translateY(-2px);
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.skills-header-block,
-	.skills-featured-card,
-	.skills-lane,
-	.skills-token,
-	.skills-lane-watermark,
-	.skills-index-fill {
+	.skills-featured-tile,
+	.skills-tab,
+	.skills-card {
 		will-change: auto;
 		transform: none !important;
 		filter: none !important;
-		clip-path: none !important;
 		opacity: 1 !important;
+	}
+
+	.skills-panel--active {
+		animation: none;
 	}
 }
 

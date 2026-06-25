@@ -25,6 +25,124 @@ function thunderPulse(elapsedSec) {
 	return Math.min(1, sum * 0.82);
 }
 
+const CLICK_CIRCUIT_DURATION = 3.2;
+
+function clickCircuitFade(sec) {
+	if (sec < 0 || sec > CLICK_CIRCUIT_DURATION) return 0;
+	const fadeIn = Math.min(1, sec / 0.22);
+	const fadeOut =
+		sec > CLICK_CIRCUIT_DURATION - 0.55
+			? (CLICK_CIRCUIT_DURATION - sec) / 0.55
+			: 1;
+	return Math.min(fadeIn, fadeOut);
+}
+
+function createCircuitLedMaterial() {
+	return new THREE.ShaderMaterial({
+		uniforms: {
+			uTime: { value: 0 },
+			uFade: { value: 0 },
+			uPhase: { value: 0 },
+		},
+		vertexShader: `
+			varying vec3 vWp;
+			void main() {
+				vec4 wp = modelMatrix * vec4(position, 1.0);
+				vWp = wp.xyz;
+				gl_Position = projectionMatrix * viewMatrix * wp;
+			}
+		`,
+		fragmentShader: `
+			uniform float uTime;
+			uniform float uFade;
+			uniform float uPhase;
+			varying vec3 vWp;
+
+			void main() {
+				float angle = atan(vWp.x, vWp.z);
+				float normA = (angle + 3.14159265) / 6.2831853;
+
+				float yBand = floor((vWp.y + 1.75) * 3.2) / 3.2;
+				float zig = step(0.5, fract(yBand * 2.7 + normA * 4.0));
+				float circuit = fract(normA * 2.2 + yBand * 0.33 + zig * 0.5 + uPhase);
+
+				float head = fract(uTime * 0.72);
+				float d = abs(circuit - head);
+				d = min(d, 1.0 - d);
+
+				float trace = 0.1;
+				float ledCore = smoothstep(0.05, 0.0, d);
+				float ledHalo = smoothstep(0.13, 0.0, d) * 0.5;
+				float ledTail = smoothstep(0.26, 0.05, d) * 0.2;
+
+				float intensity = trace + ledCore + ledHalo + ledTail;
+				vec3 traceCol = vec3(0.0, 0.22, 0.3);
+				vec3 ledCol = vec3(0.12, 0.96, 0.78);
+				vec3 col = mix(traceCol, ledCol, clamp(ledCore + ledHalo * 0.65, 0.0, 1.0));
+
+				float alpha = intensity * uFade;
+				if (alpha < 0.008) discard;
+				gl_FragColor = vec4(col * (0.5 + intensity), alpha);
+			}
+		`,
+		side: THREE.BackSide,
+		transparent: true,
+		blending: THREE.AdditiveBlending,
+		depthWrite: false,
+	});
+}
+
+function attachCircuitTraces(root) {
+	root.traverse((child) => {
+		if (!child.isMesh || child.userData._isOutlineShell) return;
+		const geo = child.geometry;
+		if (!geo) return;
+
+		const matA = createCircuitLedMaterial();
+		const matB = createCircuitLedMaterial();
+		matB.uniforms.uPhase.value = 0.47;
+
+		const shellA = new THREE.Mesh(geo, matA);
+		shellA.scale.setScalar(1.038);
+		shellA.frustumCulled = child.frustumCulled;
+		shellA.userData._isOutlineShell = true;
+		shellA.userData._sharedGeometry = true;
+		child.add(shellA);
+
+		const shellB = new THREE.Mesh(geo, matB);
+		shellB.scale.setScalar(1.065);
+		shellB.frustumCulled = child.frustumCulled;
+		shellB.userData._isOutlineShell = true;
+		shellB.userData._sharedGeometry = true;
+		child.add(shellB);
+
+		child.userData._circuitShells = [
+			{ mesh: shellA, mat: matA, baseScale: 1.038 },
+			{ mesh: shellB, mat: matB, baseScale: 1.065 },
+		];
+	});
+}
+
+function updateCircuitTraces(root, sec, fade) {
+	root.traverse((child) => {
+		if (!child.userData._circuitShells) return;
+		for (const { mat } of child.userData._circuitShells) {
+			mat.uniforms.uTime.value = sec;
+			mat.uniforms.uFade.value = fade;
+		}
+	});
+}
+
+function hideCircuitTraces(root) {
+	root.traverse((child) => {
+		if (!child.userData._circuitShells) return;
+		for (const { mesh, mat, baseScale } of child.userData._circuitShells) {
+			mat.uniforms.uFade.value = 0;
+			mesh.scale.setScalar(baseScale);
+		}
+	});
+}
+
 function randomBoltPoints() {
 	const pts = [];
 	let x = (Math.random() - 0.5) * 2.4;
@@ -42,7 +160,9 @@ function randomBoltPoints() {
 function disposeObject3D(obj) {
 	obj.traverse((child) => {
 		if (child.isMesh) {
-			child.geometry?.dispose();
+			if (!child.userData._sharedGeometry) {
+				child.geometry?.dispose();
+			}
 			const mat = child.material;
 			if (Array.isArray(mat)) {
 				for (const m of mat) m.dispose();
@@ -118,6 +238,8 @@ const HeroGltfRobot = () => {
 	setIntroAnchorRef.current = setIntroAnchor;
 	const rafRef = useRef(0);
 	const flashOverlayRef = useRef(null);
+	const clickRingRef = useRef(null);
+	const triggerClickGlowRef = useRef(() => {});
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -211,6 +333,15 @@ const HeroGltfRobot = () => {
 			let touchPanXOff = 0;
 			let touchPanYOff = 0;
 			let clickStart = null;
+			let clickGlowT0 = null;
+			let clickMaterialsNeedRestore = false;
+			let lastBoltRegen = -1;
+
+			triggerClickGlowRef.current = () => {
+				if (reduceMotion) return;
+				clickGlowT0 = performance.now();
+				lastBoltRegen = -1;
+			};
 			/** Slow turntable after pointer stays still (mouse/pen move or any touch activity resets) */
 			let idleAutoYaw = 0;
 			let lastPointerActivityAt = performance.now();
@@ -397,6 +528,7 @@ const HeroGltfRobot = () => {
 					const dy = e.clientY - clickStart.y;
 					const tapSlop = clickStart.pointerType === "touch" ? 22 : 16;
 					if (elapsed < 650 && Math.hypot(dx, dy) < tapSlop) {
+						triggerClickGlowRef.current();
 						const variantKey = variantKeyFromClick(clickStart.x, clickStart.y);
 						setIntroAnchorRef.current({
 							x: clickStart.x,
@@ -544,7 +676,6 @@ const HeroGltfRobot = () => {
 
 			let heroRevealT0 = null;
 			let introMaterialsNeedRestore = false;
-			let lastBoltRegen = -1;
 
 			const pivot = new THREE.Group();
 			scene.add(pivot);
@@ -573,7 +704,7 @@ const HeroGltfRobot = () => {
 					rayPickCtx.modelRoot = model;
 
 					model.traverse((child) => {
-						if (!child.isMesh) return;
+						if (!child.isMesh || child.userData._isOutlineShell) return;
 						const mats = Array.isArray(child.material)
 							? child.material
 							: [child.material];
@@ -587,6 +718,7 @@ const HeroGltfRobot = () => {
 							}
 						}
 					});
+					attachCircuitTraces(model);
 
 					if (!reduceMotion) {
 						heroRevealT0 = performance.now();
@@ -629,6 +761,16 @@ const HeroGltfRobot = () => {
 						: (performance.now() - heroRevealT0) / 1000;
 				const inHeroReveal =
 					!reduceMotion && heroRevealT0 !== null && revealSec < 2.8;
+				const clickSec =
+					clickGlowT0 === null
+						? 1e9
+						: (performance.now() - clickGlowT0) / 1000;
+				const inClickGlow =
+					!reduceMotion &&
+					!inHeroReveal &&
+					clickGlowT0 !== null &&
+					clickSec < CLICK_CIRCUIT_DURATION;
+				const circuitFade = inClickGlow ? clickCircuitFade(clickSec) : 0;
 
 				let introShake = 0;
 				const cyanElectric = tmpColorB.setRGB(0.22, 0.98, 0.78);
@@ -678,7 +820,7 @@ const HeroGltfRobot = () => {
 					if (root) {
 						const emAmt = thunder * 0.42 + flick * 0.14;
 						root.traverse((child) => {
-							if (!child.isMesh) return;
+							if (!child.isMesh || child.userData._isOutlineShell) return;
 							const mats = Array.isArray(child.material)
 								? child.material
 								: [child.material];
@@ -704,6 +846,25 @@ const HeroGltfRobot = () => {
 					}
 
 					introShake = (Math.random() - 0.5) * 0.05 * thunder;
+				} else if (inClickGlow) {
+					clickMaterialsNeedRestore = true;
+
+					renderer.toneMappingExposure =
+						baseExposure + circuitFade * 0.12;
+					rim.intensity = baseRimI * (1 + circuitFade * 0.08);
+
+					const root = rayPickCtx.modelRoot;
+					if (root) {
+						updateCircuitTraces(root, clickSec, circuitFade);
+					}
+
+					const ring = clickRingRef.current;
+					if (ring) {
+						const spin = clickSec * 108;
+						ring.style.opacity = String(circuitFade * 0.82);
+						ring.style.transform = `rotate(${spin}deg)`;
+						ring.style.background = `conic-gradient(from ${spin}deg, transparent 0deg, rgba(34,211,238,0.85) 18deg, transparent 36deg, rgba(52,211,153,0.35) 54deg, transparent 72deg, rgba(34,211,238,0.55) 90deg, transparent 108deg)`;
+					}
 				} else {
 					renderer.toneMappingExposure = baseExposure;
 					amb.intensity = baseAmbI;
@@ -721,12 +882,23 @@ const HeroGltfRobot = () => {
 					boltMat2.opacity = 0;
 
 					const fo = flashOverlayRef.current;
-					if (fo) fo.style.opacity = "0";
+					if (fo) {
+						fo.style.opacity = "0";
+						fo.style.background =
+							"radial-gradient(ellipse 58% 52% at 50% 40%, rgba(200,245,255,0.5) 0%, rgba(100,200,255,0.15) 38%, transparent 72%)";
+					}
+
+					const ring = clickRingRef.current;
+					if (ring) {
+						ring.style.opacity = "0";
+						ring.style.transform = "rotate(0deg)";
+						ring.style.background = "transparent";
+					}
 
 					if (introMaterialsNeedRestore && rayPickCtx.modelRoot) {
 						const root = rayPickCtx.modelRoot;
 						root.traverse((child) => {
-							if (!child.isMesh) return;
+							if (!child.isMesh || child.userData._isOutlineShell) return;
 							const mats = Array.isArray(child.material)
 								? child.material
 								: [child.material];
@@ -738,6 +910,12 @@ const HeroGltfRobot = () => {
 							}
 						});
 						introMaterialsNeedRestore = false;
+					}
+
+					if (clickMaterialsNeedRestore && rayPickCtx.modelRoot) {
+						hideCircuitTraces(rayPickCtx.modelRoot);
+						clickMaterialsNeedRestore = false;
+						clickGlowT0 = null;
 					}
 				}
 
@@ -941,6 +1119,7 @@ const HeroGltfRobot = () => {
 					onKeyDown={(e) => {
 						if (e.key === "Enter" || e.key === " ") {
 							e.preventDefault();
+							triggerClickGlowRef.current();
 							const el = wrapRef.current;
 							if (el) {
 								const r = el.getBoundingClientRect();
@@ -962,6 +1141,20 @@ const HeroGltfRobot = () => {
 						}
 					}}
 					className="h-full w-full cursor-grab touch-none outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030c] active:cursor-grabbing"
+				/>
+				<div
+					ref={clickRingRef}
+					className="pointer-events-none absolute inset-[10%] z-[4] opacity-0 will-change-[opacity,transform]"
+					style={{
+						borderRadius: "38%",
+						padding: "2px",
+						WebkitMask:
+							"linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+						WebkitMaskComposite: "xor",
+						maskComposite: "exclude",
+						boxShadow: "0 0 24px rgba(34,211,238,0.22)",
+					}}
+					aria-hidden
 				/>
 				<div
 					ref={flashOverlayRef}
