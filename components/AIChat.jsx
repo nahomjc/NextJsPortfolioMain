@@ -184,6 +184,12 @@ const AIChat = () => {
 	}, [chatOpen]);
 
 	useEffect(() => {
+		if (!isLoading && chatOpen && inputRef.current) {
+			inputRef.current.focus();
+		}
+	}, [isLoading, chatOpen]);
+
+	useEffect(() => {
 		if (chatBoxRef.current) {
 			chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
 		}
@@ -199,6 +205,43 @@ const AIChat = () => {
 		});
 	};
 
+	const appendAssistantChunk = (content) => {
+		setMessages((prev) => {
+			const updated = [...prev];
+			const lastIdx = updated.length - 1;
+			if (updated[lastIdx]?.role === "assistant") {
+				updated[lastIdx] = {
+					role: "assistant",
+					content,
+					streaming: true,
+				};
+			}
+			return updated;
+		});
+	};
+
+	const parseSseLine = (line, streamedContent) => {
+		if (!line.startsWith("data: ")) return { done: false, content: streamedContent };
+
+		const payload = line.slice(6).trim();
+		if (payload === "[DONE]") {
+			return { done: true, content: streamedContent };
+		}
+
+		try {
+			const parsed = JSON.parse(payload);
+			if (parsed.content) {
+				const next = streamedContent + parsed.content;
+				appendAssistantChunk(next);
+				return { done: false, content: next };
+			}
+		} catch {
+			// skip malformed chunks
+		}
+
+		return { done: false, content: streamedContent };
+	};
+
 	const sendMessage = async (text) => {
 		const trimmed = text.trim();
 		if (!trimmed || isLoading) return;
@@ -212,6 +255,10 @@ const AIChat = () => {
 		]);
 		setInputMessage("");
 		setIsLoading(true);
+
+		const loadingFailsafe = window.setTimeout(() => {
+			setIsLoading(false);
+		}, 120000);
 
 		try {
 			const res = await fetch("/api/chat", {
@@ -235,42 +282,46 @@ const AIChat = () => {
 			const decoder = new TextDecoder();
 			let buffer = "";
 			let streamedContent = "";
+			let streamDone = false;
 
-			while (true) {
+			while (!streamDone) {
 				const { done, value } = await reader.read();
-				if (done) break;
 
-				buffer += decoder.decode(value, { stream: true });
+				if (value) {
+					buffer += decoder.decode(value, { stream: true });
+				}
+
 				const lines = buffer.split("\n");
-				buffer = lines.pop() || "";
+				buffer = done ? "" : lines.pop() || "";
 
 				for (const line of lines) {
-					if (!line.startsWith("data: ")) continue;
-
-					const payload = line.slice(6).trim();
-					if (payload === "[DONE]") continue;
-
-					try {
-						const parsed = JSON.parse(payload);
-						if (parsed.content) {
-							streamedContent += parsed.content;
-							const content = streamedContent;
-							setMessages((prev) => {
-								const updated = [...prev];
-								const lastIdx = updated.length - 1;
-								if (updated[lastIdx]?.role === "assistant") {
-									updated[lastIdx] = {
-										role: "assistant",
-										content,
-										streaming: true,
-									};
-								}
-								return updated;
-							});
-						}
-					} catch {
-						// skip malformed chunks
+					const result = parseSseLine(line, streamedContent);
+					streamedContent = result.content;
+					if (result.done) {
+						streamDone = true;
+						break;
 					}
+				}
+
+				if (done) {
+					streamDone = true;
+					break;
+				}
+			}
+
+			if (streamDone) {
+				try {
+					await reader.cancel();
+				} catch {
+					// ignore cancel errors
+				}
+			}
+
+			if (buffer.trim()) {
+				for (const line of buffer.split("\n")) {
+					const result = parseSseLine(line, streamedContent);
+					streamedContent = result.content;
+					if (result.done) break;
 				}
 			}
 
@@ -292,6 +343,7 @@ const AIChat = () => {
 			removeEmptyStreamingReply();
 			setError(err.message || "Failed to send message.");
 		} finally {
+			window.clearTimeout(loadingFailsafe);
 			setIsLoading(false);
 		}
 	};
@@ -312,7 +364,7 @@ const AIChat = () => {
 					animate={{ opacity: 1, y: 0, scale: 1 }}
 					exit={{ opacity: 0, y: 12, scale: 0.94 }}
 					transition={{ type: "spring", damping: 26, stiffness: 380 }}
-					className={`portfolio-chat terminal-chat fixed z-50 flex flex-col overflow-hidden rounded-lg border border-emerald-500/20 bg-[#0a0e14] font-mono shadow-[0_0_0_1px_rgba(16,185,129,0.08),0_24px_80px_rgba(0,0,0,0.65)] ${
+					className={`portfolio-chat terminal-chat fixed z-[110] flex flex-col overflow-hidden rounded-lg border border-emerald-500/20 bg-[#0a0e14] font-mono shadow-[0_0_0_1px_rgba(16,185,129,0.08),0_24px_80px_rgba(0,0,0,0.65)] ${
 						isFullscreen ? "portfolio-chat--fullscreen" : ""
 					}`}
 					style={
@@ -382,9 +434,10 @@ const AIChat = () => {
 										type="text"
 										value={inputMessage}
 										onChange={(e) => setInputMessage(e.target.value)}
-										disabled={isLoading}
+										readOnly={isLoading}
+										aria-busy={isLoading}
 										placeholder=""
-										className="w-full min-w-0 bg-transparent text-slate-200 caret-emerald-400 focus:outline-none disabled:opacity-50"
+										className="w-full min-w-0 bg-transparent text-slate-200 caret-emerald-400 focus:outline-none read-only:opacity-60"
 										autoComplete="off"
 										spellCheck={false}
 									/>
