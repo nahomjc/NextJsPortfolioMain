@@ -18,13 +18,17 @@ const SECTION_MAP = [
 	{ id: "contact", href: "/#contact" },
 ];
 
-function DockIcon({ item, isActive, itemRef, className = "" }) {
+function dockKeyLabel(index) {
+	return `F${index + 1}`;
+}
+
+function DockIcon({ item, isActive, itemRef, keyLabel, className = "" }) {
 	const Icon = item.icon;
 
 	return (
 		<Link
 			href={item.href}
-			className={`dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`}
+			className={`dock-item unstyled group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`}
 			aria-label={item.label}
 			aria-current={isActive ? "page" : undefined}
 		>
@@ -32,25 +36,23 @@ function DockIcon({ item, isActive, itemRef, className = "" }) {
 				ref={itemRef}
 				className="dock-magnify-target relative flex flex-col items-center justify-end"
 			>
-				<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-lg border border-slate-200/90 bg-white/95 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-700 opacity-0 shadow-lg transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 dark:border-white/15 dark:bg-slate-900/90 dark:text-slate-100 dark:shadow-lg">
+				<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] opacity-0 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100">
 					{item.label}
 				</span>
 				<span
 					className={`dock-icon-shell ${isActive ? "is-active" : ""}`}
 				>
-					<Icon
-						size={22}
-						className="shrink-0 text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white"
-						aria-hidden
-					/>
+					{keyLabel ? (
+						<span className="dock-key-label" aria-hidden>
+							{keyLabel}
+						</span>
+					) : null}
+					<Icon size={22} className="shrink-0" aria-hidden />
 				</span>
 				{isActive ? (
-					<span
-						className="mt-1 h-1 w-1 rounded-full bg-slate-700 dark:bg-white/80"
-						aria-hidden
-					/>
+					<span className="dock-active-dot" aria-hidden />
 				) : (
-					<span className="mt-1 h-1 w-1" aria-hidden />
+					<span className="dock-active-dot-placeholder" aria-hidden />
 				)}
 			</span>
 		</Link>
@@ -63,28 +65,33 @@ function DockActionButton({
 	onClick,
 	href,
 	isActive = false,
+	keyLabel,
 	className = "",
 	children,
 }) {
 	const shellClass = `dock-icon-shell ${isActive ? "is-active" : ""}`;
-	const itemClass = `dock-item group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`;
+	const itemClass = `dock-item unstyled group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`;
 
 	const inner = (
 		<span
 			ref={itemRef}
 			className="dock-magnify-target relative flex flex-col items-center justify-end"
 		>
-			<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-lg border border-slate-200/90 bg-white/95 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-700 opacity-0 shadow-lg transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 dark:border-white/15 dark:bg-slate-900/90 dark:text-slate-100">
+			<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] opacity-0 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100">
 				{label}
 			</span>
-			<span className={shellClass}>{children}</span>
+			<span className={shellClass}>
+				{keyLabel ? (
+					<span className="dock-key-label" aria-hidden>
+						{keyLabel}
+					</span>
+				) : null}
+				{children}
+			</span>
 			{isActive ? (
-				<span
-					className="mt-1 h-1 w-1 rounded-full bg-slate-700 dark:bg-white/80"
-					aria-hidden
-				/>
+				<span className="dock-active-dot" aria-hidden />
 			) : (
-				<span className="mt-1 h-1 w-1" aria-hidden />
+				<span className="dock-active-dot-placeholder" aria-hidden />
 			)}
 		</span>
 	);
@@ -229,23 +236,19 @@ const Navbar = () => {
 			}`}
 			aria-label="Main navigation"
 		>
-			<div className="dock-shelf relative max-w-[min(100%,980px)] overflow-visible">
-				<div
-					className="dock-shelf-bg pointer-events-none absolute inset-0 rounded-2xl border border-slate-200/85 bg-white/92 shadow-[0_8px_32px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-white/10 dark:bg-[#0a0a0c]/97 dark:shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]"
-					aria-hidden
-				>
-					<div className="absolute inset-x-4 top-0 h-px bg-slate-200/90 dark:bg-white/10" />
-				</div>
+			<div className="dock-shelf relative w-max max-w-[calc(100vw-1.5rem)] overflow-visible">
+				<div className="dock-shelf-bg pointer-events-none absolute inset-0" aria-hidden />
 
 				<div
 					ref={dockRef}
-					className="dock-scroll relative z-10 flex items-end justify-center gap-0.5 overflow-x-auto px-1.5 pb-2.5 pt-2 sm:gap-1 sm:overflow-visible sm:px-3 sm:pb-3"
+					className="dock-scroll relative z-10 flex items-end justify-center gap-1.5 overflow-x-auto px-3 pb-2.5 pt-2 sm:gap-2 sm:overflow-visible sm:px-3.5 sm:pb-3 sm:pt-2.5"
 				>
 				{primaryItems.map((item, i) => (
 					<DockIcon
 						key={item.href}
 						item={item}
 						isActive={isActive(item.href)}
+						keyLabel={dockKeyLabel(i)}
 						className={item.hideOnMobile ? "hidden sm:flex" : ""}
 						itemRef={(el) => {
 							itemRefs.current[i] = el;
@@ -255,13 +258,10 @@ const Navbar = () => {
 
 				{resumeItem ? (
 					<>
-						<span
-							className="dock-divider mx-0.5 mb-2 hidden h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 sm:block dark:bg-white/15"
-							aria-hidden
-						/>
 						<DockIcon
 							item={resumeItem}
 							isActive={isActive(resumeItem.href)}
+							keyLabel={dockKeyLabel(primaryItems.length)}
 							className="hidden sm:flex"
 							itemRef={(el) => {
 								itemRefs.current[primaryItems.length] = el;
@@ -270,49 +270,42 @@ const Navbar = () => {
 					</>
 				) : null}
 
-				<span
-					className="dock-divider mx-0.5 mb-2 hidden h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 sm:block dark:bg-white/15"
-					aria-hidden
-				/>
-
 				<DockActionButton
 					label="Call me"
+					keyLabel={dockKeyLabel(phoneIndex)}
 					href={PHONE_HREF}
 					className="hidden sm:flex"
 					itemRef={(el) => {
 						itemRefs.current[phoneIndex] = el;
 					}}
 				>
-					<FaPhone className="h-[1.05rem] w-[1.05rem] text-slate-600 transition-colors group-hover:text-slate-900 sm:h-[1.15rem] sm:w-[1.15rem] dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+					<FaPhone className="h-[1.05rem] w-[1.05rem] sm:h-[1.15rem] sm:w-[1.15rem]" aria-hidden />
 				</DockActionButton>
 
 				<DockActionButton
 					label="AI chat"
+					keyLabel={dockKeyLabel(chatIndex)}
 					isActive={chatOpen}
 					onClick={() => toggleChat(itemRefs.current[chatIndex])}
 					itemRef={(el) => {
 						itemRefs.current[chatIndex] = el;
 					}}
 				>
-					<HiOutlineChatAlt2 className="h-[1.35rem] w-[1.35rem] text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+					<HiOutlineChatAlt2 className="h-[1.35rem] w-[1.35rem]" aria-hidden />
 				</DockActionButton>
-
-				<span
-					className="dock-divider mx-0.5 mb-2 h-8 w-px shrink-0 bg-slate-300/80 sm:mx-1 dark:bg-white/15"
-					aria-hidden
-				/>
 
 				<DockActionButton
 					label={isDark ? "Light mode" : "Dark mode"}
+					keyLabel={dockKeyLabel(themeIndex)}
 					onClick={toggleTheme}
 					itemRef={(el) => {
 						itemRefs.current[themeIndex] = el;
 					}}
 				>
 					{isDark ? (
-						<HiOutlineSun className="h-[1.35rem] w-[1.35rem] text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+						<HiOutlineSun className="h-[1.35rem] w-[1.35rem]" aria-hidden />
 					) : (
-						<HiOutlineMoon className="h-[1.35rem] w-[1.35rem] text-slate-600 transition-colors group-hover:text-slate-900 dark:text-slate-200/90 dark:group-hover:text-white" aria-hidden />
+						<HiOutlineMoon className="h-[1.35rem] w-[1.35rem]" aria-hidden />
 					)}
 				</DockActionButton>
 				</div>
