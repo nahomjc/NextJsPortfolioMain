@@ -16,7 +16,7 @@ export const mainNavItems = [
 	{ href: "/", label: "Home", icon: AiOutlineHome, hasDropdown: false },
 	{
 		href: "/#about",
-		label: "About",
+		label: "About me",
 		icon: AiOutlineUser,
 		hasDropdown: false,
 		hideOnMobile: true,
