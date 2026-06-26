@@ -5,6 +5,7 @@ import { FaPhone } from "react-icons/fa";
 import { HiOutlineChatAlt2, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
 import { useTheme } from "./ThemeProvider";
 import { useDockActions } from "./DockActionsContext";
+import { useLenis } from "./LenisProvider";
 import { mainNavItems } from "../config/navItems";
 
 const PHONE_HREF = "tel:+251937287140";
@@ -22,38 +23,46 @@ function dockKeyLabel(index) {
 	return `F${index + 1}`;
 }
 
+function DockTooltip({ text }) {
+	return (
+		<span className="dock-tooltip" aria-hidden>
+			{text}
+		</span>
+	);
+}
+
 function DockIcon({ item, isActive, itemRef, keyLabel, className = "" }) {
 	const Icon = item.icon;
 
 	return (
 		<Link
 			href={item.href}
-			className={`dock-item unstyled group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`}
+			className={`dock-item unstyled relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`}
 			aria-label={item.label}
 			aria-current={isActive ? "page" : undefined}
 		>
-			<span
-				ref={itemRef}
-				className="dock-magnify-target relative flex flex-col items-center justify-end"
-			>
-				<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] opacity-0 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100">
-					{item.label}
-				</span>
+			<span className="relative flex flex-col items-center justify-end">
+				<DockTooltip text={item.label} />
 				<span
-					className={`dock-icon-shell ${isActive ? "is-active" : ""}`}
+					ref={itemRef}
+					className="dock-magnify-target relative flex flex-col items-center justify-end"
 				>
-					{keyLabel ? (
-						<span className="dock-key-label" aria-hidden>
-							{keyLabel}
-						</span>
-					) : null}
-					<Icon size={22} className="shrink-0" aria-hidden />
+					<span
+						className={`dock-icon-shell ${isActive ? "is-active" : ""}`}
+					>
+						{keyLabel ? (
+							<span className="dock-key-label" aria-hidden>
+								{keyLabel}
+							</span>
+						) : null}
+						<Icon size={22} className="shrink-0" aria-hidden />
+					</span>
+					{isActive ? (
+						<span className="dock-active-dot" aria-hidden />
+					) : (
+						<span className="dock-active-dot-placeholder" aria-hidden />
+					)}
 				</span>
-				{isActive ? (
-					<span className="dock-active-dot" aria-hidden />
-				) : (
-					<span className="dock-active-dot-placeholder" aria-hidden />
-				)}
 			</span>
 		</Link>
 	);
@@ -70,17 +79,16 @@ function DockActionButton({
 	children,
 }) {
 	const shellClass = `dock-icon-shell ${isActive ? "is-active" : ""}`;
-	const itemClass = `dock-item unstyled group relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`;
+	const itemClass = `dock-item unstyled relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`;
 
 	const inner = (
-		<span
-			ref={itemRef}
-			className="dock-magnify-target relative flex flex-col items-center justify-end"
-		>
-			<span className="dock-tooltip pointer-events-none absolute -top-10 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] opacity-0 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100">
-				{label}
-			</span>
-			<span className={shellClass}>
+		<>
+			<DockTooltip text={label} />
+			<span
+				ref={itemRef}
+				className="dock-magnify-target relative flex flex-col items-center justify-end"
+			>
+				<span className={shellClass}>
 				{keyLabel ? (
 					<span className="dock-key-label" aria-hidden>
 						{keyLabel}
@@ -93,7 +101,8 @@ function DockActionButton({
 			) : (
 				<span className="dock-active-dot-placeholder" aria-hidden />
 			)}
-		</span>
+			</span>
+		</>
 	);
 
 	if (href) {
@@ -121,6 +130,7 @@ const Navbar = () => {
 	const router = useRouter();
 	const { theme, toggleTheme } = useTheme();
 	const { chatOpen, toggleChat } = useDockActions();
+	const lenis = useLenis();
 	const isDark = theme === "dark";
 
 	const dockRef = useRef(null);
@@ -143,27 +153,73 @@ const Navbar = () => {
 			return;
 		}
 
-		const elements = SECTION_MAP.map(({ id }) => document.getElementById(id)).filter(
-			Boolean
-		);
-		if (!elements.length) return;
+		const pickActiveSection = () => {
+			const hashId = window.location.hash.replace("#", "");
+			if (hashId) {
+				const fromHash = SECTION_MAP.find((s) => s.id === hashId);
+				if (fromHash) {
+					const el = document.getElementById(hashId);
+					if (el) {
+						const rect = el.getBoundingClientRect();
+						if (rect.top < window.innerHeight * 0.65 && rect.bottom > window.innerHeight * 0.2) {
+							setActiveHref((prev) => (prev === fromHash.href ? prev : fromHash.href));
+							return;
+						}
+					}
+				}
+			}
 
-		const observer = new IntersectionObserver(
-			(entries) => {
-				const visible = entries
-					.filter((e) => e.isIntersecting)
-					.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-				if (!visible.length) return;
-				const id = visible[0].target.id;
-				const mapped = SECTION_MAP.find((s) => s.id === id);
-				if (mapped) setActiveHref(mapped.href);
-			},
-			{ rootMargin: "-42% 0px -42% 0px", threshold: [0.12, 0.35, 0.55] }
+			const marker = window.innerHeight * 0.38;
+			let next = SECTION_MAP[0];
+			let bestScore = -Infinity;
+
+			for (const section of SECTION_MAP) {
+				const el = document.getElementById(section.id);
+				if (!el) continue;
+
+				const rect = el.getBoundingClientRect();
+				if (rect.bottom <= 0 || rect.top >= window.innerHeight) continue;
+
+				const sectionMid = rect.top + rect.height / 2;
+				const distanceFromMarker = Math.abs(sectionMid - marker);
+				const visibleHeight =
+					Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+				const score = visibleHeight - distanceFromMarker * 0.45;
+
+				if (score > bestScore) {
+					bestScore = score;
+					next = section;
+				}
+			}
+
+			setActiveHref((prev) => (prev === next.href ? prev : next.href));
+		};
+
+		pickActiveSection();
+
+		const retryTimers = [120, 400, 900, 2000, 4000].map((ms) =>
+			window.setTimeout(pickActiveSection, ms)
 		);
 
-		for (const el of elements) observer.observe(el);
-		return () => observer.disconnect();
-	}, [router.pathname]);
+		window.addEventListener("scroll", pickActiveSection, { passive: true });
+		window.addEventListener("resize", pickActiveSection, { passive: true });
+		window.addEventListener("load", pickActiveSection);
+		window.addEventListener("lenis-ready", pickActiveSection);
+		window.addEventListener("hashchange", pickActiveSection);
+
+		const onLenisScroll = () => pickActiveSection();
+		if (lenis) lenis.on("scroll", onLenisScroll);
+
+		return () => {
+			for (const id of retryTimers) window.clearTimeout(id);
+			window.removeEventListener("scroll", pickActiveSection);
+			window.removeEventListener("resize", pickActiveSection);
+			window.removeEventListener("load", pickActiveSection);
+			window.removeEventListener("lenis-ready", pickActiveSection);
+			window.removeEventListener("hashchange", pickActiveSection);
+			if (lenis) lenis.off("scroll", onLenisScroll);
+		};
+	}, [router.pathname, lenis]);
 
 	useEffect(() => {
 		const dock = dockRef.current;

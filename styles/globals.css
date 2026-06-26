@@ -1172,18 +1172,12 @@ html.lenis.lenis-stopped {
 .dock-shelf {
 	pointer-events: auto;
 	transform-origin: bottom center;
-	overflow: hidden;
+	overflow: visible;
 	width: max-content;
 	max-width: calc(100vw - 1.5rem);
 	min-width: 0;
 	filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.35))
 		drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
-}
-
-@media (min-width: 640px) {
-	.dock-shelf {
-		overflow: visible;
-	}
 }
 
 .dock-scroll {
@@ -1472,13 +1466,39 @@ html.lenis.lenis-stopped {
 }
 
 .dock-tooltip {
+	position: absolute;
+	bottom: calc(100% + 0.55rem);
+	left: 50%;
+	z-index: 50;
+	-webkit-transform: translateX(-50%);
+	transform: translateX(-50%);
+	white-space: nowrap;
+	padding: 0.3rem 0.625rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.625rem;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	pointer-events: none;
+	opacity: 0;
 	border-radius: 0.5rem;
-	border-color: rgba(148, 163, 184, 0.35) !important;
-	background: rgba(42, 46, 53, 0.96) !important;
-	color: #e8eaed !important;
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	background: rgba(42, 46, 53, 0.96);
+	color: #e8eaed;
 	box-shadow:
 		0 4px 12px rgba(0, 0, 0, 0.35),
-		inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+		inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	transition:
+		opacity 0.2s ease,
+		transform 0.2s ease;
+}
+
+.dock-item:hover .dock-tooltip,
+.dock-item:focus-visible .dock-tooltip {
+	opacity: 1;
+	-webkit-transform: translateX(-50%) translateY(-2px);
+	transform: translateX(-50%) translateY(-2px);
 }
 
 @media (prefers-reduced-motion: reduce) {
