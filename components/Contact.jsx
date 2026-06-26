@@ -8,10 +8,10 @@ import { AiOutlineMail } from "react-icons/ai";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
 import { HiOutlineChevronDoubleUp, HiDownload } from "react-icons/hi";
+import { CV_DOWNLOAD_NAME, CV_PATH } from "../lib/seo";
 
 const LINKEDIN = "https://www.linkedin.com/in/nahom-tesfaye-35b97420b/";
 const GITHUB = "https://github.com/nahomjc";
-const CV_PATH = "/assets/nahom_original.pdf";
 
 const fieldClass =
 	"contact-field rounded-xl border border-slate-200/90 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500/55 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.15)] dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-fuchsia-400/45 dark:focus:shadow-[0_0_0_3px_rgba(232,121,249,0.12)]";
@@ -557,7 +557,7 @@ const Contact = () => {
 											</div>
 											<a
 												href={CV_PATH}
-												download="nahom_original.pdf"
+												download={CV_DOWNLOAD_NAME}
 												className="contact-cv-btn unstyled mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:brightness-110 dark:shadow-violet-900/35"
 											>
 												Download CV

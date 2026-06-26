@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { FaGithub, FaLinkedinIn, FaEnvelope } from "react-icons/fa";
+import { CV_DOWNLOAD_NAME, CV_PATH } from "../lib/seo";
 
 const GLYPHS = "アイウエオカキクケコサシスセソ0123456789<>{}[]/\\|";
 
@@ -549,8 +550,8 @@ function ResumeTerminal() {
 								← home
 							</Link>
 							<a
-								href="/assets/NAHOM-TESFAYE-cv777.pdf"
-								download
+								href={CV_PATH}
+								download={CV_DOWNLOAD_NAME}
 								className="resume-terminal-btn resume-terminal-btn--primary"
 							>
 								download cv
