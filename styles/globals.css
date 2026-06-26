@@ -2246,3 +2246,128 @@ button.mac-dot--green:hover {
 		transform: none !important;
 	}
 }
+
+/* Resume — matrix terminal page */
+.resume-terminal-home-dot {
+	display: block;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.resume-terminal-page {
+	background: linear-gradient(180deg, #06030c 0%, #07040f 50%, #06030c 100%);
+}
+
+.resume-terminal-noise {
+	background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.resume-terminal-shell {
+	background: rgba(8, 11, 16, 0.82);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+}
+
+.resume-terminal-output {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(34, 211, 238, 0.25) transparent;
+}
+
+.resume-terminal-output::-webkit-scrollbar {
+	width: 6px;
+}
+
+.resume-terminal-output::-webkit-scrollbar-thumb {
+	border-radius: 9999px;
+	background: rgba(34, 211, 238, 0.22);
+}
+
+.resume-terminal-line {
+	margin-bottom: 0.15rem;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.resume-terminal-prefix {
+	color: #22d3ee;
+}
+
+.resume-terminal-prefix::after {
+	content: "";
+}
+
+.resume-terminal-glow {
+	text-shadow: 0 0 18px rgba(34, 211, 238, 0.45), 0 0 32px
+		rgba(139, 92, 246, 0.25);
+}
+
+.resume-terminal-icon-btn {
+	display: flex;
+	height: 2rem;
+	width: 2rem;
+	align-items: center;
+	justify-content: center;
+	border-radius: 0.5rem;
+	border: 1px solid rgba(34, 211, 238, 0.2);
+	background: rgba(34, 211, 238, 0.06);
+	color: #94a3b8;
+	font-size: 0.85rem;
+	transition:
+		color 0.2s ease,
+		border-color 0.2s ease,
+		background-color 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.resume-terminal-icon-btn:hover {
+	border-color: rgba(34, 211, 238, 0.45);
+	background: rgba(34, 211, 238, 0.12);
+	color: #22d3ee;
+	box-shadow: 0 0 14px rgba(34, 211, 238, 0.2);
+}
+
+.resume-terminal-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 0.5rem;
+	padding: 0.45rem 0.85rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.65rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	transition:
+		background-color 0.2s ease,
+		border-color 0.2s ease,
+		box-shadow 0.2s ease,
+		color 0.2s ease;
+}
+
+.resume-terminal-btn--ghost {
+	border: 1px solid rgba(148, 163, 184, 0.25);
+	background: rgba(15, 23, 42, 0.5);
+	color: #94a3b8;
+}
+
+.resume-terminal-btn--ghost:hover {
+	border-color: rgba(34, 211, 238, 0.35);
+	color: #e2e8f0;
+}
+
+.resume-terminal-btn--primary {
+	border: 1px solid rgba(34, 211, 238, 0.35);
+	background: linear-gradient(
+		90deg,
+		rgba(34, 211, 238, 0.18),
+		rgba(139, 92, 246, 0.18)
+	);
+	color: #a5f3fc;
+	box-shadow: 0 0 18px rgba(34, 211, 238, 0.12);
+}
+
+.resume-terminal-btn--primary:hover {
+	border-color: rgba(34, 211, 238, 0.55);
+	box-shadow: 0 0 22px rgba(34, 211, 238, 0.22);
+	color: #ecfeff;
+}
