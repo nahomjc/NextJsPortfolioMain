@@ -2,7 +2,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineMail } from "react-icons/ai";
-import { BsFillPersonLinesFill } from "react-icons/bs";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
@@ -90,6 +89,144 @@ function HeroSparkles({ offsetX = 0, offsetY = 0 }) {
 					}}
 				/>
 			))}
+		</div>
+	);
+}
+
+const HERO_MATRIX_SUB_LINES = [
+	"decrypt operator manifest · classified",
+	"neural uplink ready · AES-256 active",
+	"press F7 or click to initialize →",
+];
+
+function HeroMatrixResumeCta({ reduceMotion }) {
+	const rainRef = useRef(null);
+	const [subIndex, setSubIndex] = useState(0);
+
+	useEffect(() => {
+		if (reduceMotion) return undefined;
+		const id = window.setInterval(() => {
+			setSubIndex((i) => (i + 1) % HERO_MATRIX_SUB_LINES.length);
+		}, 2800);
+		return () => window.clearInterval(id);
+	}, [reduceMotion]);
+
+	useEffect(() => {
+		const canvas = rainRef.current;
+		if (!canvas || reduceMotion) return undefined;
+
+		const ctx = canvas.getContext("2d");
+		if (!ctx) return undefined;
+
+		const glyphs = "01アイウエオカキ";
+		let w = 0;
+		let h = 0;
+		let cols = [];
+		let raf = 0;
+
+		const resize = () => {
+			const rect = canvas.getBoundingClientRect();
+			const dpr = Math.min(window.devicePixelRatio || 1, 2);
+			w = Math.max(1, Math.floor(rect.width));
+			h = Math.max(1, Math.floor(rect.height));
+			canvas.width = w * dpr;
+			canvas.height = h * dpr;
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			ctx.font = "600 10px ui-monospace, Consolas, monospace";
+			const count = Math.ceil(w / 11);
+			cols = Array.from({ length: count }, () => ({
+				y: Math.random() * h,
+				speed: 0.35 + Math.random() * 0.9,
+				chars: Array.from({ length: 8 + Math.floor(Math.random() * 10) }, () =>
+					glyphs[Math.floor(Math.random() * glyphs.length)]
+				),
+			}));
+		};
+
+		resize();
+		const ro = new ResizeObserver(resize);
+		ro.observe(canvas.parentElement ?? canvas);
+
+		const tick = () => {
+			ctx.clearRect(0, 0, w, h);
+			for (let i = 0; i < cols.length; i++) {
+				const col = cols[i];
+				const x = i * 11;
+				col.y += col.speed;
+				if (col.y > h + 40) col.y = -40;
+				for (let j = 0; j < col.chars.length; j++) {
+					const y = col.y - j * 11;
+					if (y < -11 || y > h) continue;
+					ctx.fillStyle =
+						j === 0
+							? "rgba(167,243,247,0.55)"
+							: `rgba(34,211,238,${Math.max(0, 0.28 - j * 0.03)})`;
+					ctx.fillText(col.chars[j], x, y);
+				}
+			}
+			raf = requestAnimationFrame(tick);
+		};
+
+		raf = requestAnimationFrame(tick);
+		return () => {
+			ro.disconnect();
+			cancelAnimationFrame(raf);
+		};
+	}, [reduceMotion]);
+
+	return (
+		<div
+			data-hero-intro
+			data-hero-exit="mid"
+			className="mx-auto mt-5 flex w-full max-w-md justify-center lg:mx-0 lg:justify-start"
+		>
+			<MagneticWrap reduceMotion={reduceMotion} className="w-full max-w-[17.5rem]">
+				<Link href="/resume">
+					<a
+						className="hero-matrix-resume-btn group"
+						aria-label="Open matrix terminal resume"
+					>
+						<span className="hero-matrix-resume-btn__border" aria-hidden />
+						<span className="hero-matrix-resume-btn__glow" aria-hidden />
+
+						<span className="hero-matrix-resume-btn__body">
+							<canvas
+								ref={rainRef}
+								className="hero-matrix-resume-btn__rain"
+								aria-hidden
+							/>
+							<span className="hero-matrix-resume-btn__scan" aria-hidden />
+							<span className="hero-matrix-resume-btn__shine" aria-hidden />
+
+							<span className="hero-matrix-resume-btn__content">
+								<span className="hero-matrix-resume-btn__key">
+									<span className="hero-matrix-resume-btn__key-label">F7</span>
+								</span>
+								<span className="hero-matrix-resume-btn__text">
+									<span className="hero-matrix-resume-btn__label-wrap">
+										<span className="hero-matrix-resume-btn__label">
+											&gt;&gt; Access resume.sys
+										</span>
+										<span
+											className="hero-matrix-resume-btn__label hero-matrix-resume-btn__label--glitch"
+											aria-hidden
+										>
+											&gt;&gt; Access resume.sys
+										</span>
+									</span>
+									<span className="hero-matrix-resume-btn__sub" key={subIndex}>
+										{HERO_MATRIX_SUB_LINES[subIndex]}
+									</span>
+								</span>
+								<span className="hero-matrix-resume-btn__enter" aria-hidden>
+									<span className="hero-matrix-resume-btn__enter-ring" />
+									<span className="hero-matrix-resume-btn__enter-icon">↵</span>
+								</span>
+							</span>
+						</span>
+					</a>
+				</Link>
+			</MagneticWrap>
 		</div>
 	);
 }
@@ -717,6 +854,8 @@ const Main = () => {
 							</div>
 						</div>
 
+						<HeroMatrixResumeCta reduceMotion={reduceMotion} />
+
 						<div
 							data-hero-intro
 							data-hero-exit="fast"
@@ -736,11 +875,6 @@ const Main = () => {
 									external: true,
 								},
 								{ href: "/#contact", label: "Email", icon: AiOutlineMail },
-								{
-									href: "/resume",
-									label: "Resume",
-									icon: BsFillPersonLinesFill,
-								},
 							].map(({ href, label, icon: Icon, external }) => (
 								<MagneticWrap key={label} reduceMotion={reduceMotion}>
 									{external ? (
