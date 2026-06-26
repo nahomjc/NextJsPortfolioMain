@@ -1,6 +1,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import React, { useEffect, useRef, useState } from "react";
+import { PERSON } from "../lib/seo";
 import { AiOutlineMail } from "react-icons/ai";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
 import { useReducedMotion } from "framer-motion";
@@ -794,6 +795,22 @@ const Main = () => {
 							className="pointer-events-none absolute -inset-x-6 -inset-y-4 -z-10 rounded-[2rem] bg-gradient-to-br from-cyan-500/[0.07] via-transparent to-fuchsia-600/[0.08] opacity-90 blur-xl motion-reduce:opacity-0 lg:block"
 							aria-hidden
 						/>
+
+						<header
+							data-hero-intro
+							data-hero-exit="fast"
+							className="mx-auto mb-4 w-full max-w-md text-center lg:mx-0 lg:text-left"
+						>
+							<p className="font-mono text-[9px] uppercase tracking-[0.22em] text-cyan-600/80 dark:text-cyan-400/70">
+								{PERSON.city} · {PERSON.country}
+							</p>
+							<h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+								{PERSON.name}
+							</h1>
+							<p className="mt-1 text-sm font-medium leading-snug text-slate-600 dark:text-slate-400">
+								ERP · HCM · CRM · portfolio sites — React, Next.js &amp; TypeScript
+							</p>
+						</header>
 
 						<div
 							data-hero-intro

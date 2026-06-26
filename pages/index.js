@@ -41,9 +41,22 @@ export default function Home() {
 				<meta name="publisher" content={PERSON.name} />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<meta name="theme-color" content="#0f172a" />
+				<meta
+					name="subject"
+					content="ERP, HCM, CRM & Full Stack Developer Ethiopia — Nahom Tesfaye"
+				/>
+				<meta
+					name="classification"
+					content="ERP Software, HCM Software, CRM, Web Development, Portfolio Websites, Ethiopia"
+				/>
+				<meta name="coverage" content="Ethiopia, Addis Ababa, Worldwide" />
+				<meta name="target" content="employers, recruiters, clients, Ethiopia tech" />
+				<link rel="author" href={PERSON.linkedin} />
+				<link rel="me" href={PERSON.github} />
+				<link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
 
 				<meta name="geo.region" content="ET-AA" />
-				<meta name="geo.placename" content="Addis Ababa" />
+				<meta name="geo.placename" content="Addis Ababa, Ethiopia" />
 				<meta name="geo.position" content="9.145;38.7613" />
 				<meta name="ICBM" content="9.145, 38.7613" />
 
@@ -69,6 +82,10 @@ export default function Home() {
 
 				<meta property="og:type" content="website" />
 				<meta property="og:locale" content="en_ET" />
+				<meta property="og:locale:alternate" content="en_US" />
+				<meta property="profile:first_name" content="Nahom" />
+				<meta property="profile:last_name" content="Tesfaye" />
+				<meta property="profile:username" content="nahomjc" />
 				<meta property="og:site_name" content={SITE_NAME} />
 				<meta property="og:title" content={homeMeta.title} />
 				<meta property="og:description" content={homeMeta.description} />
@@ -83,6 +100,9 @@ export default function Home() {
 				<meta name="twitter:title" content={homeMeta.title} />
 				<meta name="twitter:description" content={homeMeta.description} />
 				<meta name="twitter:image" content={ogImage} />
+				<meta name="twitter:creator" content="@nahomjc" />
+
+				<meta name="ai-content-declaration" content="human-authored portfolio" />
 
 				<script
 					type="application/ld+json"

@@ -2,7 +2,7 @@ import { Html, Head, Main, NextScript } from "next/document";
 
 export default function Document() {
 	return (
-		<Html lang="en" className="dark">
+		<Html lang="en-ET" className="dark">
 			<Head>
 				<meta charSet="utf-8" />
 				<meta httpEquiv="x-ua-compatible" content="ie=edge" />
@@ -16,6 +16,7 @@ export default function Document() {
 					name="apple-mobile-web-app-status-bar-style"
 					content="black-translucent"
 				/>
+				<link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
 			</Head>
 			<body>
 				<Main />
