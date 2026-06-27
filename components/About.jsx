@@ -30,17 +30,29 @@ const AboutWorkspacePly = dynamic(() => import("./AboutWorkspacePly"), {
 
 const highlights = [
 	{
-		label: "Focus",
-		value: "Responsive UI · API integration · product delivery",
+		label: "Product delivery",
+		value:
+			"Production web applications — ERP, HCM, CRM, LMS, e-commerce, and portfolio platforms built for scale.",
 	},
-	{ label: "Core stack", value: "React · Next.js · HTML · CSS · JavaScript" },
-	{ label: "Since", value: "2016 — CMS e‑commerce to full custom apps" },
+	{
+		label: "AI & automation",
+		value:
+			"Custom AI agents, LLM-powered assistants (OpenRouter, OpenAI), and bot integrations for Telegram, web, and internal tools.",
+	},
+	{
+		label: "Core stack",
+		value: "React · Next.js · TypeScript · Node.js · PostgreSQL · Supabase · Hono",
+	},
+	{
+		label: "Track record",
+		value: "2016–present — from CMS e-commerce to enterprise systems and intelligent product interfaces.",
+	},
 ];
 
 const SCENES = [
 	{ id: "intro", label: "Intro", code: "01" },
-	{ id: "capabilities", label: "Stack", code: "02" },
-	{ id: "story", label: "Story", code: "03" },
+	{ id: "capabilities", label: "Expertise", code: "02" },
+	{ id: "story", label: "Background", code: "03" },
 	{ id: "workspace", label: "Desk", code: "04" },
 ];
 
@@ -225,7 +237,7 @@ function PortraitFrame({ reduceMotion }) {
 				</div>
 				<div className="flex items-center justify-between border-t border-slate-200/80 bg-white/40 px-4 py-2 dark:border-white/10 dark:bg-slate-950/50">
 					<span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-						Optical / Portrait
+						Profile / Engineer
 					</span>
 					<span className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-600 dark:text-emerald-400">
 						<span className="relative flex h-1.5 w-1.5">
@@ -247,14 +259,16 @@ function IntroScene() {
 				01 · Intro
 			</p>
 			<h3 className="about-scene-heading mt-4 font-display text-3xl font-bold leading-tight text-slate-900 dark:text-white md:text-4xl lg:text-[2.5rem]">
-				Builder who ships{" "}
+				Full-stack engineer building{" "}
 				<span className="text-gradient-future">
-					interfaces that feel alive.
+					software and AI-powered products.
 				</span>
 			</h3>
 			<p className="about-scene-body mt-6 max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
-				Full-stack minded front-end engineer — I connect polished UI to real
-				backends so products stay fast, accessible, and ready to scale.
+				I design and ship production-grade web applications — from polished
+				interfaces to robust backends — and extend them with custom AI agents,
+				intelligent assistants, and bot integrations that automate support,
+				onboarding, and workflows.
 			</p>
 		</>
 	);
@@ -264,10 +278,11 @@ function CapabilitiesScene({ highlightRefs }) {
 	return (
 		<>
 			<p className="about-scene-eyebrow font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
-				02 · Capabilities
+				02 · Expertise
 			</p>
 			<h3 className="about-scene-heading mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
-				What I bring to the <span className="text-gradient-future">build.</span>
+				What I deliver on{" "}
+				<span className="text-gradient-future">every engagement.</span>
 			</h3>
 			<div className="mt-8 space-y-3">
 				{highlights.map((row, i) => (
@@ -295,10 +310,10 @@ function StoryScene({ bioExpanded, setBioExpanded, bioParaRefs }) {
 	return (
 		<>
 			<p className="about-scene-eyebrow font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
-				03 · Story
+				03 · Background
 			</p>
 			<h3 className="about-scene-heading mt-4 font-display text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
-				The <span className="text-gradient-future">narrative.</span>
+				Professional <span className="text-gradient-future">background.</span>
 			</h3>
 			<div className="relative mt-6">
 				<div
@@ -314,45 +329,48 @@ function StoryScene({ bioExpanded, setBioExpanded, bioParaRefs }) {
 							bioParaRefs.current[0] = el;
 						}}
 					>
-						I specialize in building high-performance, mobile-responsive
-						front-end applications that seamlessly integrate with APIs and
-						backend systems. I focus on efficient data handling, optimized
-						server communication, and scalable architecture, ensuring
-						applications remain fast, reliable, and cost-effective as they grow.
+						I specialize in high-performance, mobile-responsive applications
+						that integrate cleanly with APIs, databases, and third-party
+						services. My work spans ERP, HCM, and CRM systems, learning
+						platforms, e-commerce, and client-facing portfolio sites — always
+						with a focus on reliability, accessibility, and maintainable
+						architecture.
 					</p>
 					<p
 						ref={(el) => {
 							bioParaRefs.current[1] = el;
 						}}
 					>
-						I am passionate about continuously learning and adopting new
-						technologies, and I approach problem-solving with the mindset that
-						there is always more than one effective solution. My core expertise
-						lies in React, Next.js, and JavaScript, and I am highly adaptable
-						when working with new tools and frameworks.
+						Alongside product development, I design and implement AI agents and
+						intelligent bot experiences: LLM-backed assistants, portfolio and
+						support chatbots, and Telegram integrations wired to business logic.
+						I work with OpenRouter, OpenAI, and modern agent patterns to deliver
+						responses that are context-aware, secure, and aligned with each
+						product&apos;s goals.
 					</p>
 					<p
 						ref={(el) => {
 							bioParaRefs.current[2] = el;
 						}}
 					>
-						Beyond development, I actively work on improving application
-						performance and reducing operational costs by optimizing API calls,
-						minimizing unnecessary server requests, and implementing efficient
-						state management and caching strategies.
+						Performance and operational efficiency are core to how I build. I
+						optimize API usage, state management, and caching so applications
+						stay fast and cost-effective as they scale. I stay current with
+						React, Next.js, TypeScript, and emerging AI tooling, and adapt
+						quickly when a project calls for a new stack or integration.
 					</p>
 					<p
 						ref={(el) => {
 							bioParaRefs.current[3] = el;
 						}}
 					>
-						I began my journey in 2016 managing multiple e-commerce websites on
-						CMS platforms. Over time, I have expanded my experience by working
-						on procurement platforms and Human Capital Management (HCM) systems.
-						I have also worked directly with clients, transforming wireframes
-						into production-ready applications such as Muyalogy, Afriwork LMS,
-						Jiret LMS, Green Bag, Afrocado, AR Solutions, Peragos, Loop State,
-						and Bazra E-Wallet.
+						Since 2016 I have progressed from managing CMS-based e-commerce
+						sites to leading full-stack delivery on platforms such as Sourcepin,
+						HCM, Muyalogy, Jiret LMS, Afriwork Learn, Green Bag Ethiopia,
+						Afrocado Exports, AR Solutions, Peragos, Loop State, and Bazra
+						E-Wallet — partnering with clients and teams to turn requirements
+						into production-ready software, including AI-enhanced features where
+						they add clear value.
 					</p>
 				</div>
 				{!bioExpanded ? (
@@ -385,7 +403,8 @@ function WorkspaceScene({ workspaceRef }) {
 				My <span className="text-gradient-future">desk in 3D.</span>
 			</h3>
 			<p className="about-scene-body mt-2 max-w-lg text-sm text-slate-600 dark:text-slate-400">
-				Tap the preview to open your personal projects archive.
+				Interactive workspace preview — tap to browse selected builds, including
+				AI-assisted and bot-integrated projects.
 			</p>
 			<div
 				ref={workspaceRef}
@@ -1064,14 +1083,15 @@ const About = () => {
 						</h2>
 						<div className="mt-8 flex flex-wrap items-end justify-between gap-6">
 							<p className="about-hero-sub max-w-lg text-lg font-medium text-slate-700 dark:text-slate-200 md:text-xl">
-								I am not your typical developer.
+								Full-stack developer and tech lead — building enterprise
+								software, AI agents, and intelligent bot integrations.
 							</p>
 							<div className="flex flex-col gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 								<span className="about-hero-tag rounded border border-slate-300/80 bg-white/60 px-3 py-1.5 dark:border-white/15 dark:bg-slate-950/40">
 									ID · NAHOM_D
 								</span>
 								<span className="about-hero-tag text-cyan-600 dark:text-cyan-400">
-									Status / Available for build
+									Status / Open for projects
 								</span>
 							</div>
 						</div>
