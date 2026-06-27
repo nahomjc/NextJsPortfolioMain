@@ -1,10 +1,14 @@
 import { Html, Head, Main, NextScript } from "next/document";
+import { homeMeta, SITE_NAME } from "../lib/seo";
 
 export default function Document() {
 	return (
 		<Html lang="en-ET" className="dark">
 			<Head>
 				<meta charSet="utf-8" />
+				<title>{homeMeta.title}</title>
+				<meta name="description" content={homeMeta.description} />
+				<meta name="application-name" content={SITE_NAME} />
 				<meta httpEquiv="x-ua-compatible" content="ie=edge" />
 				<meta
 					name="viewport"

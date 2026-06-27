@@ -9,11 +9,14 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { ThemeProvider } from "../components/ThemeProvider";
-import { motion, AnimatePresence } from "framer-motion";
-import FingerPrintLoader from "../components/FingerPrintLoaderProps";
+import { motion } from "framer-motion";
 import EntranceSmoke from "../components/EntranceSmoke";
 import { useState, useCallback, useEffect } from "react";
 
+const FingerPrintLoader = dynamic(
+	() => import("../components/FingerPrintLoaderProps"),
+	{ ssr: false },
+);
 const AnimatedBackground = dynamic(
 	() => import("../components/AnimatedBackground"),
 	{ ssr: false },
@@ -49,33 +52,33 @@ function MyApp({ Component, pageProps }) {
 	return (
 		<ThemeProvider>
 			<>
-				<AnimatePresence mode="wait">
-					{isLoading ? (
-						<FingerPrintLoader
-							key="fingerprint-loader"
-							onLoadingComplete={handleLoadingComplete}
-						/>
-					) : (
-						<motion.div
-							key="app-shell"
-							className="relative min-h-screen pb-[4.75rem] sm:pb-[5.75rem]"
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ duration: 1 }}
-						>
-							<LenisProvider>
-								<DockActionsProvider>
-									{showDecorations ? <AnimatedBackground /> : null}
-									<ScrollProgress />
-									<Navbar />
-									{showDecorations ? <MouseFollower /> : null}
-									<Component {...pageProps} />
-								</DockActionsProvider>
-							</LenisProvider>
-						</motion.div>
-					)}
-				</AnimatePresence>
-				{/* Outside AnimatePresence so smoke isn’t tied to swap timing / stacking quirks (esp. mobile Safari) */}
+				{isLoading ? (
+					<FingerPrintLoader
+						key="fingerprint-loader"
+						onLoadingComplete={handleLoadingComplete}
+					/>
+				) : null}
+				<motion.div
+					key="app-shell"
+					className={`relative min-h-screen pb-[4.75rem] sm:pb-[5.75rem] ${
+						isLoading ? "invisible h-0 overflow-hidden" : ""
+					}`}
+					aria-hidden={isLoading}
+					initial={false}
+					animate={isLoading ? undefined : { opacity: 1 }}
+					transition={{ duration: 1 }}
+				>
+					<LenisProvider>
+						<DockActionsProvider>
+							{showDecorations ? <AnimatedBackground /> : null}
+							<ScrollProgress />
+							<Navbar />
+							{showDecorations ? <MouseFollower /> : null}
+							<Component {...pageProps} />
+						</DockActionsProvider>
+					</LenisProvider>
+				</motion.div>
+				{/* Outside loader gate so smoke isn’t tied to swap timing / stacking quirks (esp. mobile Safari) */}
 				{!isLoading && showEntranceSmoke ? (
 					<EntranceSmoke onComplete={handleEntranceSmokeComplete} />
 				) : null}
