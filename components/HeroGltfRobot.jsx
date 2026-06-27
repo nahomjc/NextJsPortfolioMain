@@ -10,6 +10,7 @@ import {
 	isCoarsePointer,
 	isLowPowerDevice,
 } from "../lib/animationControl";
+import { createWebGLRendererSafe } from "../lib/webgl";
 
 const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (9).glb")}`;
 
@@ -171,56 +172,6 @@ function disposeObject3D(obj) {
 			}
 		}
 	});
-}
-
-/** Try several WebGL presets — avoids hard crash when GPU/context is unavailable. */
-function createWebGLRendererSafe(preferPerformance = false) {
-	const presets = preferPerformance
-		? [
-				{
-					alpha: true,
-					antialias: false,
-					powerPreference: "high-performance",
-					failIfMajorPerformanceCaveat: false,
-				},
-				{
-					alpha: true,
-					antialias: false,
-					powerPreference: "default",
-					failIfMajorPerformanceCaveat: false,
-				},
-			]
-		: [
-				{
-					alpha: true,
-					antialias: true,
-					powerPreference: "high-performance",
-					failIfMajorPerformanceCaveat: false,
-				},
-				{
-					alpha: true,
-					antialias: true,
-					powerPreference: "default",
-					failIfMajorPerformanceCaveat: false,
-				},
-				{
-					alpha: true,
-					antialias: false,
-					powerPreference: "default",
-					failIfMajorPerformanceCaveat: false,
-				},
-			];
-	for (const options of presets) {
-		try {
-			const renderer = new THREE.WebGLRenderer(options);
-			const gl = renderer.getContext();
-			if (gl && !gl.isContextLost()) return renderer;
-			renderer.dispose();
-		} catch {
-			/* try next preset */
-		}
-	}
-	return null;
 }
 
 const HeroGltfRobot = () => {

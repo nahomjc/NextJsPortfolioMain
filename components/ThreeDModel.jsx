@@ -1,16 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { createWebGLRendererSafe } from '../lib/webgl';
 
 const ThreeDModel = () => {
   const mountRef = useRef(null);
 
   useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return undefined;
+
+    const renderer = createWebGLRendererSafe();
+    if (!renderer) return undefined;
+
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(200, 200);
-    mountRef.current.appendChild(renderer.domElement);
+    mount.appendChild(renderer.domElement);
 
     // Create a geometric shape
     const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
@@ -41,7 +47,10 @@ const ThreeDModel = () => {
 
     // Cleanup
     return () => {
-      mountRef.current.removeChild(renderer.domElement);
+      if (renderer.domElement.parentNode === mount) {
+        mount.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
     };
   }, []);
 

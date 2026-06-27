@@ -6,6 +6,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AboutWorkspaceProjectsModal from "./AboutWorkspaceProjectsModal";
 import { bindVisibilityPause, isLowPowerDevice } from "../lib/animationControl";
+import { createWebGLRendererSafe } from "../lib/webgl";
 
 const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (11).glb")}`;
 
@@ -59,6 +60,7 @@ function AboutWorkspacePly() {
 	const reduceMotion = useReducedMotion();
 	const [projectsModalOpen, setProjectsModalOpen] = useState(false);
 	const [showTapHint, setShowTapHint] = useState(false);
+	const [webglUnavailable, setWebglUnavailable] = useState(false);
 	const hintTimeoutRef = useRef(null);
 	const hintFirstCycleRef = useRef(true);
 	const openProjectsModalRef = useRef(() => {});
@@ -108,6 +110,17 @@ function AboutWorkspacePly() {
 		const mount = mountRef.current;
 		if (!mount) return;
 
+		const renderer = createWebGLRendererSafe(isLowPowerDevice());
+		if (!renderer) {
+			console.warn(
+				"AboutWorkspacePly: WebGL is unavailable in this environment.",
+			);
+			setWebglUnavailable(true);
+			return undefined;
+		}
+
+		setWebglUnavailable(false);
+
 		let modelRoot = null;
 		let rafId = 0;
 		let loaderCancelled = false;
@@ -115,11 +128,6 @@ function AboutWorkspacePly() {
 
 		const scene = new THREE.Scene();
 		const camera = new THREE.PerspectiveCamera(38, 1, 0.01, 200);
-		const renderer = new THREE.WebGLRenderer({
-			antialias: true,
-			alpha: true,
-			powerPreference: "high-performance",
-		});
 		renderer.setPixelRatio(
 			Math.min(window.devicePixelRatio, isLowPowerDevice() ? 1.25 : 1.5),
 		);
@@ -356,6 +364,16 @@ function AboutWorkspacePly() {
 					projects archive.
 				</span>
 				<div ref={mountRef} className="h-full w-full" />
+				{webglUnavailable ? (
+					<div
+						className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg border border-dashed border-cyan-500/25 bg-slate-950/40 px-4 text-center backdrop-blur-sm"
+						aria-hidden
+					>
+						<p className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400 sm:text-xs">
+							3D preview unavailable — WebGL disabled in this browser
+						</p>
+					</div>
+				) : null}
 				<AnimatePresence>
 					{showTapHint && !projectsModalOpen ? (
 						<motion.div
