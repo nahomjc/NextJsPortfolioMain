@@ -2,10 +2,15 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import {
+	motion,
+	useMotionValue,
+	useReducedMotion,
+} from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AboutImg from "../public/assets/download.png";
+import MatrixPortraitImg from "../public/assets/matrix.png";
 import { useLenis } from "./LenisProvider";
 import { scrollTriggerBase, scrollToProgress } from "../lib/gsapScroll";
 
@@ -23,10 +28,11 @@ const AboutWorkspacePly = dynamic(() => import("./AboutWorkspacePly"), {
 	),
 });
 
-const PORTRAIT_SRC = typeof AboutImg === "string" ? AboutImg : AboutImg.src;
-
 const highlights = [
-	{ label: "Focus", value: "Responsive UI · API integration · product delivery" },
+	{
+		label: "Focus",
+		value: "Responsive UI · API integration · product delivery",
+	},
 	{ label: "Core stack", value: "React · Next.js · HTML · CSS · JavaScript" },
 	{ label: "Since", value: "2016 — CMS e‑commerce to full custom apps" },
 ];
@@ -44,36 +50,140 @@ const corner =
 function HudCorners() {
 	return (
 		<>
-			<span className={`${corner} left-3 top-3 border-l-2 border-t-2`} aria-hidden />
-			<span className={`${corner} right-3 top-3 border-r-2 border-t-2`} aria-hidden />
-			<span className={`${corner} bottom-3 left-3 border-b-2 border-l-2`} aria-hidden />
-			<span className={`${corner} bottom-3 right-3 border-b-2 border-r-2`} aria-hidden />
+			<span
+				className={`${corner} left-3 top-3 border-l-2 border-t-2`}
+				aria-hidden
+			/>
+			<span
+				className={`${corner} right-3 top-3 border-r-2 border-t-2`}
+				aria-hidden
+			/>
+			<span
+				className={`${corner} bottom-3 left-3 border-b-2 border-l-2`}
+				aria-hidden
+			/>
+			<span
+				className={`${corner} bottom-3 right-3 border-b-2 border-r-2`}
+				aria-hidden
+			/>
 		</>
 	);
 }
 
-function PortraitScanGlitch({ src, active }) {
+function PortraitMatrixGlitch({ matrixSrc, active }) {
+	const opacity = useMotionValue(0);
+	const glitchX = useMotionValue(0);
+	const glitchSkew = useMotionValue(0);
+	const matrixSrcUrl =
+		typeof matrixSrc === "string" ? matrixSrc : matrixSrc.src;
+
+	useEffect(() => {
+		if (!active) return undefined;
+
+		let alive = true;
+		const timeouts = new Set();
+
+		const wait = (ms) =>
+			new Promise((resolve) => {
+				const id = window.setTimeout(resolve, ms);
+				timeouts.add(id);
+			});
+
+		const hide = () => {
+			opacity.set(0);
+			glitchX.set(0);
+			glitchSkew.set(0);
+		};
+
+		const flash = () => {
+			glitchX.set((Math.random() - 0.5) * 22);
+			glitchSkew.set((Math.random() - 0.5) * 4);
+			opacity.set(0.5 + Math.random() * 0.5);
+		};
+
+		const loop = async () => {
+			hide();
+			await wait(350 + Math.random() * 1600);
+			while (alive) {
+				const burstCount = 1 + Math.floor(Math.random() * 4);
+
+				for (let i = 0; i < burstCount && alive; i += 1) {
+					flash();
+					await wait(40 + Math.random() * 130);
+					if (!alive) break;
+					hide();
+					if (i < burstCount - 1) {
+						await wait(20 + Math.random() * 65);
+					}
+				}
+
+				if (!alive) break;
+
+				if (Math.random() > 0.62) {
+					flash();
+					await wait(160 + Math.random() * 340);
+					if (!alive) break;
+					hide();
+				}
+
+				await wait(280 + Math.random() * 1900);
+			}
+		};
+
+		loop();
+
+		return () => {
+			alive = false;
+			for (const id of timeouts) {
+				window.clearTimeout(id);
+			}
+			hide();
+		};
+	}, [active, opacity, glitchX, glitchSkew]);
+
 	if (!active) return null;
+
 	return (
-		<>
-			<motion.div
-				className="pointer-events-none absolute inset-0 z-[6] bg-cover opacity-0 mix-blend-screen"
-				style={{ backgroundImage: `url(${src})`, backgroundPosition: "center top" }}
-				animate={{
-					x: [0, 0, -6, 5, -3, 0],
-					opacity: [0, 0, 0.55, 0.4, 0, 0],
-				}}
-				transition={{ duration: 6.5, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-				aria-hidden
-			/>
-			<motion.div
-				className="pointer-events-none absolute inset-x-0 z-10 h-[3px] bg-gradient-to-r from-transparent via-cyan-300/90 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.55)]"
-				initial={{ top: "-2%" }}
-				animate={{ top: ["-2%", "102%", "-2%"] }}
-				transition={{ duration: 5.2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-				aria-hidden
-			/>
-		</>
+		<motion.div
+			className="about-portrait-matrix-layer pointer-events-none absolute inset-0 z-[6] overflow-hidden"
+			style={{
+				opacity,
+				x: glitchX,
+				skewX: glitchSkew,
+			}}
+			aria-hidden
+		>
+			<div className="about-portrait-matrix-glitch-wrap absolute inset-0">
+				<Image
+					src={matrixSrc}
+					alt=""
+					layout="fill"
+					objectFit="cover"
+					objectPosition="top"
+					sizes="(max-width: 1024px) 80vw, 380px"
+					priority
+				/>
+				<div
+					className="about-portrait-matrix-rgb about-portrait-matrix-rgb--cyan"
+					style={{ backgroundImage: `url(${matrixSrcUrl})` }}
+				/>
+				<div
+					className="about-portrait-matrix-rgb about-portrait-matrix-rgb--magenta"
+					style={{ backgroundImage: `url(${matrixSrcUrl})` }}
+				/>
+				<div className="about-portrait-matrix-slices" aria-hidden>
+					{[8, 24, 41, 58, 72, 86].map((top) => (
+						<span
+							key={top}
+							className="about-portrait-matrix-slice"
+							style={{ top: `${top}%` }}
+						/>
+					))}
+				</div>
+				<div className="about-portrait-matrix-lines absolute inset-0 opacity-40 mix-blend-screen" />
+				<div className="about-portrait-matrix-noise absolute inset-0 opacity-[0.2]" />
+			</div>
+		</motion.div>
 	);
 }
 
@@ -104,7 +214,10 @@ function PortraitFrame({ reduceMotion }) {
 						priority
 						sizes="(max-width: 1024px) 80vw, 380px"
 					/>
-					<PortraitScanGlitch src={PORTRAIT_SRC} active={!reduceMotion} />
+					<PortraitMatrixGlitch
+						matrixSrc={MatrixPortraitImg}
+						active={!reduceMotion}
+					/>
 					<div
 						className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent"
 						aria-hidden
@@ -135,11 +248,13 @@ function IntroScene() {
 			</p>
 			<h3 className="about-scene-heading mt-4 font-display text-3xl font-bold leading-tight text-slate-900 dark:text-white md:text-4xl lg:text-[2.5rem]">
 				Builder who ships{" "}
-				<span className="text-gradient-future">interfaces that feel alive.</span>
+				<span className="text-gradient-future">
+					interfaces that feel alive.
+				</span>
 			</h3>
 			<p className="about-scene-body mt-6 max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-400 md:text-lg">
-				Full-stack minded front-end engineer — I connect polished UI to real backends
-				so products stay fast, accessible, and ready to scale.
+				Full-stack minded front-end engineer — I connect polished UI to real
+				backends so products stay fast, accessible, and ready to scale.
 			</p>
 		</>
 	);
@@ -194,34 +309,50 @@ function StoryScene({ bioExpanded, setBioExpanded, bioParaRefs }) {
 							: "max-h-[min(34vh,12rem)] overflow-hidden sm:max-h-[min(38vh,14rem)]"
 					}`}
 				>
-					<p ref={(el) => { bioParaRefs.current[0] = el; }}>
-						I specialize in building high-performance, mobile-responsive front-end
-						applications that seamlessly integrate with APIs and backend systems. I
-						focus on efficient data handling, optimized server communication, and
-						scalable architecture, ensuring applications remain fast, reliable, and
-						cost-effective as they grow.
+					<p
+						ref={(el) => {
+							bioParaRefs.current[0] = el;
+						}}
+					>
+						I specialize in building high-performance, mobile-responsive
+						front-end applications that seamlessly integrate with APIs and
+						backend systems. I focus on efficient data handling, optimized
+						server communication, and scalable architecture, ensuring
+						applications remain fast, reliable, and cost-effective as they grow.
 					</p>
-					<p ref={(el) => { bioParaRefs.current[1] = el; }}>
-						I am passionate about continuously learning and adopting new technologies,
-						and I approach problem-solving with the mindset that there is always more
-						than one effective solution. My core expertise lies in React, Next.js, and
-						JavaScript, and I am highly adaptable when working with new tools and
-						frameworks.
+					<p
+						ref={(el) => {
+							bioParaRefs.current[1] = el;
+						}}
+					>
+						I am passionate about continuously learning and adopting new
+						technologies, and I approach problem-solving with the mindset that
+						there is always more than one effective solution. My core expertise
+						lies in React, Next.js, and JavaScript, and I am highly adaptable
+						when working with new tools and frameworks.
 					</p>
-					<p ref={(el) => { bioParaRefs.current[2] = el; }}>
-						Beyond development, I actively work on improving application performance
-						and reducing operational costs by optimizing API calls, minimizing
-						unnecessary server requests, and implementing efficient state management
-						and caching strategies.
+					<p
+						ref={(el) => {
+							bioParaRefs.current[2] = el;
+						}}
+					>
+						Beyond development, I actively work on improving application
+						performance and reducing operational costs by optimizing API calls,
+						minimizing unnecessary server requests, and implementing efficient
+						state management and caching strategies.
 					</p>
-					<p ref={(el) => { bioParaRefs.current[3] = el; }}>
-						I began my journey in 2016 managing multiple e-commerce websites on CMS
-						platforms. Over time, I have expanded my experience by working on
-						procurement platforms and Human Capital Management (HCM) systems. I have
-						also worked directly with clients, transforming wireframes into
-						production-ready applications such as Muyalogy, Afriwork LMS, Jiret LMS,
-						Green Bag, Afrocado, AR Solutions, Peragos, Loop State, and Bazra
-						E-Wallet.
+					<p
+						ref={(el) => {
+							bioParaRefs.current[3] = el;
+						}}
+					>
+						I began my journey in 2016 managing multiple e-commerce websites on
+						CMS platforms. Over time, I have expanded my experience by working
+						on procurement platforms and Human Capital Management (HCM) systems.
+						I have also worked directly with clients, transforming wireframes
+						into production-ready applications such as Muyalogy, Afriwork LMS,
+						Jiret LMS, Green Bag, Afrocado, AR Solutions, Peragos, Loop State,
+						and Bazra E-Wallet.
 					</p>
 				</div>
 				{!bioExpanded ? (
@@ -269,7 +400,9 @@ function WorkspaceScene({ workspaceRef }) {
 				<Link href="/#projects" className="group inline-flex">
 					<span className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-5 py-2.5 font-semibold text-cyan-700 transition hover:border-cyan-400/70 hover:bg-cyan-500/20 dark:text-cyan-300">
 						Latest projects
-						<span className="transition-transform group-hover:translate-x-0.5">→</span>
+						<span className="transition-transform group-hover:translate-x-0.5">
+							→
+						</span>
 					</span>
 				</Link>
 				<p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
@@ -389,7 +522,13 @@ const About = () => {
 					)
 					.from(
 						".about-hero-tag",
-						{ x: 36, opacity: 0, stagger: 0.12, duration: 0.55, ease: "power3.out" },
+						{
+							x: 36,
+							opacity: 0,
+							stagger: 0.12,
+							duration: 0.55,
+							ease: "power3.out",
+						},
 						"-=0.4",
 					)
 					.from(
@@ -424,10 +563,14 @@ const About = () => {
 					clipPath: "inset(0 0% 0 0 round 14px)",
 				});
 				gsap.set(chapters, { autoAlpha: 0, scale: 0.75, rotate: -6 });
-				if (chapters[0]) gsap.set(chapters[0], { autoAlpha: 0.16, scale: 1, rotate: 0 });
+				if (chapters[0])
+					gsap.set(chapters[0], { autoAlpha: 0.16, scale: 1, rotate: 0 });
 
 				if (stageDividerRef.current) {
-					gsap.set(stageDividerRef.current, { scaleY: 0, transformOrigin: "top center" });
+					gsap.set(stageDividerRef.current, {
+						scaleY: 0,
+						transformOrigin: "top center",
+					});
 				}
 
 				const scrollLen = () => window.innerHeight * 3.1;
@@ -475,7 +618,13 @@ const About = () => {
 				if (firstEyebrow && firstHeading) {
 					tl.from(
 						[firstEyebrow, firstHeading, firstBody].filter(Boolean),
-						{ y: 36, opacity: 0, stagger: 0.07, duration: step * 0.35, ease: "power3.out" },
+						{
+							y: 36,
+							opacity: 0,
+							stagger: 0.07,
+							duration: step * 0.35,
+							ease: "power3.out",
+						},
 						0.02,
 					);
 				}
@@ -494,7 +643,8 @@ const About = () => {
 					const curr = panels[i];
 					const prevChapter = chapters[i - 1];
 					const currChapter = chapters[i];
-					const move = portraitMoves[i] ?? portraitMoves[portraitMoves.length - 1];
+					const move =
+						portraitMoves[i] ?? portraitMoves[portraitMoves.length - 1];
 
 					tl.to(
 						prev,
@@ -648,7 +798,9 @@ const About = () => {
 					);
 				}
 
-				const theatreGrid = pinRef.current?.querySelector(".about-theatre-grid");
+				const theatreGrid = pinRef.current?.querySelector(
+					".about-theatre-grid",
+				);
 				if (theatreGrid) {
 					gsap.to(theatreGrid, {
 						backgroundPosition: "128px 96px",
@@ -871,7 +1023,10 @@ const About = () => {
 			<div className="relative z-10 px-4 pb-8 pt-20 md:pb-12 md:pt-28">
 				<div className="mx-auto max-w-[1240px]">
 					{/* Title — splits apart as theatre approaches */}
-					<div ref={heroRef} className="about-hero about-hero-perspective mb-10 md:mb-14">
+					<div
+						ref={heroRef}
+						className="about-hero about-hero-perspective mb-10 md:mb-14"
+					>
 						<p className="section-eyebrow mb-5">
 							<span
 								className="about-eyebrow-line h-px w-8 bg-gradient-to-r from-cyan-400 to-violet-500"
@@ -1019,7 +1174,10 @@ const About = () => {
 											{scene.code}
 										</span>
 									))}
-									<div ref={portraitWrapRef} className="about-portrait-wrap relative z-10">
+									<div
+										ref={portraitWrapRef}
+										className="about-portrait-wrap relative z-10"
+									>
 										<PortraitFrame reduceMotion={reduceMotion} />
 									</div>
 									<p className="relative z-10 mt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
@@ -1118,10 +1276,18 @@ const About = () => {
 
 					{/* Mobile + reduced-motion: stacked scenes */}
 					<div className="about-mobile-stack space-y-6 lg:hidden">
-						<MobileScene sceneRef={(el) => { mobileSceneRefs.current[0] = el; }}>
+						<MobileScene
+							sceneRef={(el) => {
+								mobileSceneRefs.current[0] = el;
+							}}
+						>
 							<IntroScene />
 						</MobileScene>
-						<MobileScene sceneRef={(el) => { mobileSceneRefs.current[1] = el; }}>
+						<MobileScene
+							sceneRef={(el) => {
+								mobileSceneRefs.current[1] = el;
+							}}
+						>
 							<CapabilitiesScene highlightRefs={highlightRefs} />
 						</MobileScene>
 						<div className="flex justify-center">
@@ -1134,17 +1300,29 @@ const About = () => {
 										: SCENES[activeScene]?.label}
 							</p>
 						</div>
-						<MobileScene sceneRef={(el) => { mobileSceneRefs.current[2] = el; }}>
+						<MobileScene
+							sceneRef={(el) => {
+								mobileSceneRefs.current[2] = el;
+							}}
+						>
 							<PortraitFrame reduceMotion={reduceMotion} />
 						</MobileScene>
-						<MobileScene sceneRef={(el) => { mobileSceneRefs.current[3] = el; }}>
+						<MobileScene
+							sceneRef={(el) => {
+								mobileSceneRefs.current[3] = el;
+							}}
+						>
 							<StoryScene
 								bioExpanded={bioExpanded}
 								setBioExpanded={setBioExpanded}
 								bioParaRefs={bioParaRefs}
 							/>
 						</MobileScene>
-						<MobileScene sceneRef={(el) => { mobileSceneRefs.current[4] = el; }}>
+						<MobileScene
+							sceneRef={(el) => {
+								mobileSceneRefs.current[4] = el;
+							}}
+						>
 							<WorkspaceScene workspaceRef={workspaceRef} />
 						</MobileScene>
 					</div>
