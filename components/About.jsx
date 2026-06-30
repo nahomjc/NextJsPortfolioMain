@@ -393,7 +393,38 @@ function StoryScene({ bioExpanded, setBioExpanded, bioParaRefs }) {
 	);
 }
 
-function WorkspaceScene({ workspaceRef }) {
+function WorkspaceScene({ workspaceRef, activeScene = 0 }) {
+	const [isMobileLayout, setIsMobileLayout] = useState(false);
+	const [nearViewport, setNearViewport] = useState(false);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return undefined;
+		const mq = window.matchMedia("(max-width: 1023px)");
+		const sync = () => setIsMobileLayout(mq.matches);
+		sync();
+		mq.addEventListener("change", sync);
+		return () => mq.removeEventListener("change", sync);
+	}, []);
+
+	useEffect(() => {
+		if (!isMobileLayout) return undefined;
+		const el = workspaceRef?.current;
+		if (!el) return undefined;
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setNearViewport(true);
+					observer.disconnect();
+				}
+			},
+			{ rootMargin: "240px 0px", threshold: 0 },
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, [isMobileLayout, workspaceRef]);
+
+	const mount3d = isMobileLayout ? nearViewport : activeScene >= 2;
 	return (
 		<>
 			<p className="about-scene-eyebrow font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-400">
@@ -412,7 +443,18 @@ function WorkspaceScene({ workspaceRef }) {
 			>
 				<HudCorners />
 				<div className="relative p-1 sm:p-2">
-					<AboutWorkspacePly />
+					{mount3d ? (
+						<AboutWorkspacePly />
+					) : (
+						<div
+							className="flex h-[min(52vw,340px)] w-full items-center justify-center sm:h-[300px] md:h-[320px]"
+							aria-hidden
+						>
+							<span className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+								Scroll to load workspace…
+							</span>
+						</div>
+					)}
 				</div>
 			</div>
 			<div className="mt-6 flex flex-wrap items-center gap-4">
@@ -1039,7 +1081,7 @@ const About = () => {
 				aria-hidden
 			/>
 
-			<div className="relative z-10 px-4 pb-8 pt-20 md:pb-12 md:pt-28">
+			<div className="relative z-10 px-4 pb-8 pt-10 md:pb-12 md:pt-28">
 				<div className="mx-auto max-w-[1240px]">
 					{/* Title — splits apart as theatre approaches */}
 					<div
@@ -1249,7 +1291,10 @@ const About = () => {
 											}}
 											className="about-scene-panel absolute inset-0 flex flex-col justify-center overflow-y-auto pr-4"
 										>
-											<WorkspaceScene workspaceRef={workspaceRef} />
+											<WorkspaceScene
+												workspaceRef={workspaceRef}
+												activeScene={activeScene}
+											/>
 										</div>
 									</div>
 								</div>
@@ -1343,7 +1388,10 @@ const About = () => {
 								mobileSceneRefs.current[4] = el;
 							}}
 						>
-							<WorkspaceScene workspaceRef={workspaceRef} />
+							<WorkspaceScene
+								workspaceRef={workspaceRef}
+								activeScene={activeScene}
+							/>
 						</MobileScene>
 					</div>
 				</div>

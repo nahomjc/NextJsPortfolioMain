@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
 	bindVisibilityPause,
-	isCoarsePointer,
 	isLowPowerDevice,
-	prefersEffects,
+	shouldRunAmbientEffects,
 } from "../lib/animationControl";
 
 const AnimatedBackground = () => {
@@ -11,7 +10,7 @@ const AnimatedBackground = () => {
 	const [enabled, setEnabled] = useState(false);
 
 	useEffect(() => {
-		setEnabled(!prefersEffects() && !isCoarsePointer());
+		setEnabled(shouldRunAmbientEffects());
 	}, []);
 
 	useEffect(() => {
@@ -122,8 +121,8 @@ const AnimatedBackground = () => {
 			lines = [];
 			const area = window.innerWidth * window.innerHeight;
 			const count = Math.min(
-				lowPower ? 22 : 32,
-				Math.max(16, Math.floor(area / 28000)),
+				lowPower ? 14 : 24,
+				Math.max(12, Math.floor(area / (lowPower ? 42000 : 32000))),
 			);
 			for (let i = 0; i < count; i++) {
 				lines.push(new Line());

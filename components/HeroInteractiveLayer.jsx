@@ -1,5 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { bindVisibilityPause, isCoarsePointer } from "../lib/animationControl";
+import {
+	bindVisibilityPause,
+	isCoarsePointer,
+	isLowPowerDevice,
+} from "../lib/animationControl";
 
 const PARTICLE_COUNT_DESKTOP = 40;
 const PARTICLE_COUNT_MOBILE = 16;
@@ -15,7 +19,7 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 		const container = containerRef?.current;
 		const canvas = canvasRef.current;
 		const spotlight = spotlightRef.current;
-		if (!container || !canvas || reduceMotion) return;
+		if (!container || !canvas || reduceMotion || isLowPowerDevice()) return;
 
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return;

@@ -1412,8 +1412,14 @@ html.lenis.lenis-stopped {
 }
 
 .dark .hero-section {
-	background-color: #06030c;
-	background-image: linear-gradient(to bottom, #06030c, #07040f, #06030c);
+	background-color: transparent;
+	background-image: none;
+}
+
+.hero-video-bg {
+	object-position: center;
+	width: 100%;
+	min-width: 100%;
 }
 
 /* Hero — matrix resume CTA */
@@ -1764,6 +1770,28 @@ html.lenis.lenis-stopped {
 	scroll-snap-type: x proximity;
 	scroll-padding-inline: 0.75rem;
 	touch-action: pan-x;
+	overflow-y: visible;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+.dock-scroll--mobile {
+	display: flex;
+}
+
+.dock-scroll--desktop {
+	display: none;
+}
+
+@media (min-width: 640px) {
+	.dock-scroll--mobile {
+		display: none !important;
+	}
+
+	.dock-scroll--desktop {
+		display: flex !important;
+	}
 }
 
 .dock-scroll::-webkit-scrollbar {
@@ -1779,6 +1807,45 @@ html.lenis.lenis-stopped {
 .dock-scroll .dock-item {
 	scroll-snap-align: center;
 	flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+	.dock-scroll {
+		scroll-snap-type: none;
+		scroll-padding-inline: 0.5rem;
+	}
+
+	.dock-scroll .dock-item {
+		scroll-snap-align: start;
+	}
+
+	.dock-icon-shell {
+		height: 2.25rem;
+		width: 2.25rem;
+		border-radius: 0.625rem;
+	}
+
+	.dock-icon-shell svg {
+		width: 1.1rem;
+		height: 1.1rem;
+	}
+
+	.dock-tooltip {
+		display: none;
+	}
+
+	.dock-shelf {
+		width: max-content;
+		max-width: calc(100vw - 2rem);
+	}
+
+	.dock-item {
+		padding-inline: 0.1rem;
+	}
+
+	.dock-magnify-target {
+		transform: none !important;
+	}
 }
 
 .dock-shelf-bg {
@@ -1930,35 +1997,37 @@ html.lenis.lenis-stopped {
 	}
 }
 
-.dock-item:hover .dock-icon-shell:not(.is-active),
-.dock-item:focus-visible .dock-icon-shell:not(.is-active) {
-	border-color: rgba(34, 211, 238, 0.22);
-	background: linear-gradient(
-		180deg,
-		#343942 0%,
-		#282d36 42%,
-		#1e2229 100%
-	);
-	box-shadow:
-		0 3px 0 rgba(0, 0, 0, 0.4),
-		0 5px 12px rgba(0, 0, 0, 0.35),
-		0 0 12px rgba(34, 211, 238, 0.08),
-		inset 0 1px 0 rgba(255, 255, 255, 0.09),
-		inset 0 -2px 3px rgba(0, 0, 0, 0.35);
-}
+@media (hover: hover) and (pointer: fine) {
+	.dock-item:hover .dock-icon-shell:not(.is-active),
+	.dock-item:focus-visible .dock-icon-shell:not(.is-active) {
+		border-color: rgba(34, 211, 238, 0.22);
+		background: linear-gradient(
+			180deg,
+			#343942 0%,
+			#282d36 42%,
+			#1e2229 100%
+		);
+		box-shadow:
+			0 3px 0 rgba(0, 0, 0, 0.4),
+			0 5px 12px rgba(0, 0, 0, 0.35),
+			0 0 12px rgba(34, 211, 238, 0.08),
+			inset 0 1px 0 rgba(255, 255, 255, 0.09),
+			inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+	}
 
-.dock-item:hover .dock-icon-shell:not(.is-active) svg,
-.dock-item:focus-visible .dock-icon-shell:not(.is-active) svg {
-	color: #b8c0cc;
-}
+	.dock-item:hover .dock-icon-shell:not(.is-active) svg,
+	.dock-item:focus-visible .dock-icon-shell:not(.is-active) svg {
+		color: #b8c0cc;
+	}
 
-.dock-item:active .dock-icon-shell:not(.is-active) {
-	transform: translateY(1px);
-	box-shadow:
-		0 1px 0 rgba(0, 0, 0, 0.45),
-		0 2px 5px rgba(0, 0, 0, 0.28),
-		inset 0 2px 4px rgba(0, 0, 0, 0.35),
-		inset 0 1px 0 rgba(255, 255, 255, 0.04);
+	.dock-item:active .dock-icon-shell:not(.is-active) {
+		transform: translateY(1px);
+		box-shadow:
+			0 1px 0 rgba(0, 0, 0, 0.45),
+			0 2px 5px rgba(0, 0, 0, 0.28),
+			inset 0 2px 4px rgba(0, 0, 0, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.04);
+	}
 }
 
 .dock-icon-shell.is-active {

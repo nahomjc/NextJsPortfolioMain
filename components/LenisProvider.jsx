@@ -8,6 +8,7 @@ import React, {
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { isLowPowerDevice } from "../lib/animationControl";
 
 const LenisContext = createContext(null);
 
@@ -29,7 +30,7 @@ export default function LenisProvider({ children }) {
 			"(prefers-reduced-motion: reduce)",
 		).matches;
 		const coarsePointer = window.matchMedia("(hover: none)").matches;
-		if (prefersReduced || coarsePointer) return;
+		if (prefersReduced || coarsePointer || isLowPowerDevice()) return;
 
 		gsap.registerPlugin(ScrollTrigger);
 

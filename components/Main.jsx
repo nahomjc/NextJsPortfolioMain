@@ -7,6 +7,8 @@ import { FaGithub, FaLinkedinIn } from "react-icons/fa";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { isLowPowerDevice } from "../lib/animationControl";
+import { scrollTriggerBase } from "../lib/gsapScroll";
 
 const HeroGltfRobot = dynamic(() => import("./HeroGltfRobot"), { ssr: false });
 const HeroInteractiveLayer = dynamic(() => import("./HeroInteractiveLayer"), {
@@ -113,8 +115,9 @@ function HeroMatrixResumeCta({ reduceMotion }) {
 	}, [reduceMotion]);
 
 	useEffect(() => {
+		if (reduceMotion || isLowPowerDevice()) return undefined;
 		const canvas = rainRef.current;
-		if (!canvas || reduceMotion) return undefined;
+		if (!canvas) return undefined;
 
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return undefined;
@@ -424,14 +427,17 @@ const Main = () => {
 				});
 			}
 
+			const mm = gsap.matchMedia();
+
+			mm.add("(min-width: 1024px)", () => {
 			if (heroInnerRef.current && heroRef.current) {
 				const exitTl = gsap.timeline({
-					scrollTrigger: {
+					scrollTrigger: scrollTriggerBase({
 						trigger: heroRef.current,
 						start: "top top",
 						end: "bottom top",
 						scrub: 0.85,
-					},
+					}),
 				});
 
 				exitTl.to(
@@ -573,15 +579,16 @@ const Main = () => {
 					{
 						scaleX: 1,
 						ease: "none",
-						scrollTrigger: {
+						scrollTrigger: scrollTriggerBase({
 							trigger: heroRef.current,
 							start: "top top",
 							end: "bottom top",
 							scrub: 0.35,
-						},
+						}),
 					},
 				);
 			}
+			});
 		}, heroRef);
 
 		return () => ctx.revert();
@@ -686,7 +693,7 @@ const Main = () => {
 		<div
 			id="home"
 			ref={heroRef}
-			className="hero-section hero-theatre relative flex min-h-screen w-full items-center overflow-x-hidden overflow-y-visible bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 pb-10 pt-12 text-slate-900 md:pb-12 md:pt-16 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
+			className="hero-section hero-theatre relative flex w-full items-center overflow-x-hidden overflow-y-visible bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 pb-8 pt-12 text-slate-900 md:pb-12 md:pt-16 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
 		>
 			<HeroInteractiveLayer
 				containerRef={heroRef}

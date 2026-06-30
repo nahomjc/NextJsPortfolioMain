@@ -34,6 +34,11 @@ const MouseFollower = () => {
 		const lerp = (start, end, factor) => start + (end - start) * factor;
 
 		const animate = () => {
+			if (document.hidden) {
+				animationFrameRef.current = requestAnimationFrame(animate);
+				return;
+			}
+
 			const smoothing = 0.35;
 
 			cursorRef.current.x = lerp(

@@ -211,7 +211,10 @@ const HeroGltfRobot = ({ compact = false }) => {
 		bootRaf = requestAnimationFrame(() => {
 			if (!wrapRef.current) return;
 
-			const preferPerformance = isCoarsePointer() || isLowPowerDevice();
+			const preferPerformance =
+				isCoarsePointer() ||
+				isLowPowerDevice() ||
+				(navigator.deviceMemory ?? 8) <= 8;
 			const renderer = createWebGLRendererSafe(preferPerformance);
 			if (!renderer) {
 				console.warn(
@@ -669,7 +672,9 @@ const HeroGltfRobot = ({ compact = false }) => {
 							}
 						}
 					});
-					attachCircuitTraces(model);
+					if (!preferPerformance) {
+						attachCircuitTraces(model);
+					}
 
 					if (!reduceMotion) {
 						heroRevealT0 = performance.now();

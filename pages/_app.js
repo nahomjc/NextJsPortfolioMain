@@ -12,6 +12,7 @@ import { ThemeProvider } from "../components/ThemeProvider";
 import { motion } from "framer-motion";
 import EntranceSmoke from "../components/EntranceSmoke";
 import { useState, useCallback, useEffect } from "react";
+import { shouldRunAmbientEffects } from "../lib/animationControl";
 
 const FingerPrintLoader = dynamic(
 	() => import("../components/FingerPrintLoaderProps"),
@@ -31,10 +32,7 @@ function MyApp({ Component, pageProps }) {
 	const [showDecorations, setShowDecorations] = useState(false);
 
 	useEffect(() => {
-		if (typeof window === "undefined") return;
-		const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-		const coarse = window.matchMedia("(hover: none)").matches;
-		setShowDecorations(!reduced && !coarse);
+		setShowDecorations(shouldRunAmbientEffects());
 	}, []);
 
 	const handleLoadingComplete = useCallback(() => {
@@ -60,7 +58,7 @@ function MyApp({ Component, pageProps }) {
 				) : null}
 				<motion.div
 					key="app-shell"
-					className={`relative min-h-screen pb-[4.75rem] sm:pb-[5.75rem] ${
+					className={`relative min-h-screen pb-[4.25rem] sm:pb-[5.75rem] ${
 						isLoading ? "invisible h-0 overflow-hidden" : ""
 					}`}
 					aria-hidden={isLoading}
