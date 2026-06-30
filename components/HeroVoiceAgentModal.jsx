@@ -27,7 +27,7 @@ const POP_H_EST = 380;
 const PAD = 10;
 
 const VOICE_GREETING =
-	"Hey — I'm Nahom's assistant. Ask about his work, book a meeting, call Nahom, or say terminate to close.";
+	"Hey — I'm Nahom's assistant. Ask about his work, book a meeting, say call to reach him, or say terminate to close.";
 
 const STATUS_LABELS = {
 	initializing: "Initializing voice link…",
