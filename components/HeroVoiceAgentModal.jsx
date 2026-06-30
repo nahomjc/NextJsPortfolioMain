@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AiOutlineClose } from "react-icons/ai";
 import { useDockActions } from "./DockActionsContext";
 import { PHONE_TEL_HREF } from "../lib/contactConfig";
-import { detectCallIntent, detectScheduleIntent } from "../lib/voiceIntents";
+import { detectCallIntent, detectScheduleIntent, detectTerminateIntent } from "../lib/voiceIntents";
 import {
 	createScheduleSession,
 	getScheduleSnapshot,
@@ -22,7 +22,7 @@ const POP_H_EST = 380;
 const PAD = 10;
 
 const VOICE_GREETING =
-	"Hi, I'm Nahom's assistant. Ask about his work, say book a meeting to schedule, or say call Nahom to reach him by phone.";
+	"Hi, I'm Nahom's assistant. Ask about his work, book a meeting, call Nahom, or say terminate to close.";
 
 const STATUS_LABELS = {
 	initializing: "Initializing voice link…",
@@ -241,6 +241,16 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 		sessionRef.current?.setPaused(paused);
 	}, []);
 
+	const closeVoiceSession = useCallback(() => {
+		playbackRef.current?.stop();
+		sessionRef.current?.destroy();
+		sessionRef.current = null;
+		resetSchedule(scheduleRef.current);
+		setScheduleSnapshot(null);
+		processingRef.current = false;
+		onClose();
+	}, [onClose]);
+
 	const speakText = useCallback(async (text) => {
 		if (!playbackRef.current) {
 			playbackRef.current = createVoicePlayback();
@@ -369,6 +379,12 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 
 				setLastUserText(trimmed);
 
+				if (detectTerminateIntent(trimmed)) {
+					processingRef.current = false;
+					closeVoiceSession();
+					return;
+				}
+
 				if (scheduleRef.current.active) {
 					await handleScheduleTurn(trimmed);
 					return;
@@ -461,7 +477,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 				processingRef.current = false;
 			}
 		},
-		[speakText, setPausedListening, handleScheduleTurn, syncScheduleHud],
+		[speakText, setPausedListening, handleScheduleTurn, syncScheduleHud, closeVoiceSession],
 	);
 
 	useEffect(() => {
@@ -509,6 +525,10 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 		const session = createVoiceSession({
 			onUtterance: (blob, mimeType) => {
 				if (!cancelled) handleUtterance(blob, mimeType);
+			},
+			onIdleTimeout: () => {
+				if (cancelled || processingRef.current) return;
+				closeVoiceSession();
 			},
 			onError: (err) => {
 				if (cancelled) return;
@@ -562,7 +582,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 			session.destroy();
 			sessionRef.current = null;
 		};
-	}, [open, handleUtterance, speakText, setPausedListening]);
+	}, [open, handleUtterance, speakText, setPausedListening, closeVoiceSession]);
 
 	if (!mounted) return null;
 
