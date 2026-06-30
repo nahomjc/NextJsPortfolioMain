@@ -3,6 +3,16 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AiOutlineClose } from "react-icons/ai";
 import { useDockActions } from "./DockActionsContext";
+import { PHONE_TEL_HREF } from "../lib/contactConfig";
+import { detectCallIntent, detectScheduleIntent } from "../lib/voiceIntents";
+import {
+	createScheduleSession,
+	processScheduleInput,
+	resetSchedule,
+	startSchedule,
+	submitVoiceAppointment,
+	triggerPhoneCall,
+} from "../lib/voiceScheduleFlow";
 import { createVoiceSession } from "../lib/voiceCapture";
 import { createVoicePlayback } from "../lib/voicePlayback";
 
@@ -11,7 +21,7 @@ const POP_H_EST = 300;
 const PAD = 10;
 
 const VOICE_GREETING =
-	"Hi, I'm Nahom's portfolio assistant. Ask about his skills, projects, or how to collaborate.";
+	"Hi, I'm Nahom's assistant. Ask about his work, say book a meeting to schedule, or say call Nahom to reach him by phone.";
 
 const STATUS_LABELS = {
 	initializing: "Initializing voice link…",
@@ -20,6 +30,8 @@ const STATUS_LABELS = {
 	transcribing: "Transcribing…",
 	thinking: "Thinking…",
 	speaking: "Speaking…",
+	scheduling: "Booking appointment…",
+	calling: "Opening dialer…",
 	error: "Link interrupted",
 	mic_denied: "Microphone blocked",
 };
@@ -139,6 +151,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 	const { openChat } = useDockActions();
 
 	const messagesRef = useRef([]);
+	const scheduleRef = useRef(createScheduleSession());
 	const sessionRef = useRef(null);
 	const playbackRef = useRef(null);
 	const processingRef = useRef(false);
@@ -211,6 +224,61 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 		}
 	}, [setPausedListening]);
 
+	const speakAndResume = useCallback(
+		async (reply) => {
+			setLastAssistantText(reply);
+			try {
+				await speakText(reply);
+			} catch (speechErr) {
+				const hint =
+					speechErr.code === "model_terms_required"
+						? " Accept Orpheus terms in Groq Console for Groq voices."
+						: "";
+				setErrorMessage(
+					(speechErr.message || "Could not play audio.") + " Read the reply below." + hint,
+				);
+			}
+			if (openRef.current) {
+				setAgentState(scheduleRef.current.active ? "scheduling" : "listening");
+				setPausedListening(false);
+			}
+		},
+		[speakText, setPausedListening],
+	);
+
+	const handleScheduleTurn = useCallback(
+		async (trimmed) => {
+			setLastUserText(trimmed);
+			setAgentState("scheduling");
+			setPausedListening(true);
+
+			const result = processScheduleInput(scheduleRef.current, trimmed);
+
+			if (result.kind === "submit") {
+				setAgentState("thinking");
+				try {
+					await submitVoiceAppointment(result.data);
+					resetSchedule(scheduleRef.current);
+					await speakAndResume(
+						"Done! Your request is in Nahom's inbox. He usually replies within a day or two.",
+					);
+				} catch (err) {
+					setErrorMessage(err.message || "Could not send appointment.");
+					await speakAndResume(
+						"Sorry, I couldn't send that. Try the contact form on the site.",
+					);
+				}
+				return;
+			}
+
+			if (result.kind === "reply") {
+				await speakAndResume(result.reply);
+				return;
+			}
+		},
+		[speakAndResume, setPausedListening],
+	);
+
 	const handleUtterance = useCallback(
 		async (blob, mimeType) => {
 			if (!openRef.current || processingRef.current) return;
@@ -240,6 +308,45 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 				}
 
 				setLastUserText(trimmed);
+
+				if (scheduleRef.current.active) {
+					await handleScheduleTurn(trimmed);
+					return;
+				}
+
+				if (detectCallIntent(trimmed)) {
+					const reply = "Connecting you to Nahom now.";
+					setLastAssistantText(reply);
+					setAgentState("calling");
+					try {
+						await speakText(reply);
+					} catch {
+						// dialer still opens
+					}
+					triggerPhoneCall(PHONE_TEL_HREF);
+					if (openRef.current) {
+						setAgentState("listening");
+						setPausedListening(false);
+					}
+					return;
+				}
+
+				if (detectScheduleIntent(trimmed)) {
+					const reply = startSchedule(scheduleRef.current);
+					setLastAssistantText(reply);
+					setAgentState("scheduling");
+					try {
+						await speakText(reply);
+					} catch {
+						// text shown in HUD
+					}
+					if (openRef.current) {
+						setAgentState("scheduling");
+						setPausedListening(false);
+					}
+					return;
+				}
+
 				const nextMessages = [
 					...messagesRef.current,
 					{ role: "user", content: trimmed },
@@ -293,7 +400,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 				processingRef.current = false;
 			}
 		},
-		[speakText, setPausedListening],
+		[speakText, setPausedListening, handleScheduleTurn],
 	);
 
 	useEffect(() => {
@@ -326,6 +433,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 			processingRef.current = false;
 			greetedRef.current = false;
 			messagesRef.current = [];
+			resetSchedule(scheduleRef.current);
 			setAgentState("initializing");
 			setLastUserText("");
 			setLastAssistantText(VOICE_GREETING);
