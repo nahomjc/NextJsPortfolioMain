@@ -14,6 +14,7 @@ import { createWebGLRendererSafe } from "../lib/webgl";
 
 const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (9).glb")}`;
 
+const tmpColorA = new THREE.Color();
 const tmpColorB = new THREE.Color();
 
 function thunderPulse(elapsedSec) {
@@ -144,6 +145,118 @@ function hideCircuitTraces(root) {
 	});
 }
 
+function createVoiceHudMaterial() {
+	return new THREE.ShaderMaterial({
+		uniforms: {
+			uTime: { value: 0 },
+			uFade: { value: 0 },
+			uEnergy: { value: 0.5 },
+		},
+		vertexShader: `
+			varying vec3 vWp;
+			varying vec3 vN;
+			void main() {
+				vec4 wp = modelMatrix * vec4(position, 1.0);
+				vWp = wp.xyz;
+				vN = normalize(normalMatrix * normal);
+				gl_Position = projectionMatrix * viewMatrix * wp;
+			}
+		`,
+		fragmentShader: `
+			uniform float uTime;
+			uniform float uFade;
+			uniform float uEnergy;
+			varying vec3 vWp;
+			varying vec3 vN;
+
+			void main() {
+				float angle = atan(vWp.x, vWp.z);
+				float normA = (angle + 3.14159265) / 6.2831853;
+				float h = vWp.y;
+
+				vec3 viewDir = normalize(cameraPosition - vWp);
+				float fresnel = pow(1.0 - max(dot(normalize(vN), viewDir), 0.0), 2.8);
+
+				float lattice = sin(normA * 48.0 + h * 9.0 + uTime * 1.6) * 0.5 + 0.5;
+				lattice *= sin(h * 22.0 - uTime * 0.9) * 0.5 + 0.5;
+				float grid = smoothstep(0.72, 0.95, lattice) * 0.22;
+
+				float helixA = fract(normA * 5.0 + h * 0.75 + uTime * 1.35);
+				float helixB = fract(normA * 7.0 - h * 0.55 - uTime * 1.05);
+				float streamA = smoothstep(0.07, 0.0, abs(helixA - 0.5)) * 1.35;
+				float streamB = smoothstep(0.05, 0.0, abs(helixB - fract(uTime * 0.55))) * 1.1;
+
+				float scanPos = fract(uTime * 0.38);
+				float scan = smoothstep(0.035, 0.0, abs(fract(h * 0.42 + 0.12) - scanPos)) * 1.4;
+
+				float rim = fresnel * (0.42 + uEnergy * 0.35);
+				float intensity = (grid + streamA + streamB + scan + rim) * (0.55 + uEnergy * 0.45);
+
+				vec3 ice = vec3(0.15, 0.88, 1.0);
+				vec3 deep = vec3(0.22, 0.38, 1.0);
+				vec3 accent = vec3(0.55, 0.35, 1.0);
+				vec3 col = mix(ice, deep, streamB * 0.45);
+				col = mix(col, accent, scan * 0.35 + streamA * 0.15);
+				col += ice * streamA * 0.25;
+
+				float alpha = clamp(intensity * uFade, 0.0, 1.0);
+				if (alpha < 0.006) discard;
+				gl_FragColor = vec4(col * (0.65 + intensity * 0.55), alpha * 0.92);
+			}
+		`,
+		side: THREE.BackSide,
+		transparent: true,
+		blending: THREE.AdditiveBlending,
+		depthWrite: false,
+	});
+}
+
+function attachVoiceHudShells(root) {
+	root.traverse((child) => {
+		if (!child.isMesh || child.userData._isOutlineShell) return;
+		const geo = child.geometry;
+		if (!geo) return;
+
+		const mat = createVoiceHudMaterial();
+		const shell = new THREE.Mesh(geo, mat);
+		shell.scale.setScalar(1.028);
+		shell.frustumCulled = child.frustumCulled;
+		shell.userData._isOutlineShell = true;
+		shell.userData._sharedGeometry = true;
+		child.add(shell);
+		child.userData._voiceHudShell = { mesh: shell, mat, baseScale: 1.028 };
+	});
+}
+
+function updateVoiceHudShells(root, sec, fade, energy) {
+	root.traverse((child) => {
+		if (!child.userData._voiceHudShell) return;
+		const { mat } = child.userData._voiceHudShell;
+		mat.uniforms.uTime.value = sec;
+		mat.uniforms.uFade.value = fade;
+		mat.uniforms.uEnergy.value = energy;
+	});
+}
+
+function hideVoiceHudShells(root) {
+	root.traverse((child) => {
+		if (!child.userData._voiceHudShell) return;
+		const { mesh, mat, baseScale } = child.userData._voiceHudShell;
+		mat.uniforms.uFade.value = 0;
+		mesh.scale.setScalar(baseScale);
+	});
+}
+
+function voiceSpeechEnergy(t) {
+	return (
+		0.52 +
+		Math.sin(t * 11.4) * 0.16 +
+		Math.sin(t * 17.2) * 0.11 +
+		Math.sin(t * 6.8) * 0.13 +
+		Math.sin(t * 23.5) * 0.07
+	);
+}
+
 function randomBoltPoints() {
 	const pts = [];
 	let x = (Math.random() - 0.5) * 2.4;
@@ -203,6 +316,10 @@ const HeroGltfRobot = ({ compact = false }) => {
 	const rafRef = useRef(0);
 	const flashOverlayRef = useRef(null);
 	const clickRingRef = useRef(null);
+	const voiceAuraRef = useRef(null);
+	const voiceRingOuterRef = useRef(null);
+	const voiceRingInnerRef = useRef(null);
+	const voiceScanRef = useRef(null);
 	const triggerClickGlowRef = useRef(() => {});
 	const voiceSpeakingRef = useRef(false);
 
@@ -706,6 +823,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 					});
 					if (!preferPerformance) {
 						attachCircuitTraces(model);
+						attachVoiceHudShells(model);
 					}
 
 					if (!reduceMotion) {
@@ -772,6 +890,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 					!reduceMotion && !inHeroReveal && !inClickGlow && voiceLedFade > 0.02;
 
 				let introShake = 0;
+				const voiceIce = tmpColorA.setRGB(0.08, 0.82, 1.0);
 				const cyanElectric = tmpColorB.setRGB(0.22, 0.98, 0.78);
 
 				if (inHeroReveal) {
@@ -867,23 +986,33 @@ const HeroGltfRobot = ({ compact = false }) => {
 				} else if (inVoiceLed) {
 					voiceMaterialsNeedRestore = true;
 					const fade = voiceLedFade;
-					const pulse = 0.55 + Math.sin(t * 5.4) * 0.28;
+					const energy = voiceSpeechEnergy(t);
+					const pulse = 0.58 + energy * 0.42;
 
-					renderer.toneMappingExposure = baseExposure + fade * pulse * 0.18;
-					rim.intensity = baseRimI * (1 + fade * pulse * 0.22);
-					magenta.intensity =
-						baseMagentaI * (1 + fade * pulse * 0.42);
-					fill.intensity = baseFillPtI * (1 + fade * pulse * 0.28);
-					arcLight.intensity = fade * pulse * 14;
+					renderer.toneMappingExposure = baseExposure + fade * pulse * 0.1;
+					rim.color.setHex(0x7dd3fc);
+					rim.intensity = baseRimI * (1 + fade * pulse * 0.38);
+					magenta.intensity = baseMagentaI * (1 + fade * pulse * 0.06);
+					fill.color.setHex(0x38bdf8);
+					fill.intensity = baseFillPtI * (1 + fade * pulse * 0.22);
+					arcLight.color.setHex(0x22d3ee);
+					arcLight.intensity = fade * pulse * 26;
 					arcLight.position.set(
-						Math.sin(t * 1.8) * 0.9,
-						1.35 + Math.sin(t * 2.4) * 0.12,
-						1.35,
+						Math.sin(t * 1.4) * 0.35,
+						1.05 + Math.sin(t * 2.1) * 0.08,
+						1.55,
 					);
+					boltLight.color.setHex(0x6366f1);
+					boltLight.intensity = fade * energy * 8;
+					boltLight.position.set(0.2, 1.25, 1.45);
+					boltMat.color.setHex(0x67e8f9);
+					boltMat.opacity = fade * energy * 0.22;
+					boltMat2.color.setHex(0x818cf8);
+					boltMat2.opacity = fade * energy * 0.14;
 
 					const root = rayPickCtx.modelRoot;
 					if (root) {
-						updateCircuitTraces(root, t * 1.45, fade * (0.82 + pulse * 0.18));
+						updateVoiceHudShells(root, t * 1.1, fade * (0.88 + energy * 0.12), energy);
 						root.traverse((child) => {
 							if (!child.isMesh || child.userData._isOutlineShell) return;
 							const mats = Array.isArray(child.material)
@@ -893,23 +1022,43 @@ const HeroGltfRobot = ({ compact = false }) => {
 								if (m?.userData?._introEmissive) {
 									m.emissive.lerpColors(
 										m.userData._introEmissive,
-										cyanElectric,
-										fade * pulse * 0.28,
+										voiceIce,
+										fade * pulse * 0.18,
 									);
 									m.emissiveIntensity =
-										m.userData._introEmissiveInt + fade * pulse * 1.8;
+										m.userData._introEmissiveInt + fade * pulse * 1.05;
 								}
 							}
 						});
 					}
 
-					const ring = clickRingRef.current;
-					if (ring) {
-						const spin = t * 95;
-						ring.style.opacity = String(fade * (0.78 + pulse * 0.12));
-						ring.style.transform = `rotate(${spin}deg)`;
-						ring.style.background = `conic-gradient(from ${spin}deg, transparent 0deg, rgba(34,211,238,0.92) 14deg, transparent 28deg, rgba(217,70,239,0.82) 42deg, transparent 58deg, rgba(52,211,153,0.62) 74deg, transparent 90deg, rgba(34,211,238,0.7) 106deg, transparent 122deg, rgba(192,132,252,0.55) 138deg, transparent 154deg)`;
-						ring.style.boxShadow = `0 0 ${28 + pulse * 18}px rgba(34,211,238,0.35), 0 0 ${40 + pulse * 22}px rgba(217,70,239,0.18)`;
+					const fo = flashOverlayRef.current;
+					if (fo) {
+						fo.style.opacity = String(fade * energy * 0.12);
+						fo.style.background =
+							"radial-gradient(ellipse 52% 48% at 50% 42%, rgba(56,189,248,0.28) 0%, rgba(99,102,241,0.08) 42%, transparent 72%)";
+					}
+
+					const aura = voiceAuraRef.current;
+					const ringOuter = voiceRingOuterRef.current;
+					const ringInner = voiceRingInnerRef.current;
+					const scan = voiceScanRef.current;
+					if (aura) aura.style.opacity = String(fade * 0.96);
+					if (ringOuter) {
+						const spin = t * 42;
+						ringOuter.style.transform = `rotate(${spin}deg)`;
+						ringOuter.style.background = `conic-gradient(from ${spin}deg, transparent 0deg, rgba(34,211,238,0.0) 0deg, rgba(34,211,238,0.85) 6deg, rgba(56,189,248,0.55) 10deg, transparent 14deg, transparent 178deg, rgba(99,102,241,0.75) 184deg, rgba(129,140,248,0.45) 188deg, transparent 194deg)`;
+						ringOuter.style.boxShadow = `0 0 ${18 + pulse * 14}px rgba(34,211,238,0.28), inset 0 0 ${12 + pulse * 8}px rgba(56,189,248,0.08)`;
+					}
+					if (ringInner) {
+						const spin = -t * 58;
+						ringInner.style.transform = `rotate(${spin}deg)`;
+						ringInner.style.background = `conic-gradient(from ${spin + 40}deg, transparent 0deg, rgba(129,140,248,0.7) 4deg, transparent 9deg, transparent 210deg, rgba(34,211,238,0.55) 214deg, transparent 220deg)`;
+					}
+					if (scan) {
+						const scanY = 18 + ((Math.sin(t * 0.95) * 0.5 + 0.5) * 58);
+						scan.style.top = `${scanY}%`;
+						scan.style.opacity = String(fade * (0.35 + energy * 0.45));
 					}
 				} else {
 					renderer.toneMappingExposure = baseExposure;
@@ -918,10 +1067,16 @@ const HeroGltfRobot = ({ compact = false }) => {
 					key.intensity = baseKeyI;
 					fillDir.intensity = baseFillDirI;
 					front.intensity = baseFrontI;
+					rim.color.setHex(0xf5d0fe);
 					rim.intensity = baseRimI;
 					bounce.intensity = baseBounceI;
 					magenta.intensity = baseMagentaI;
+					fill.color.setHex(0xc8eeff);
 					fill.intensity = baseFillPtI;
+					arcLight.color.setHex(0xf0abfc);
+					boltLight.color.setHex(0xcffafe);
+					boltMat.color.setHex(0xa5f3fc);
+					boltMat2.color.setHex(0xe879f9);
 					boltLight.intensity = 0;
 					arcLight.intensity = 0;
 					boltMat.opacity = 0;
@@ -941,6 +1096,22 @@ const HeroGltfRobot = ({ compact = false }) => {
 						ring.style.background = "transparent";
 						ring.style.boxShadow = "0 0 24px rgba(34,211,238,0.22)";
 					}
+
+					const aura = voiceAuraRef.current;
+					if (aura) aura.style.opacity = "0";
+					const ringOuter = voiceRingOuterRef.current;
+					const ringInner = voiceRingInnerRef.current;
+					const scan = voiceScanRef.current;
+					if (ringOuter) {
+						ringOuter.style.transform = "rotate(0deg)";
+						ringOuter.style.background = "transparent";
+						ringOuter.style.boxShadow = "none";
+					}
+					if (ringInner) {
+						ringInner.style.transform = "rotate(0deg)";
+						ringInner.style.background = "transparent";
+					}
+					if (scan) scan.style.opacity = "0";
 
 					if (introMaterialsNeedRestore && rayPickCtx.modelRoot) {
 						const root = rayPickCtx.modelRoot;
@@ -966,7 +1137,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 					}
 
 					if (voiceMaterialsNeedRestore && rayPickCtx.modelRoot) {
-						hideCircuitTraces(rayPickCtx.modelRoot);
+						hideVoiceHudShells(rayPickCtx.modelRoot);
 						const root = rayPickCtx.modelRoot;
 						root.traverse((child) => {
 							if (!child.isMesh || child.userData._isOutlineShell) return;
@@ -1310,6 +1481,52 @@ const HeroGltfRobot = ({ compact = false }) => {
 					}}
 					aria-hidden
 				/>
+				<div
+					ref={voiceAuraRef}
+					className="pointer-events-none absolute inset-0 z-[6] opacity-0 will-change-opacity"
+					aria-hidden
+				>
+					<div
+						ref={voiceRingOuterRef}
+						className="absolute inset-[5%] will-change-transform"
+						style={{
+							borderRadius: "38%",
+							padding: "1px",
+							WebkitMask:
+								"linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+							WebkitMaskComposite: "xor",
+							maskComposite: "exclude",
+						}}
+					/>
+					<div
+						ref={voiceRingInnerRef}
+						className="absolute inset-[11%] will-change-transform"
+						style={{
+							borderRadius: "36%",
+							padding: "1px",
+							WebkitMask:
+								"linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+							WebkitMaskComposite: "xor",
+							maskComposite: "exclude",
+						}}
+					/>
+					<div
+						ref={voiceScanRef}
+						className="absolute left-[8%] right-[8%] h-px opacity-0 will-change-[top,opacity]"
+						style={{
+							background:
+								"linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.15) 12%, rgba(56,189,248,0.95) 50%, rgba(99,102,241,0.15) 88%, transparent 100%)",
+							boxShadow: "0 0 12px rgba(56,189,248,0.55), 0 0 24px rgba(99,102,241,0.2)",
+						}}
+					/>
+					<div className="absolute left-[11%] top-[15%] h-5 w-5 border-l border-t border-cyan-400/70" />
+					<div className="absolute right-[11%] top-[15%] h-5 w-5 border-r border-t border-cyan-400/70" />
+					<div className="absolute bottom-[18%] left-[11%] h-5 w-5 border-b border-l border-indigo-400/60" />
+					<div className="absolute bottom-[18%] right-[11%] h-5 w-5 border-b border-r border-indigo-400/60" />
+					<div className="absolute left-1/2 top-[9%] -translate-x-1/2 font-mono text-[8px] font-medium uppercase tracking-[0.28em] text-cyan-300/75">
+						voice.sys
+					</div>
+				</div>
 				<div
 					ref={flashOverlayRef}
 					className="pointer-events-none absolute inset-0 z-[5] opacity-0"
