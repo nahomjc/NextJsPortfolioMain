@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import HeroRobotIntroModal from "./HeroRobotIntroModal";
+import HeroVoiceAgentModal from "./HeroVoiceAgentModal";
 import { HUD_DEFAULT_VARIANT, pickHudVariantKey } from "./heroRobotHudVariants";
 import {
 	bindVisibilityPause,
@@ -174,7 +174,7 @@ function disposeObject3D(obj) {
 	});
 }
 
-const HeroGltfRobot = () => {
+const HeroGltfRobot = ({ compact = false }) => {
 	const wrapRef = useRef(null);
 	const pivotRef = useRef(null);
 	const [loaded, setLoaded] = useState(false);
@@ -1054,9 +1054,11 @@ const HeroGltfRobot = () => {
 	return (
 		<>
 			<div
-				className={`relative z-20 mx-auto h-[min(500px,76vw)] w-full max-w-3xl transition-opacity duration-500 md:h-[min(580px,56vh)] lg:h-[min(620px,60vh)] ${
-					loaded ? "opacity-100" : "opacity-40"
-				}`}
+				className={`relative z-20 transition-opacity duration-500 ${
+					compact
+						? "h-[min(168px,38vw)] w-[min(168px,38vw)] sm:h-[190px] sm:w-[190px]"
+						: "mx-auto h-[min(500px,76vw)] w-full max-w-3xl md:h-[min(580px,56vh)] lg:h-[min(620px,60vh)]"
+				} ${loaded ? "opacity-100" : "opacity-40"}`}
 				onPointerEnter={() => setHoverRobot(true)}
 				onPointerLeave={() => setHoverRobot(false)}
 			>
@@ -1142,18 +1144,18 @@ const HeroGltfRobot = () => {
 									<span className="text-fuchsia-600/90 dark:text-fuchsia-400/90">
 										&gt;
 									</span>{" "}
-									You can click on me
+									Talk to me
 								</p>
 								<div className="mt-2 flex items-center gap-1.5 border-t border-slate-200/80 pt-2 font-mono text-[9px] tracking-wider text-slate-500 dark:border-white/10">
 									<span className="inline-block h-px w-3 bg-cyan-400/60" />
-									<span>OPEN_BRIEFING</span>
+									<span>VOICE_LINK</span>
 								</div>
 							</div>
 						</motion.div>
 					) : null}
 				</AnimatePresence>
 			</div>
-			<HeroRobotIntroModal
+			<HeroVoiceAgentModal
 				open={introOpen}
 				anchor={introAnchor}
 				onClose={() => setIntroOpen(false)}
