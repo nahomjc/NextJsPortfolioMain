@@ -211,6 +211,9 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 	const processingRef = useRef(false);
 	const greetedRef = useRef(false);
 	const openRef = useRef(open);
+	const handleUtteranceRef = useRef(null);
+	const speakTextRef = useRef(null);
+	const closeVoiceSessionRef = useRef(null);
 
 	const reduceMotion =
 		typeof window !== "undefined" &&
@@ -258,12 +261,24 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 		setAgentState("speaking");
 		setPausedListening(true);
 
+		const speakBrowser = async () => {
+			if (typeof window !== "undefined" && window.speechSynthesis) {
+				await playbackRef.current.speakWithBrowser(text);
+				return true;
+			}
+			return false;
+		};
+
 		try {
+			const controller = new AbortController();
+			const timeout = window.setTimeout(() => controller.abort(), 15000);
 			const res = await fetch("/api/speech", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ text }),
+				signal: controller.signal,
 			});
+			window.clearTimeout(timeout);
 			if (!res.ok) {
 				const data = await res.json().catch(() => ({}));
 				const err = new Error(data.error || "Speech synthesis failed.");
@@ -274,16 +289,14 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 			if (!chunks?.length) {
 				throw new Error("No audio returned.");
 			}
-			await playbackRef.current.playWavChunks(chunks);
-		} catch (groqErr) {
-			if (typeof window !== "undefined" && window.speechSynthesis) {
-				try {
-					await playbackRef.current.speakWithBrowser(text);
-					return;
-				} catch {
-					// fall through to surface Groq error
-				}
+			try {
+				await playbackRef.current.playWavChunks(chunks);
+			} catch {
+				if (await speakBrowser()) return;
+				throw new Error("Could not play audio.");
 			}
+		} catch (groqErr) {
+			if (await speakBrowser()) return;
 			throw groqErr;
 		}
 	}, [setPausedListening]);
@@ -481,6 +494,12 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 	);
 
 	useEffect(() => {
+		handleUtteranceRef.current = handleUtterance;
+		speakTextRef.current = speakText;
+		closeVoiceSessionRef.current = closeVoiceSession;
+	}, [handleUtterance, speakText, closeVoiceSession]);
+
+	useEffect(() => {
 		openRef.current = open;
 	}, [open]);
 
@@ -528,11 +547,11 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 
 		const session = createVoiceSession({
 			onUtterance: (blob, mimeType) => {
-				if (!cancelled) handleUtterance(blob, mimeType);
+				if (!cancelled) handleUtteranceRef.current?.(blob, mimeType);
 			},
 			onIdleTimeout: () => {
 				if (cancelled || processingRef.current) return;
-				closeVoiceSession();
+				closeVoiceSessionRef.current?.();
 			},
 			onError: (err) => {
 				if (cancelled) return;
@@ -556,27 +575,33 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 
 		(async () => {
 			setAgentState("initializing");
+			setErrorMessage("");
 			try {
 				await session.start();
 				if (cancelled) return;
 				setPausedListening(true);
-
-				if (!greetedRef.current) {
-					greetedRef.current = true;
-					setLastAssistantText(VOICE_GREETING);
-					try {
-						await speakText(VOICE_GREETING);
-					} catch {
-						// greeting TTS is optional; text fallback is shown
-					}
-				}
-
-				if (!cancelled) {
-					setAgentState("listening");
-					setPausedListening(false);
+				setLastAssistantText(VOICE_GREETING);
+				try {
+					await speakTextRef.current?.(VOICE_GREETING);
+				} catch (speechErr) {
+					const hint =
+						speechErr?.code === "model_terms_required"
+							? " Accept Orpheus terms in Groq Console for Groq voices."
+							: "";
+					setErrorMessage(
+						`${speechErr?.message || "Could not play greeting."} Read the text below.${hint}`,
+					);
 				}
 			} catch {
-				// onError handler sets UI state
+				// onError handler sets mic_denied / error state
+			} finally {
+				if (!cancelled) {
+					greetedRef.current = true;
+					setAgentState((state) =>
+						state === "mic_denied" || state === "error" ? state : "listening",
+					);
+					setPausedListening(false);
+				}
 			}
 		})();
 
@@ -586,7 +611,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 			session.destroy();
 			sessionRef.current = null;
 		};
-	}, [open, handleUtterance, speakText, setPausedListening, closeVoiceSession]);
+	}, [open, setPausedListening]);
 
 	if (!mounted) return null;
 
