@@ -174,6 +174,14 @@ function disposeObject3D(obj) {
 	});
 }
 
+function cameraDistanceToFit(halfW, halfH, fovDeg, aspect, margin = 1.24) {
+	const vFov = THREE.MathUtils.degToRad(fovDeg);
+	const distH = (halfH * margin) / Math.tan(vFov * 0.5);
+	const hFov = 2 * Math.atan(Math.tan(vFov * 0.5) * aspect);
+	const distW = (halfW * margin) / Math.tan(hFov * 0.5);
+	return Math.max(distH, distW);
+}
+
 const HeroGltfRobot = ({ compact = false }) => {
 	const wrapRef = useRef(null);
 	const pivotRef = useRef(null);
@@ -185,8 +193,13 @@ const HeroGltfRobot = ({ compact = false }) => {
 	const reduceMotionUi = useReducedMotion();
 	const setIntroOpenRef = useRef(setIntroOpen);
 	const setIntroAnchorRef = useRef(setIntroAnchor);
+	const introOpenRef = useRef(false);
 	setIntroOpenRef.current = setIntroOpen;
 	setIntroAnchorRef.current = setIntroAnchor;
+
+	useEffect(() => {
+		introOpenRef.current = introOpen;
+	}, [introOpen]);
 	const rafRef = useRef(0);
 	const flashOverlayRef = useRef(null);
 	const clickRingRef = useRef(null);
@@ -377,6 +390,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 			};
 
 			const onPointerMove = (e) => {
+				if (introOpenRef.current) return;
 				if (reduceMotion) return;
 				if (
 					(e.pointerType === "mouse" || e.pointerType === "pen") &&
@@ -437,6 +451,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 			};
 
 			const onPointerDown = (e) => {
+				if (introOpenRef.current) return;
 				if (reduceMotion) return;
 				pingActivity();
 				lastActivityX = e.clientX;
@@ -533,10 +548,17 @@ const HeroGltfRobot = ({ compact = false }) => {
 			wrap.addEventListener("pointercancel", onPointerCancel);
 
 			const scene = new THREE.Scene();
-			const camera = new THREE.PerspectiveCamera(48, 1, 0.05, 100);
-			camera.position.set(0, 0.05, 4.48);
+			const camRestFov = 48;
+			const camFocusFov = 50;
+			const camera = new THREE.PerspectiveCamera(camRestFov, 1, 0.05, 100);
+			const camRestZ = 4.48;
+			const camRestY = 0.05;
+			const camLookY = 0.38;
+			const camFocusLookY = 0.22;
+			let modelFrame = { halfW: 1.15, halfH: 1.35 };
+			camera.position.set(0, camRestY, camRestZ);
 			/* Look above origin so the GLB sits lower — head clear of canvas top + fixed navbar */
-			camera.lookAt(0, 0.38, 0);
+			camera.lookAt(0, camLookY, 0);
 			rayPickCtx.camera = camera;
 
 			renderer.setPixelRatio(
@@ -656,6 +678,13 @@ const HeroGltfRobot = ({ compact = false }) => {
 					model.scale.setScalar(4.35 / maxDim);
 					pivot.add(model);
 					rayPickCtx.modelRoot = model;
+
+					const fittedBox = new THREE.Box3().setFromObject(model);
+					const fittedSize = fittedBox.getSize(new THREE.Vector3());
+					modelFrame = {
+						halfW: fittedSize.x * 0.5,
+						halfH: fittedSize.y * 0.5,
+					};
 
 					model.traverse((child) => {
 						if (!child.isMesh || child.userData._isOutlineShell) return;
@@ -880,9 +909,11 @@ const HeroGltfRobot = ({ compact = false }) => {
 				const mouseOrbiting =
 					captureId !== null &&
 					(activePointerType === "mouse" || activePointerType === "pen");
-				const ptrOn = pointerInfluence();
+				const voiceFocus = introOpenRef.current;
+				const ptrOn = voiceFocus ? false : pointerInfluence();
 				const pointerQuietMs = performance.now() - lastPointerActivityAt;
 				const canIdleSpin =
+					!voiceFocus &&
 					!reduceMotion &&
 					!mouseOrbiting &&
 					!touchDragging &&
@@ -899,7 +930,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 					dragPitchAcc = THREE.MathUtils.damp(dragPitchAcc, 0, 5.5, dt);
 				}
 				/** After orbit / idle spin, ease back to front when cursor is active (not dragging) */
-				if (!mouseOrbiting && !touchDragging && ptrOn) {
+				if (!voiceFocus && !mouseOrbiting && !touchDragging && ptrOn) {
 					dragYawAcc = normalizeYaw(dragYawAcc);
 					idleAutoYaw = normalizeYaw(idleAutoYaw);
 					const faceFrontLambda = 8.5;
@@ -918,7 +949,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 				}
 
 				const srcNdc = rawNdcFrozen ?? rawNdc;
-				const active = !reduceMotion && ptrOn;
+				const active = !reduceMotion && !voiceFocus && ptrOn;
 				let targetYaw = 0;
 				let targetPitch = 0;
 				let targetRoll = 0;
@@ -956,9 +987,62 @@ const HeroGltfRobot = ({ compact = false }) => {
 				parallaxX = THREE.MathUtils.damp(parallaxX, targetPx, followLambda, dt);
 				parallaxY = THREE.MathUtils.damp(parallaxY, targetPy, followLambda, dt);
 
+				const focusLambda = 11;
+				const targetFov = voiceFocus ? camFocusFov : camRestFov;
+				camera.fov = THREE.MathUtils.damp(camera.fov, targetFov, focusLambda, dt);
+				camera.updateProjectionMatrix();
+
+				if (voiceFocus) {
+					dragYawAcc = THREE.MathUtils.damp(dragYawAcc, 0, focusLambda, dt);
+					idleAutoYaw = THREE.MathUtils.damp(idleAutoYaw, 0, focusLambda, dt);
+					cursorYaw = THREE.MathUtils.damp(cursorYaw, 0, focusLambda, dt);
+					cursorPitch = THREE.MathUtils.damp(cursorPitch, 0, focusLambda, dt);
+					cursorRoll = THREE.MathUtils.damp(cursorRoll, 0, focusLambda, dt);
+					parallaxX = THREE.MathUtils.damp(parallaxX, 0, focusLambda, dt);
+					parallaxY = THREE.MathUtils.damp(parallaxY, 0, focusLambda, dt);
+					const aspect = Math.max(camera.aspect, 0.75);
+					const fitZ = cameraDistanceToFit(
+						modelFrame.halfW,
+						modelFrame.halfH,
+						camera.fov,
+						aspect,
+						1.26,
+					);
+					const camFocusZ = THREE.MathUtils.clamp(fitZ, 3.5, camRestZ - 0.15);
+					camera.position.z = THREE.MathUtils.damp(
+						camera.position.z,
+						camFocusZ,
+						focusLambda,
+						dt,
+					);
+					camera.position.y = THREE.MathUtils.damp(
+						camera.position.y,
+						camRestY,
+						focusLambda,
+						dt,
+					);
+					camera.lookAt(0, camFocusLookY, 0);
+				} else {
+					camera.position.z = THREE.MathUtils.damp(
+						camera.position.z,
+						camRestZ,
+						6.5,
+						dt,
+					);
+					camera.position.y = THREE.MathUtils.damp(
+						camera.position.y,
+						camRestY,
+						6.5,
+						dt,
+					);
+					camera.fov = THREE.MathUtils.damp(camera.fov, camRestFov, 6.5, dt);
+					camera.updateProjectionMatrix();
+					camera.lookAt(0, camLookY, 0);
+				}
+
 				if (pivotRef.current) {
 					/** Bob / wiggle only before first mouse/pen move or when touch is outside hero */
-					const idleMotion = !reduceMotion && !ptrOn;
+					const idleMotion = !reduceMotion && !ptrOn && !voiceFocus;
 					const bobY = idleMotion ? Math.sin(t * 1.15) * 0.035 : 0;
 
 					if (reduceMotion) {
@@ -966,6 +1050,38 @@ const HeroGltfRobot = ({ compact = false }) => {
 						pivotRef.current.rotation.y = 0.15;
 						pivotRef.current.rotation.x = 0;
 						pivotRef.current.rotation.z = 0;
+					} else if (voiceFocus) {
+						pivotRef.current.position.x = THREE.MathUtils.damp(
+							pivotRef.current.position.x,
+							0,
+							focusLambda,
+							dt,
+						);
+						pivotRef.current.position.y = THREE.MathUtils.damp(
+							pivotRef.current.position.y,
+							0,
+							focusLambda,
+							dt,
+						);
+						pivotRef.current.position.z = 0;
+						pivotRef.current.rotation.y = THREE.MathUtils.damp(
+							pivotRef.current.rotation.y,
+							0,
+							focusLambda,
+							dt,
+						);
+						pivotRef.current.rotation.x = THREE.MathUtils.damp(
+							pivotRef.current.rotation.x,
+							0,
+							focusLambda,
+							dt,
+						);
+						pivotRef.current.rotation.z = THREE.MathUtils.damp(
+							pivotRef.current.rotation.z,
+							0,
+							focusLambda,
+							dt,
+						);
 					} else {
 						const wigglePitch = idleMotion ? Math.sin(t * 0.42) * 0.05 : 0;
 						const wiggleRoll = idleMotion ? Math.sin(t * 0.22) * 0.04 : 0;
