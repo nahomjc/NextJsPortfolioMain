@@ -4,8 +4,8 @@ import { sanitizeSpeechText } from "../../lib/sanitizeSpeechText";
 const GROQ_SPEECH_URL = "https://api.groq.com/openai/v1/audio/speech";
 
 const DEFAULT_TTS_MODEL = "canopylabs/orpheus-v1-english";
-// Male US-style Orpheus voices: austin (default), troy, daniel
-const DEFAULT_TTS_VOICE = "austin";
+// Male US Orpheus voices: troy (default), austin, daniel
+const DEFAULT_TTS_VOICE = "troy";
 const ALLOWED_VOICES = new Set([
 	"autumn",
 	"diana",

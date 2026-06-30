@@ -7,6 +7,7 @@ import { PHONE_TEL_HREF } from "../lib/contactConfig";
 import { detectCallIntent, detectScheduleIntent } from "../lib/voiceIntents";
 import {
 	createScheduleSession,
+	getScheduleSnapshot,
 	processScheduleInput,
 	resetSchedule,
 	startSchedule,
@@ -17,7 +18,7 @@ import { createVoiceSession } from "../lib/voiceCapture";
 import { createVoicePlayback } from "../lib/voicePlayback";
 
 const POP_W = 320;
-const POP_H_EST = 300;
+const POP_H_EST = 380;
 const PAD = 10;
 
 const VOICE_GREETING =
@@ -141,6 +142,58 @@ function StatusOrb({ state, reduceMotion }) {
 	);
 }
 
+function BookingPanel({ snapshot }) {
+	if (!snapshot?.active) return null;
+	const { progress, name, email, phone, day, timeWindow, topic } = snapshot;
+
+	return (
+		<div className="rounded-sm border border-violet-500/25 bg-violet-950/20 px-2.5 py-2">
+			<p className="text-[9px] uppercase tracking-wider text-violet-400/90">
+				Booking · step {progress.step} of {progress.total}
+				{progress.label ? ` — ${progress.label}` : ""}
+			</p>
+			<dl className="mt-1.5 space-y-0.5 text-[10px] text-slate-300">
+				{name ? (
+					<div className="flex gap-2">
+						<dt className="text-slate-500">Name</dt>
+						<dd className="min-w-0 truncate text-slate-100">{name}</dd>
+					</div>
+				) : null}
+				{email ? (
+					<div className="flex gap-2">
+						<dt className="text-slate-500">Email</dt>
+						<dd className="min-w-0 break-all text-cyan-200/95">{email}</dd>
+					</div>
+				) : null}
+				{phone ? (
+					<div className="flex gap-2">
+						<dt className="text-slate-500">Phone</dt>
+						<dd className="text-slate-100">{phone}</dd>
+					</div>
+				) : null}
+				{day ? (
+					<div className="flex gap-2">
+						<dt className="text-slate-500">Day</dt>
+						<dd className="text-slate-100">{day}</dd>
+					</div>
+				) : null}
+				{timeWindow ? (
+					<div className="flex gap-2">
+						<dt className="text-slate-500">Time</dt>
+						<dd className="text-slate-100">{timeWindow}</dd>
+					</div>
+				) : null}
+				{topic ? (
+					<div className="flex gap-2">
+						<dt className="text-slate-500">Topic</dt>
+						<dd className="min-w-0 text-slate-100">{topic}</dd>
+					</div>
+				) : null}
+			</dl>
+		</div>
+	);
+}
+
 const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 	const [mounted, setMounted] = useState(false);
 	const [, setLayoutVersion] = useState(0);
@@ -148,6 +201,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 	const [lastUserText, setLastUserText] = useState("");
 	const [lastAssistantText, setLastAssistantText] = useState(VOICE_GREETING);
 	const [errorMessage, setErrorMessage] = useState("");
+	const [scheduleSnapshot, setScheduleSnapshot] = useState(null);
 	const { openChat } = useDockActions();
 
 	const messagesRef = useRef([]);
@@ -246,6 +300,10 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 		[speakText, setPausedListening],
 	);
 
+	const syncScheduleHud = useCallback(() => {
+		setScheduleSnapshot(getScheduleSnapshot(scheduleRef.current));
+	}, []);
+
 	const handleScheduleTurn = useCallback(
 		async (trimmed) => {
 			setLastUserText(trimmed);
@@ -253,12 +311,14 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 			setPausedListening(true);
 
 			const result = processScheduleInput(scheduleRef.current, trimmed);
+			syncScheduleHud();
 
 			if (result.kind === "submit") {
 				setAgentState("thinking");
 				try {
 					await submitVoiceAppointment(result.data);
 					resetSchedule(scheduleRef.current);
+					setScheduleSnapshot(null);
 					await speakAndResume(
 						"Done! Your request is in Nahom's inbox. He usually replies within a day or two.",
 					);
@@ -276,7 +336,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 				return;
 			}
 		},
-		[speakAndResume, setPausedListening],
+		[speakAndResume, setPausedListening, syncScheduleHud],
 	);
 
 	const handleUtterance = useCallback(
@@ -333,6 +393,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 
 				if (detectScheduleIntent(trimmed)) {
 					const reply = startSchedule(scheduleRef.current);
+					syncScheduleHud();
 					setLastAssistantText(reply);
 					setAgentState("scheduling");
 					try {
@@ -400,7 +461,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 				processingRef.current = false;
 			}
 		},
-		[speakText, setPausedListening, handleScheduleTurn],
+		[speakText, setPausedListening, handleScheduleTurn, syncScheduleHud],
 	);
 
 	useEffect(() => {
@@ -434,6 +495,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 			greetedRef.current = false;
 			messagesRef.current = [];
 			resetSchedule(scheduleRef.current);
+			setScheduleSnapshot(null);
 			setAgentState("initializing");
 			setLastUserText("");
 			setLastAssistantText(VOICE_GREETING);
@@ -653,6 +715,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 										id="hero-voice-hud-body"
 										className="space-y-2 font-mono text-[11px] leading-relaxed sm:text-xs"
 									>
+										<BookingPanel snapshot={scheduleSnapshot} />
 										{lastUserText ? (
 											<div className="rounded-sm border border-fuchsia-500/20 bg-fuchsia-950/20 px-2.5 py-2 text-slate-100/95">
 												<p className="text-[9px] uppercase tracking-wider text-fuchsia-400/80">
