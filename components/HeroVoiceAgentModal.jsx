@@ -16,6 +16,11 @@ import {
 } from "../lib/voiceScheduleFlow";
 import { createVoiceSession } from "../lib/voiceCapture";
 import { createVoicePlayback } from "../lib/voicePlayback";
+import {
+	isGroqTtsFallbackCode,
+	markGroqTtsRateLimited,
+	prefersBrowserTts,
+} from "../lib/voiceTtsRoute";
 
 const POP_W = 320;
 const POP_H_EST = 380;
@@ -269,6 +274,11 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 			return false;
 		};
 
+		if (prefersBrowserTts()) {
+			if (await speakBrowser()) return;
+			throw new Error("Browser speech is not available.");
+		}
+
 		try {
 			const controller = new AbortController();
 			const timeout = window.setTimeout(() => controller.abort(), 15000);
@@ -281,6 +291,9 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 			window.clearTimeout(timeout);
 			if (!res.ok) {
 				const data = await res.json().catch(() => ({}));
+				if (data.code === "rate_limit_exceeded") {
+					markGroqTtsRateLimited(data.retryAfterSeconds);
+				}
 				const err = new Error(data.error || "Speech synthesis failed.");
 				err.code = data.code;
 				throw err;
@@ -307,6 +320,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 			try {
 				await speakText(reply);
 			} catch (speechErr) {
+				if (isGroqTtsFallbackCode(speechErr.code)) return;
 				const hint =
 					speechErr.code === "model_terms_required"
 						? " Accept Orpheus terms in Groq Console for Groq voices."
@@ -468,6 +482,9 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 				try {
 					await speakText(reply);
 				} catch (speechErr) {
+					if (isGroqTtsFallbackCode(speechErr.code)) {
+						// Browser TTS fallback failed; show error below.
+					} else {
 					const hint =
 						speechErr.code === "model_terms_required"
 							? " Accept Orpheus terms in Groq Console for Groq voices."
@@ -477,6 +494,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							" Read the reply below." +
 							hint,
 					);
+					}
 				}
 
 				if (openRef.current) {

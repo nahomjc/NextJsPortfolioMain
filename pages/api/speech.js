@@ -15,10 +15,28 @@ const ALLOWED_VOICES = new Set([
 	"troy",
 ]);
 
+function parseGroqRetrySeconds(message) {
+	if (!message || typeof message !== "string") return 3600;
+	const m = message.match(/try again in (?:(\d+)m)?(\d+)s/i);
+	if (!m) return 3600;
+	const minutes = m[1] ? Number(m[1]) : 0;
+	const seconds = Number(m[2]) || 0;
+	return Math.max(60, minutes * 60 + seconds);
+}
+
 function groqErrorMessage(status, detail) {
 	try {
 		const parsed = JSON.parse(detail);
 		const code = parsed?.error?.code;
+		const message = parsed?.error?.message;
+		if (code === "rate_limit_exceeded" || status === 429) {
+			return {
+				error: "Groq voice quota reached. Using browser voice instead.",
+				code: "rate_limit_exceeded",
+				fallback: "browser",
+				retryAfterSeconds: parseGroqRetrySeconds(message),
+			};
+		}
 		if (code === "model_terms_required") {
 			return {
 				error:
@@ -53,6 +71,18 @@ export default async function handler(req, res) {
 		return res.status(503).json({
 			error: "Voice synthesis is not configured. Add GROQ_API_KEY to your environment.",
 			code: "missing_groq_key",
+			fallback: "browser",
+		});
+	}
+
+	const groqTtsDisabled =
+		process.env.GROQ_TTS_DISABLED === "1" ||
+		process.env.GROQ_TTS_DISABLED === "true";
+	if (groqTtsDisabled) {
+		return res.status(503).json({
+			error: "Groq TTS disabled — use browser voice.",
+			code: "tts_disabled",
+			fallback: "browser",
 		});
 	}
 
@@ -94,7 +124,11 @@ export default async function handler(req, res) {
 				const detail = await upstream.text();
 				console.error("Groq TTS error:", upstream.status, detail);
 				const err = groqErrorMessage(upstream.status, detail);
-				return res.status(502).json(err);
+				const statusCode =
+					upstream.status === 429 || err.code === "rate_limit_exceeded"
+						? 429
+						: 502;
+				return res.status(statusCode).json(err);
 			}
 
 			const buffer = Buffer.from(await upstream.arrayBuffer());
