@@ -390,8 +390,14 @@ html.intro-loading body {
 	animation: gradient-shift 4s ease infinite;
 }
 
+html {
+	overflow-x: clip;
+	max-width: 100%;
+}
+
 body {
-	overflow-x: hidden;
+	overflow-x: clip;
+	max-width: 100%;
 }
 
 @keyframes bounce {
@@ -821,6 +827,7 @@ html.lenis.lenis-stopped {
 /* Who I Am — identity scroll theatre */
 .about-hero-perspective {
 	perspective: 1000px;
+	overflow-x: clip;
 }
 
 .about-title-word,
@@ -1815,6 +1822,12 @@ html.lenis.lenis-stopped {
 		scroll-padding-inline: 0.5rem;
 	}
 
+	.dock-scroll--mobile {
+		width: 100%;
+		justify-content: center;
+		overflow-x: visible;
+	}
+
 	.dock-scroll .dock-item {
 		scroll-snap-align: start;
 	}
@@ -1835,8 +1848,9 @@ html.lenis.lenis-stopped {
 	}
 
 	.dock-shelf {
-		width: max-content;
-		max-width: calc(100vw - 2rem);
+		width: fit-content;
+		max-width: calc(100% - 1rem);
+		margin-inline: auto;
 	}
 
 	.dock-item {

@@ -584,7 +584,7 @@ const About = () => {
 					.from(
 						".about-hero-tag",
 						{
-							x: 36,
+							x: 16,
 							opacity: 0,
 							stagger: 0.12,
 							duration: 0.55,
@@ -1073,11 +1073,11 @@ const About = () => {
 				aria-hidden
 			/>
 			<div
-				className="pointer-events-none absolute -left-1/3 top-0 h-[min(100vw,800px)] w-[min(100vw,800px)] rounded-full bg-cyan-400/10 blur-[130px] dark:bg-cyan-500/14"
+				className="pointer-events-none absolute left-0 top-0 h-[min(80vw,600px)] w-[min(80vw,600px)] -translate-x-1/4 rounded-full bg-cyan-400/10 blur-[130px] dark:bg-cyan-500/14"
 				aria-hidden
 			/>
 			<div
-				className="pointer-events-none absolute -right-1/4 bottom-0 h-[min(80vw,600px)] w-[min(80vw,600px)] rounded-full bg-fuchsia-500/8 blur-[110px] dark:bg-fuchsia-500/12"
+				className="pointer-events-none absolute right-0 bottom-0 h-[min(70vw,500px)] w-[min(70vw,500px)] translate-x-1/4 rounded-full bg-fuchsia-500/8 blur-[110px] dark:bg-fuchsia-500/12"
 				aria-hidden
 			/>
 

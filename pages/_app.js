@@ -58,7 +58,7 @@ function MyApp({ Component, pageProps }) {
 				) : null}
 				<motion.div
 					key="app-shell"
-					className={`relative min-h-screen pb-[4.25rem] sm:pb-[5.75rem] ${
+					className={`relative min-h-screen overflow-x-clip pb-[4.25rem] sm:pb-[5.75rem] ${
 						isLoading ? "invisible h-0 overflow-hidden" : ""
 					}`}
 					aria-hidden={isLoading}

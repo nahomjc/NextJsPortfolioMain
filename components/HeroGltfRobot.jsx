@@ -1178,7 +1178,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 				className={`relative z-20 transition-opacity duration-500 ${
 					compact
 						? "h-[min(168px,38vw)] w-[min(168px,38vw)] sm:h-[190px] sm:w-[190px]"
-						: "mx-auto h-[min(500px,76vw)] w-full max-w-3xl md:h-[min(580px,56vh)] lg:h-[min(620px,60vh)]"
+						: "mx-auto h-[min(280px,62vw)] w-full max-w-[min(100%,20rem)] sm:h-[min(360px,58vw)] sm:max-w-md md:h-[min(500px,76vw)] md:max-w-3xl lg:h-[min(620px,60vh)]"
 				} ${loaded ? "opacity-100" : "opacity-40"}`}
 				onPointerEnter={() => setHoverRobot(true)}
 				onPointerLeave={() => setHoverRobot(false)}

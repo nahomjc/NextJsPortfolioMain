@@ -110,7 +110,7 @@ export default function Home() {
 				/>
 			</Head>
 
-			<main className="relative min-h-screen">
+			<main className="relative min-h-screen overflow-x-clip">
 				<Main />
 				<AIChat />
 				<About />

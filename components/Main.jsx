@@ -693,7 +693,7 @@ const Main = () => {
 		<div
 			id="home"
 			ref={heroRef}
-			className="hero-section hero-theatre relative flex w-full items-center overflow-x-hidden overflow-y-visible bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 pb-8 pt-12 text-slate-900 md:pb-12 md:pt-16 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
+			className="hero-section hero-theatre relative flex w-full items-center overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 pb-6 pt-12 text-slate-900 max-lg:min-h-0 md:pb-12 md:pt-16 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
 		>
 			<HeroInteractiveLayer
 				containerRef={heroRef}
@@ -754,7 +754,7 @@ const Main = () => {
 			/>
 			<div
 				ref={orbFuchsiaRef}
-				className="pointer-events-none absolute -right-[20%] top-1/2 z-0 h-[min(120vw,840px)] w-[min(120vw,840px)] -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(192,38,211,0.18),rgba(124,58,237,0.08)_45%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(192,38,211,0.42),rgba(124,58,237,0.14)_45%,transparent_68%)]"
+				className="pointer-events-none absolute right-0 top-1/2 z-0 h-[min(90vw,520px)] w-[min(90vw,520px)] -translate-y-1/2 translate-x-[12%] rounded-full bg-[radial-gradient(circle_at_center,rgba(192,38,211,0.18),rgba(124,58,237,0.08)_45%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(192,38,211,0.42),rgba(124,58,237,0.14)_45%,transparent_68%)]"
 				aria-hidden
 			/>
 			<div
@@ -763,7 +763,7 @@ const Main = () => {
 				aria-hidden
 			/>
 			<div
-				className="pointer-events-none absolute left-[-8%] top-1/3 z-0 h-[min(70vw,520px)] w-[min(70vw,520px)] -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.12),transparent_62%)] blur-3xl motion-reduce:hidden dark:bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.14),transparent_62%)]"
+				className="pointer-events-none absolute left-0 top-1/3 z-0 h-[min(55vw,420px)] w-[min(55vw,420px)] -translate-x-[8%] -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.12),transparent_62%)] blur-3xl motion-reduce:hidden dark:bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.14),transparent_62%)]"
 				aria-hidden
 			/>
 			<HeroSparkles offsetX={sparkleOffset.x} offsetY={sparkleOffset.y} />
@@ -792,7 +792,7 @@ const Main = () => {
 				ref={heroInnerRef}
 				className="hero-inner relative z-10 mx-auto w-full min-h-0 max-h-full max-w-6xl will-change-transform"
 			>
-				<div className="grid w-full min-h-0 max-h-full gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-10 lg:py-0">
+				<div className="grid w-full min-h-0 max-h-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-10 lg:py-0">
 					<div
 						ref={contentRef}
 						className="relative order-2 flex min-h-0 flex-col text-center [perspective:1200px] lg:order-1 lg:min-h-0 lg:text-left"
@@ -943,7 +943,7 @@ const Main = () => {
 
 					<div
 						ref={robotColRef}
-						className="hero-robot-col relative order-1 flex min-h-[min(320px,52vw)] items-center justify-center pt-8 opacity-0 sm:pt-10 lg:order-2 lg:min-h-0 lg:pt-8"
+						className="hero-robot-col relative order-1 flex min-h-0 items-center justify-center pt-4 opacity-0 max-lg:min-h-0 sm:pt-6 lg:order-2 lg:min-h-0 lg:pt-8"
 						style={{ transformStyle: "preserve-3d", perspective: 1200 }}
 					>
 						<div

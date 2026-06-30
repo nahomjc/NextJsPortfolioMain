@@ -799,7 +799,7 @@ const Navbar = () => {
 
 		>
 
-			<div className="dock-shelf relative w-max max-w-[calc(100vw-1rem)] overflow-visible sm:max-w-[calc(100vw-1.5rem)]">
+			<div className="dock-shelf relative mx-auto w-max max-w-[calc(100%-1rem)] overflow-visible sm:max-w-[calc(100vw-1.5rem)]">
 
 				<div className="dock-shelf-bg pointer-events-none absolute inset-0" aria-hidden />
 
