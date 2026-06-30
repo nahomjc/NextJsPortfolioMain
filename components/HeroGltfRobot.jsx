@@ -939,6 +939,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 						ring.style.opacity = "0";
 						ring.style.transform = "rotate(0deg)";
 						ring.style.background = "transparent";
+						ring.style.boxShadow = "0 0 24px rgba(34,211,238,0.22)";
 					}
 
 					if (introMaterialsNeedRestore && rayPickCtx.modelRoot) {
@@ -980,11 +981,6 @@ const HeroGltfRobot = ({ compact = false }) => {
 							}
 						});
 						voiceMaterialsNeedRestore = false;
-					}
-
-					const ring = clickRingRef.current;
-					if (ring && voiceLedFade <= 0.02) {
-						ring.style.boxShadow = "0 0 24px rgba(34,211,238,0.22)";
 					}
 				}
 
