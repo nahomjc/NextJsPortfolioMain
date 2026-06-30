@@ -194,7 +194,7 @@ function BookingPanel({ snapshot }) {
 	);
 }
 
-const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
+const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) => {
 	const [mounted, setMounted] = useState(false);
 	const [, setLayoutVersion] = useState(0);
 	const [agentState, setAgentState] = useState("initializing");
@@ -483,6 +483,10 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor }) => {
 	useEffect(() => {
 		openRef.current = open;
 	}, [open]);
+
+	useEffect(() => {
+		onVoiceSpeakingChange?.(open && agentState === "speaking");
+	}, [open, agentState, onVoiceSpeakingChange]);
 
 	useEffect(() => {
 		setMounted(true);

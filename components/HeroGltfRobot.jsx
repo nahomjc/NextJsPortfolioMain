@@ -204,6 +204,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 	const flashOverlayRef = useRef(null);
 	const clickRingRef = useRef(null);
 	const triggerClickGlowRef = useRef(() => {});
+	const voiceSpeakingRef = useRef(false);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -302,6 +303,8 @@ const HeroGltfRobot = ({ compact = false }) => {
 			let clickStart = null;
 			let clickGlowT0 = null;
 			let clickMaterialsNeedRestore = false;
+			let voiceLedFade = 0;
+			let voiceMaterialsNeedRestore = false;
 			let lastBoltRegen = -1;
 
 			triggerClickGlowRef.current = () => {
@@ -757,6 +760,17 @@ const HeroGltfRobot = ({ compact = false }) => {
 					clickSec < CLICK_CIRCUIT_DURATION;
 				const circuitFade = inClickGlow ? clickCircuitFade(clickSec) : 0;
 
+				const voiceSpeaking =
+					voiceSpeakingRef.current && introOpenRef.current;
+				voiceLedFade = THREE.MathUtils.damp(
+					voiceLedFade,
+					voiceSpeaking ? 1 : 0,
+					voiceSpeaking ? 9 : 5,
+					dt,
+				);
+				const inVoiceLed =
+					!reduceMotion && !inHeroReveal && !inClickGlow && voiceLedFade > 0.02;
+
 				let introShake = 0;
 				const cyanElectric = tmpColorB.setRGB(0.22, 0.98, 0.78);
 
@@ -850,6 +864,53 @@ const HeroGltfRobot = ({ compact = false }) => {
 						ring.style.transform = `rotate(${spin}deg)`;
 						ring.style.background = `conic-gradient(from ${spin}deg, transparent 0deg, rgba(34,211,238,0.85) 18deg, transparent 36deg, rgba(52,211,153,0.35) 54deg, transparent 72deg, rgba(34,211,238,0.55) 90deg, transparent 108deg)`;
 					}
+				} else if (inVoiceLed) {
+					voiceMaterialsNeedRestore = true;
+					const fade = voiceLedFade;
+					const pulse = 0.55 + Math.sin(t * 5.4) * 0.28;
+
+					renderer.toneMappingExposure = baseExposure + fade * pulse * 0.18;
+					rim.intensity = baseRimI * (1 + fade * pulse * 0.22);
+					magenta.intensity =
+						baseMagentaI * (1 + fade * pulse * 0.42);
+					fill.intensity = baseFillPtI * (1 + fade * pulse * 0.28);
+					arcLight.intensity = fade * pulse * 14;
+					arcLight.position.set(
+						Math.sin(t * 1.8) * 0.9,
+						1.35 + Math.sin(t * 2.4) * 0.12,
+						1.35,
+					);
+
+					const root = rayPickCtx.modelRoot;
+					if (root) {
+						updateCircuitTraces(root, t * 1.45, fade * (0.82 + pulse * 0.18));
+						root.traverse((child) => {
+							if (!child.isMesh || child.userData._isOutlineShell) return;
+							const mats = Array.isArray(child.material)
+								? child.material
+								: [child.material];
+							for (const m of mats) {
+								if (m?.userData?._introEmissive) {
+									m.emissive.lerpColors(
+										m.userData._introEmissive,
+										cyanElectric,
+										fade * pulse * 0.28,
+									);
+									m.emissiveIntensity =
+										m.userData._introEmissiveInt + fade * pulse * 1.8;
+								}
+							}
+						});
+					}
+
+					const ring = clickRingRef.current;
+					if (ring) {
+						const spin = t * 95;
+						ring.style.opacity = String(fade * (0.78 + pulse * 0.12));
+						ring.style.transform = `rotate(${spin}deg)`;
+						ring.style.background = `conic-gradient(from ${spin}deg, transparent 0deg, rgba(34,211,238,0.92) 14deg, transparent 28deg, rgba(217,70,239,0.82) 42deg, transparent 58deg, rgba(52,211,153,0.62) 74deg, transparent 90deg, rgba(34,211,238,0.7) 106deg, transparent 122deg, rgba(192,132,252,0.55) 138deg, transparent 154deg)`;
+						ring.style.boxShadow = `0 0 ${28 + pulse * 18}px rgba(34,211,238,0.35), 0 0 ${40 + pulse * 22}px rgba(217,70,239,0.18)`;
+					}
 				} else {
 					renderer.toneMappingExposure = baseExposure;
 					amb.intensity = baseAmbI;
@@ -901,6 +962,29 @@ const HeroGltfRobot = ({ compact = false }) => {
 						hideCircuitTraces(rayPickCtx.modelRoot);
 						clickMaterialsNeedRestore = false;
 						clickGlowT0 = null;
+					}
+
+					if (voiceMaterialsNeedRestore && rayPickCtx.modelRoot) {
+						hideCircuitTraces(rayPickCtx.modelRoot);
+						const root = rayPickCtx.modelRoot;
+						root.traverse((child) => {
+							if (!child.isMesh || child.userData._isOutlineShell) return;
+							const mats = Array.isArray(child.material)
+								? child.material
+								: [child.material];
+							for (const m of mats) {
+								if (m?.userData?._introEmissive) {
+									m.emissive.copy(m.userData._introEmissive);
+									m.emissiveIntensity = m.userData._introEmissiveInt;
+								}
+							}
+						});
+						voiceMaterialsNeedRestore = false;
+					}
+
+					const ring = clickRingRef.current;
+					if (ring && voiceLedFade <= 0.02) {
+						ring.style.boxShadow = "0 0 24px rgba(34,211,238,0.22)";
 					}
 				}
 
@@ -1280,6 +1364,9 @@ const HeroGltfRobot = ({ compact = false }) => {
 				open={introOpen}
 				anchor={introAnchor}
 				onClose={() => setIntroOpen(false)}
+				onVoiceSpeakingChange={(speaking) => {
+					voiceSpeakingRef.current = speaking;
+				}}
 			/>
 		</>
 	);
