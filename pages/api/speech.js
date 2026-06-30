@@ -4,8 +4,8 @@ import { sanitizeSpeechText } from "../../lib/sanitizeSpeechText";
 const GROQ_SPEECH_URL = "https://api.groq.com/openai/v1/audio/speech";
 
 const DEFAULT_TTS_MODEL = "canopylabs/orpheus-v1-english";
-// Male US Orpheus voices: troy (default), austin, daniel
-const DEFAULT_TTS_VOICE = "troy";
+// Male US Orpheus voices — austin (conversational), troy, daniel
+const DEFAULT_TTS_VOICE = "austin";
 const ALLOWED_VOICES = new Set([
 	"autumn",
 	"diana",
@@ -38,14 +38,9 @@ function groqErrorMessage(status, detail) {
 	};
 }
 
+/** Orpheus: no bracket tags = natural conversation (per Groq docs). */
 function prepareOrpheusInput(text) {
-	if (!text) return text;
-	if (text.includes("[")) return text;
-	const prefix = "[confidently] ";
-	if (prefix.length + text.length <= 200) {
-		return `${prefix}${text}`;
-	}
-	return text;
+	return (text || "").trim();
 }
 
 export default async function handler(req, res) {
