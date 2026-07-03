@@ -32,7 +32,14 @@ function MyApp({ Component, pageProps }) {
 	const [showDecorations, setShowDecorations] = useState(false);
 
 	useEffect(() => {
-		setShowDecorations(shouldRunAmbientEffects());
+		const enable = () => setShowDecorations(shouldRunAmbientEffects());
+		if (typeof window === "undefined") return;
+		if ("requestIdleCallback" in window) {
+			const id = window.requestIdleCallback(enable, { timeout: 2200 });
+			return () => window.cancelIdleCallback(id);
+		}
+		const t = window.setTimeout(enable, 1600);
+		return () => window.clearTimeout(t);
 	}, []);
 
 	const handleLoadingComplete = useCallback(() => {

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 import { FaArrowRight, FaBookmark, FaClock, FaMedium } from "react-icons/fa";
 
 const MEDIUM_PROFILE = "https://medium.com/@aslandjc7";
@@ -455,10 +456,9 @@ const MediumBlog = () => {
 			});
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+		scheduleScrollTriggerRefresh(400);
 
 		return () => {
-			window.clearTimeout(refreshTimer);
 			ctx.revert();
 		};
 	}, [reduceMotion]);

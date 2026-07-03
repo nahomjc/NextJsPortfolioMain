@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 import { AiOutlineMail } from "react-icons/ai";
 import { BsFillPersonLinesFill } from "react-icons/bs";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
@@ -382,10 +383,9 @@ const Contact = () => {
 			});
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+		scheduleScrollTriggerRefresh(400);
 
 		return () => {
-			window.clearTimeout(refreshTimer);
 			ctx.revert();
 		};
 	}, [reduceMotion]);

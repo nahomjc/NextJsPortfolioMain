@@ -8,6 +8,8 @@ import { FaTelegram, FaKey, FaLock } from "react-icons/fa";
 import { SiOpenai } from "react-icons/si";
 import { HiOutlineChatAlt2, HiOutlinePhotograph } from "react-icons/hi";
 
+import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
+
 const capabilities = [
 	{
 		title: "OpenAI · Image generation",
@@ -328,9 +330,8 @@ const AISection = () => {
 			}
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 450);
+		scheduleScrollTriggerRefresh(450);
 		return () => {
-			window.clearTimeout(refreshTimer);
 			ctx.revert();
 		};
 	}, [reduceMotion]);

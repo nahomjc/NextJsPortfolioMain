@@ -1,6 +1,8 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
+import { useEffect, useState } from "react";
 import Main from "../components/Main";
+import LazySection from "../components/LazySection";
 import {
 	SITE_URL,
 	SITE_NAME,
@@ -27,6 +29,23 @@ const MediumBlog = dynamic(() => import("../components/MeduimBlog"));
 const Contact = dynamic(() => import("../components/Contact"));
 
 const canonicalUrl = `${SITE_URL}/`;
+
+function DeferredAIChat() {
+	const [show, setShow] = useState(false);
+
+	useEffect(() => {
+		const enable = () => setShow(true);
+		if (typeof window === "undefined") return undefined;
+		if ("requestIdleCallback" in window) {
+			const id = window.requestIdleCallback(enable, { timeout: 4000 });
+			return () => window.cancelIdleCallback(id);
+		}
+		const t = window.setTimeout(enable, 2500);
+		return () => window.clearTimeout(t);
+	}, []);
+
+	return show ? <AIChat /> : null;
+}
 
 export default function Home() {
 	const ogImage = absoluteUrl(homeMeta.ogImagePath);
@@ -113,19 +132,43 @@ export default function Home() {
 
 			<main className="relative min-h-screen overflow-x-clip">
 				<Main />
-				<AIChat />
-				<About />
-				<ClientLogos />
-				<Skills />
-				<SkillsProgress />
-				<Timeline />
-				<Projects />
-				<AISection />
-				<CertificateShowcase />
-				<CoursePromo />
-				<TelegramPromo />
-				<MediumBlog />
-				<Contact />
+				<DeferredAIChat />
+				<LazySection minHeight="80vh">
+					<About />
+				</LazySection>
+				<LazySection minHeight="28rem">
+					<ClientLogos />
+				</LazySection>
+				<LazySection minHeight="60vh">
+					<Skills />
+				</LazySection>
+				<LazySection minHeight="50vh">
+					<SkillsProgress />
+				</LazySection>
+				<LazySection minHeight="70vh">
+					<Timeline />
+				</LazySection>
+				<LazySection minHeight="80vh">
+					<Projects />
+				</LazySection>
+				<LazySection minHeight="50vh">
+					<AISection />
+				</LazySection>
+				<LazySection minHeight="50vh">
+					<CertificateShowcase />
+				</LazySection>
+				<LazySection minHeight="24rem">
+					<CoursePromo />
+				</LazySection>
+				<LazySection minHeight="24rem">
+					<TelegramPromo />
+				</LazySection>
+				<LazySection minHeight="50vh">
+					<MediumBlog />
+				</LazySection>
+				<LazySection minHeight="60vh">
+					<Contact />
+				</LazySection>
 			</main>
 		</>
 	);

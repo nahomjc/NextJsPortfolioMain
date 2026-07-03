@@ -12,7 +12,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AboutImg from "../public/assets/download.png";
 import MatrixPortraitImg from "../public/assets/matrix.png";
 import { useLenis } from "./LenisProvider";
-import { scrollTriggerBase, scrollToProgress } from "../lib/gsapScroll";
+import { scrollTriggerBase, scrollToProgress, scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 
 const AboutWorkspacePly = dynamic(() => import("./AboutWorkspacePly"), {
 	ssr: false,
@@ -1042,12 +1042,11 @@ const About = () => {
 			});
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 700);
-		const onLenisReady = () => ScrollTrigger.refresh();
+		scheduleScrollTriggerRefresh(700);
+		const onLenisReady = () => scheduleScrollTriggerRefresh(0);
 		window.addEventListener("lenis-ready", onLenisReady);
 
 		return () => {
-			window.clearTimeout(refreshTimer);
 			window.removeEventListener("lenis-ready", onLenisReady);
 			for (const fn of cleanups) fn();
 			ctx.revert();
@@ -1056,8 +1055,8 @@ const About = () => {
 
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") return;
-		const id = window.setTimeout(() => ScrollTrigger.refresh(), 400);
-		return () => window.clearTimeout(id);
+		scheduleScrollTriggerRefresh(400);
+		return () => {};
 	}, [bioExpanded, reduceMotion]);
 
 	return (

@@ -8,7 +8,8 @@ import React, {
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { isLowPowerDevice } from "../lib/animationControl";
+import { shouldRunSmoothScroll } from "../lib/animationControl";
+import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 
 const LenisContext = createContext(null);
 
@@ -29,8 +30,7 @@ export default function LenisProvider({ children }) {
 		const prefersReduced = window.matchMedia(
 			"(prefers-reduced-motion: reduce)",
 		).matches;
-		const coarsePointer = window.matchMedia("(hover: none)").matches;
-		if (prefersReduced || coarsePointer || isLowPowerDevice()) return;
+		if (prefersReduced || !shouldRunSmoothScroll()) return;
 
 		gsap.registerPlugin(ScrollTrigger);
 
@@ -72,12 +72,12 @@ export default function LenisProvider({ children }) {
 		});
 
 		requestAnimationFrame(() => {
-			ScrollTrigger.refresh();
+			scheduleScrollTriggerRefresh(0);
 			window.dispatchEvent(new Event("lenis-ready"));
 		});
 
 		const onRefresh = () => lenisInstance.resize();
-		const onLoad = () => ScrollTrigger.refresh();
+		const onLoad = () => scheduleScrollTriggerRefresh(80);
 
 		ScrollTrigger.addEventListener("refresh", onRefresh);
 		window.addEventListener("load", onLoad);

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { scrollTriggerBase } from "../lib/gsapScroll";
+import { scrollTriggerBase, scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 import {
 	FaBolt,
 	FaDatabase,
@@ -533,12 +533,11 @@ const SkillsProgress = () => {
 			});
 		}, sectionRef);
 
-		const onLenisReady = () => ScrollTrigger.refresh();
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 800);
+		const onLenisReady = () => scheduleScrollTriggerRefresh(0);
+		scheduleScrollTriggerRefresh(800);
 		window.addEventListener("lenis-ready", onLenisReady);
 
 		return () => {
-			window.clearTimeout(refreshTimer);
 			window.removeEventListener("lenis-ready", onLenisReady);
 			ctx.revert();
 		};

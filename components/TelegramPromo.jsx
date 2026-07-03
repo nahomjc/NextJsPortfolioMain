@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 import { FaBolt, FaNewspaper, FaTelegram, FaUsers } from "react-icons/fa";
 
 const TELEGRAM_URL = "https://t.me/kingdom_code";
@@ -387,10 +388,9 @@ const TelegramPromo = () => {
 			});
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+		scheduleScrollTriggerRefresh(400);
 
 		return () => {
-			window.clearTimeout(refreshTimer);
 			ctx.revert();
 		};
 	}, [reduceMotion]);

@@ -3100,3 +3100,14 @@ button.mac-dot--green:hover {
 	box-shadow: 0 0 22px rgba(34, 211, 238, 0.22);
 	color: #ecfeff;
 }
+
+/* Defer paint/layout for below-fold sections (pairs with LazySection). */
+section#about,
+section#clients,
+section#skills,
+section#experience,
+section#projects,
+section#contact {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 720px;
+}

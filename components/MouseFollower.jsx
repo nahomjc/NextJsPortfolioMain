@@ -35,7 +35,7 @@ const MouseFollower = () => {
 
 		const animate = () => {
 			if (document.hidden) {
-				animationFrameRef.current = requestAnimationFrame(animate);
+				animationFrameRef.current = null;
 				return;
 			}
 
@@ -84,11 +84,18 @@ const MouseFollower = () => {
 		const handleVisibilityChange = () => {
 			if (document.hidden) {
 				setIsVisible(false);
+				if (animationFrameRef.current) {
+					cancelAnimationFrame(animationFrameRef.current);
+					animationFrameRef.current = null;
+				}
 			} else {
 				setIsVisible(true);
 				if (mouseRef.current.x) {
 					cursorRef.current = { ...mouseRef.current };
 					applyTransform();
+				}
+				if (!animationFrameRef.current) {
+					animate();
 				}
 			}
 		};

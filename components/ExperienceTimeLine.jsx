@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 import { FaBriefcase, FaGraduationCap, FaCode, FaAward } from "react-icons/fa";
 
 const experiences = [
@@ -389,10 +390,9 @@ function Timeline() {
 			setActiveSidebar(0);
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+		scheduleScrollTriggerRefresh(400);
 
 		return () => {
-			window.clearTimeout(refreshTimer);
 			ctx.revert();
 		};
 	}, [reduceMotion]);

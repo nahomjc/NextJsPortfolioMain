@@ -4,7 +4,7 @@ import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CLIENT_LOGOS } from "../lib/clientLogos";
-import { scrollTriggerBase } from "../lib/gsapScroll";
+import { scrollTriggerBase, scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 
 function LogoCell({ logo }) {
 	return (
@@ -121,9 +121,8 @@ const ClientLogos = () => {
 			}
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+		scheduleScrollTriggerRefresh(400);
 		return () => {
-			window.clearTimeout(refreshTimer);
 			ctx.revert();
 		};
 	}, [reduceMotion]);

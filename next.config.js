@@ -1,6 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	reactStrictMode: true,
+	experimental: {
+		optimizePackageImports: [
+			"react-icons",
+			"react-icons/ai",
+			"react-icons/fa",
+			"react-icons/ri",
+			"react-icons/bs",
+			"framer-motion",
+			"gsap",
+			"three",
+		],
+	},
 	async rewrites() {
 		return [{ source: "/sitemap.xml", destination: "/api/sitemap" }];
 	},

@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { scrollTriggerBase } from "../lib/gsapScroll";
+import { scrollTriggerBase, scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 import Css from "../public/assets/skills/css.png";
 import Javascript from "../public/assets/skills/javascript.png";
 import ReactImg from "../public/assets/skills/react.png";
@@ -698,7 +698,7 @@ const Skills = () => {
 		}, sectionRef);
 
 		const onResize = () => moveTabIndicator(activeLaneRef.current, true);
-		const onLenisReady = () => ScrollTrigger.refresh();
+		const onLenisReady = () => scheduleScrollTriggerRefresh(0);
 		window.addEventListener("resize", onResize);
 		window.addEventListener("lenis-ready", onLenisReady);
 

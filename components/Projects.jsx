@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
 import muyalogyImg from "../public/assets/projects/muyaloyg.png";
 import ProjectItem from "./ProjectItem";
 import afriworkImg from "../public/assets/projects/afriwork.png";
@@ -820,10 +821,9 @@ const Projects = () => {
 			}
 		}, sectionRef);
 
-		const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 450);
+		scheduleScrollTriggerRefresh(450);
 
 		return () => {
-			window.clearTimeout(refreshTimer);
 			ctx.revert();
 		};
 	}, [reduceMotion]);
