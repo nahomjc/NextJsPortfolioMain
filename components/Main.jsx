@@ -7,7 +7,7 @@ import { FaGithub, FaLinkedinIn } from "react-icons/fa";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { isLowPowerDevice } from "../lib/animationControl";
+import { isLowPowerDevice, bindVisibilityPause, getCanvasDpr, shouldCapIdleFps } from "../lib/animationControl";
 import { scrollTriggerBase } from "../lib/gsapScroll";
 
 const HeroGltfRobot = dynamic(() => import("./HeroGltfRobot"), { ssr: false });
@@ -130,7 +130,7 @@ function HeroMatrixResumeCta({ reduceMotion }) {
 
 		const resize = () => {
 			const rect = canvas.getBoundingClientRect();
-			const dpr = Math.min(window.devicePixelRatio || 1, 2);
+			const dpr = getCanvasDpr(1.5);
 			w = Math.max(1, Math.floor(rect.width));
 			h = Math.max(1, Math.floor(rect.height));
 			canvas.width = w * dpr;
@@ -151,7 +151,26 @@ function HeroMatrixResumeCta({ reduceMotion }) {
 		const ro = new ResizeObserver(resize);
 		ro.observe(canvas.parentElement ?? canvas);
 
-		const tick = () => {
+		let paused = false;
+		let running = true;
+		let lastFrameAt = 0;
+		let lastActivityAt = performance.now();
+
+		const pingActivity = () => {
+			lastActivityAt = performance.now();
+		};
+
+		const tick = (now = performance.now()) => {
+			if (!running || paused) return;
+
+			const capFps = shouldCapIdleFps(lastActivityAt);
+			const frameGap = capFps ? 33 : 0;
+			if (frameGap > 0 && now - lastFrameAt < frameGap) {
+				raf = requestAnimationFrame(tick);
+				return;
+			}
+			lastFrameAt = now;
+
 			ctx.clearRect(0, 0, w, h);
 			for (let i = 0; i < cols.length; i++) {
 				const col = cols[i];
@@ -171,8 +190,28 @@ function HeroMatrixResumeCta({ reduceMotion }) {
 			raf = requestAnimationFrame(tick);
 		};
 
+		const parent = canvas.parentElement ?? canvas;
+		parent.addEventListener("pointermove", pingActivity, { passive: true });
+		parent.addEventListener("pointerenter", pingActivity, { passive: true });
+
+		const unbindVisibility = bindVisibilityPause(parent, {
+			onPause: () => {
+				paused = true;
+				cancelAnimationFrame(raf);
+			},
+			onResume: () => {
+				paused = false;
+				lastFrameAt = 0;
+				raf = requestAnimationFrame(tick);
+			},
+		});
+
 		raf = requestAnimationFrame(tick);
 		return () => {
+			running = false;
+			unbindVisibility();
+			parent.removeEventListener("pointermove", pingActivity);
+			parent.removeEventListener("pointerenter", pingActivity);
 			ro.disconnect();
 			cancelAnimationFrame(raf);
 		};

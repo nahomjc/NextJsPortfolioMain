@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import {
 	bindVisibilityPause,
+	getCanvasDpr,
 	isCoarsePointer,
 	isLowPowerDevice,
+	shouldCapIdleFps,
 } from "../lib/animationControl";
 
 const PARTICLE_COUNT_DESKTOP = 40;
@@ -33,6 +35,8 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 		let h = 0;
 		let paused = false;
 		let running = true;
+		let lastFrameAt = 0;
+		let lastActivityAt = performance.now();
 
 		const particles = Array.from({ length: count }, () => ({
 			x: Math.random(),
@@ -48,7 +52,7 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 			const rect = container.getBoundingClientRect();
 			w = Math.max(1, rect.width);
 			h = Math.max(1, rect.height);
-			const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5);
+			const dpr = getCanvasDpr(coarse ? 1 : 1.5);
 			canvas.width = w * dpr;
 			canvas.height = h * dpr;
 			canvas.style.width = `${w}px`;
@@ -57,6 +61,7 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 		};
 
 		const onPointerMove = (e) => {
+			lastActivityAt = performance.now();
 			const rect = container.getBoundingClientRect();
 			mouse.x = e.clientX - rect.left;
 			mouse.y = e.clientY - rect.top;
@@ -81,6 +86,16 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 
 		const tick = (t) => {
 			if (!running || paused) return;
+
+			const now = performance.now();
+			const capFps = shouldCapIdleFps(lastActivityAt, {
+				active: mouse.active,
+			});
+			if (capFps && now - lastFrameAt < 33) {
+				schedule();
+				return;
+			}
+			lastFrameAt = now;
 
 			ctx.clearRect(0, 0, w, h);
 			const isDark = document.documentElement.classList.contains("dark");

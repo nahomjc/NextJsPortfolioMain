@@ -9,6 +9,7 @@ import {
 	bindVisibilityPause,
 	isCoarsePointer,
 	isLowPowerDevice,
+	shouldCapIdleFps,
 } from "../lib/animationControl";
 import { createWebGLRendererSafe } from "../lib/webgl";
 
@@ -337,9 +338,11 @@ const HeroGltfRobot = ({ compact = false }) => {
 		if (!wrap) return undefined;
 
 		let bootRaf = 0;
+		let idleId = 0;
+		let io = null;
 		let teardown = () => {};
 
-		bootRaf = requestAnimationFrame(() => {
+		const boot = () => {
 			if (!wrapRef.current) return;
 
 			const preferPerformance =
@@ -850,6 +853,8 @@ const HeroGltfRobot = ({ compact = false }) => {
 			const maxParallaxX = 0.18;
 			const maxParallaxY = 0.1;
 
+			let lastRenderAt = 0;
+
 			const schedule = () => {
 				if (cancelled || paused) return;
 				rafRef.current = requestAnimationFrame(tick);
@@ -857,6 +862,33 @@ const HeroGltfRobot = ({ compact = false }) => {
 
 			const tick = () => {
 				if (cancelled || paused) return;
+				const now = performance.now();
+				const revealSecEarly =
+					heroRevealT0 === null
+						? 1e9
+						: (now - heroRevealT0) / 1000;
+				const clickSecEarly =
+					clickGlowT0 === null ? 1e9 : (now - clickGlowT0) / 1000;
+				const highMotion =
+					(!reduceMotion &&
+						heroRevealT0 !== null &&
+						revealSecEarly < 2.8) ||
+					(!reduceMotion &&
+						clickGlowT0 !== null &&
+						clickSecEarly < CLICK_CIRCUIT_DURATION) ||
+					(voiceSpeakingRef.current && introOpenRef.current) ||
+					captureId !== null ||
+					hoverInside;
+				if (
+					!highMotion &&
+					shouldCapIdleFps(lastPointerActivityAt) &&
+					now - lastRenderAt < 33
+				) {
+					clock.getDelta();
+					schedule();
+					return;
+				}
+				lastRenderAt = now;
 				const dt = clock.getDelta();
 				const t = clock.elapsedTime;
 				if (mixer) mixer.update(dt);
@@ -1413,9 +1445,35 @@ const HeroGltfRobot = ({ compact = false }) => {
 				pivotRef.current = null;
 				mixer = null;
 			};
-		});
+		};
+
+		const queueBoot = () => {
+			const run = () => {
+				bootRaf = requestAnimationFrame(boot);
+			};
+			if ("requestIdleCallback" in window) {
+				idleId = window.requestIdleCallback(run, { timeout: 900 });
+			} else {
+				bootRaf = requestAnimationFrame(run);
+			}
+		};
+
+		io = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				io?.disconnect();
+				io = null;
+				queueBoot();
+			},
+			{ rootMargin: "64px 0px", threshold: 0 },
+		);
+		io.observe(wrap);
 
 		return () => {
+			io?.disconnect();
+			if (idleId && "cancelIdleCallback" in window) {
+				window.cancelIdleCallback(idleId);
+			}
 			cancelAnimationFrame(bootRaf);
 			teardown();
 		};
