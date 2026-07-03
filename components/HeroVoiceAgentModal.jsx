@@ -369,6 +369,11 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 			const result = processScheduleInput(scheduleRef.current, trimmed);
 			syncScheduleHud();
 
+			if (result.kind === "terminate") {
+				closeVoiceSession();
+				return;
+			}
+
 			if (result.kind === "submit") {
 				setAgentState("thinking");
 				try {
@@ -392,7 +397,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 				return;
 			}
 		},
-		[speakAndResume, setPausedListening, syncScheduleHud],
+		[speakAndResume, setPausedListening, syncScheduleHud, closeVoiceSession],
 	);
 
 	const handleUtterance = useCallback(
