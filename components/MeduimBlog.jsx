@@ -71,9 +71,8 @@ function BlogCard({ post, cardRef }) {
 								<Image
 									src={post.image}
 									alt={post.title}
-									layout="fill"
-									objectFit="cover"
-									className="transition duration-500 group-hover:scale-[1.04]"
+					fill
+									className="object-cover transition duration-500 group-hover:scale-[1.04]"
 									sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
 								/>
 							</div>

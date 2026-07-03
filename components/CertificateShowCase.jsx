@@ -107,9 +107,8 @@ const CertificateCard = ({ certificate, onClick, cardRef }) => {
 										<Image
 											src={certificate.image}
 											alt={certificate.title}
-											layout="fill"
-											objectFit="contain"
-											className="p-2 transition duration-500 group-hover:scale-[1.03]"
+					fill
+											className="object-contain p-2 transition duration-500 group-hover:scale-[1.03]"
 											sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
 										/>
 									</div>
@@ -185,9 +184,8 @@ const CertificateModal = ({ certificate, onClose }) => {
 					<Image
 						src={certificate.image}
 						alt={certificate.title}
-						layout="fill"
-						objectFit="contain"
-						className="p-4"
+					fill
+						className="object-contain p-4"
 						sizes="672px"
 					/>
 					<button

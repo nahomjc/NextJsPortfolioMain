@@ -12,9 +12,8 @@ const airbnb = () => {
 				</div>
 
 				<Image
-					className="absoulute z-1 "
-					layout="fill"
-					objectFit="cover"
+					className="object-cover absoulute z-1"
+					fill
 					src="/assets/projects/Airbnb1.jpg"
 					alt="/"
 				/>

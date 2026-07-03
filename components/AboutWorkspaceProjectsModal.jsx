@@ -216,7 +216,7 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 													<Image
 														src={p.image}
 														alt={`${p.title} preview`}
-														layout="fill"
+					fill
 														className="object-cover"
 														sizes="(max-width: 768px) 100vw, 672px"
 														priority={false}

@@ -166,12 +166,11 @@ function PortraitMatrixGlitch({ matrixSrc, active }) {
 			aria-hidden
 		>
 			<div className="about-portrait-matrix-glitch-wrap absolute inset-0">
-				<Image
+				<Image className="object-cover"
 					src={matrixSrc}
 					alt=""
-					layout="fill"
-					objectFit="cover"
-					objectPosition="top"
+					fill
+					style={{ objectPosition: "top" }}
 					sizes="(max-width: 1024px) 80vw, 380px"
 					priority
 				/>
@@ -217,12 +216,11 @@ function PortraitFrame({ reduceMotion }) {
 			<div className="about-portrait-inner relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-100/50 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_28px_70px_-24px_rgba(0,0,0,0.55)] dark:border-white/12 dark:bg-slate-900/40">
 				<HudCorners />
 				<div className="relative aspect-[3/4] w-full overflow-hidden">
-					<Image
+					<Image className="object-cover"
 						src={AboutImg}
 						alt="Nahom — developer portrait"
-						layout="fill"
-						objectFit="cover"
-						objectPosition="top"
+					fill
+					style={{ objectPosition: "top" }}
 						priority
 						sizes="(max-width: 1024px) 80vw, 380px"
 					/>

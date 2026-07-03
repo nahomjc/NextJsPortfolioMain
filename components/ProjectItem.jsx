@@ -117,16 +117,12 @@ const ProjectItem = React.forwardRef(function ProjectItem(
 
 								<Image
 
-									className="project-card-image transition duration-700 group-hover:scale-[1.05]"
+									className="object-cover project-card-image transition duration-700 group-hover:scale-[1.05]"
 
 									src={backgroundImg}
 
 									alt={title}
-
-									layout="fill"
-
-									objectFit="cover"
-
+					fill
 									sizes={
 
 										featured

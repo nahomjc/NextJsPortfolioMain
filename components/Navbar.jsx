@@ -78,17 +78,12 @@ function DockIcon({ item, isActive, itemRef, keyLabel, className = "" }) {
 
 	return (
 
-		<Link href={item.href}>
-
-			<a
-
-				className={`dock-item unstyled relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`}
-
-				aria-label={item.label}
-
-				aria-current={isActive ? "page" : undefined}
-
-			>
+		<Link
+			href={item.href}
+			className={`dock-item unstyled relative z-0 flex shrink-0 flex-col items-center justify-end ${className}`}
+			aria-label={item.label}
+			aria-current={isActive ? "page" : undefined}
+		>
 
 				<span className="relative flex flex-col items-center justify-end">
 
@@ -135,8 +130,6 @@ function DockIcon({ item, isActive, itemRef, keyLabel, className = "" }) {
 					</span>
 
 				</span>
-
-			</a>
 
 		</Link>
 

@@ -63,9 +63,8 @@ const ImageCarousel = ({
         <Image
           src={images[currentIndex].src}
           alt={images[currentIndex].alt || ''}
-          layout="fill"
-          objectFit="contain"
-          className="transition-transform duration-500"
+					fill
+          className="object-contain transition-transform duration-500"
           priority={currentIndex === 0}
         />
         
@@ -124,11 +123,13 @@ const ImageCarousel = ({
           aria-label={isAutoPlaying ? 'Pause slideshow' : 'Play slideshow'}
         >
           {isAutoPlaying ? (
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-6 h-6"
+					fill="currentColor" viewBox="0 0 20 20">
               <path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z" />
             </svg>
           ) : (
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-6 h-6"
+					fill="currentColor" viewBox="0 0 20 20">
               <path d="M8 5v10l8-5-8-5z" />
             </svg>
           )}

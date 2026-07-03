@@ -296,7 +296,7 @@ function SkillMeter({ skill, pillarColor, reduceMotion }) {
 							cx="18"
 							cy="18"
 							r="15"
-							fill="none"
+					fill="none"
 							stroke="currentColor"
 							strokeWidth="2.5"
 							className="text-slate-400/40 dark:text-white/10"
@@ -305,7 +305,7 @@ function SkillMeter({ skill, pillarColor, reduceMotion }) {
 							cx="18"
 							cy="18"
 							r="15"
-							fill="none"
+					fill="none"
 							stroke={pillarColor}
 							strokeWidth="2.5"
 							strokeLinecap="round"

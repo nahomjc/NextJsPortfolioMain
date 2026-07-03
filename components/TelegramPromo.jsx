@@ -486,9 +486,8 @@ const TelegramPromo = () => {
 							<Image
 								src="/assets/channel-admin.jpg"
 								alt="Nahom JC — Telegram channel admin"
-								layout="fill"
-								objectFit="cover"
-								className="transition duration-500 hover:scale-105"
+					fill
+								className="object-cover transition duration-500 hover:scale-105"
 								sizes="128px"
 							/>
 							<div

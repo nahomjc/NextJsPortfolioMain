@@ -223,10 +223,10 @@ function ExperienceCard({ item, index, cardRef, indexRef }) {
 					{item.image ? (
 						<div className="relative mt-5 aspect-video w-full overflow-hidden rounded-xl border border-slate-200/80 dark:border-white/10">
 							<Image
+					className="object-cover"
 								src={item.image}
 								alt={item.imageAlt || `${item.organization} — ${item.title}`}
-								layout="fill"
-								objectFit="cover"
+					fill
 								sizes="(max-width: 768px) 100vw, 560px"
 							/>
 						</div>

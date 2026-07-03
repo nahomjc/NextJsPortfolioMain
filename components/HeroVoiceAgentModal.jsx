@@ -683,7 +683,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							</defs>
 							<motion.path
 								d={tether.d}
-								fill="none"
+					fill="none"
 								stroke="url(#voice-hud-tether-grad)"
 								strokeWidth={1.25}
 								strokeLinecap="round"
@@ -695,7 +695,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 								cx={anchor.x}
 								cy={anchor.y}
 								r={3}
-								fill="rgba(34,211,238,0.95)"
+					fill="rgba(34,211,238,0.95)"
 								initial={{ scale: 0, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
 								transition={{ delay: 0.35, duration: 0.2 }}

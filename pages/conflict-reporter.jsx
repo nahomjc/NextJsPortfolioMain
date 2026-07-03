@@ -12,8 +12,8 @@ const ConflictReporter = () => {
 			<div className="relative h-[30vh] w-screen lg:h-[40vh]">
 				<div className="absolute left-0 top-0 z-10 h-[38vh] w-full bg-black/80 lg:h-[40vh]" />
 				<Image
-					layout="fill"
-					objectFit="cover"
+					className="object-cover"
+					fill
 					src={conflictHero}
 					alt="Conflict Reporter — situational reflection dashboard with 3D globe"
 					priority

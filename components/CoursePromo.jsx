@@ -526,9 +526,8 @@ const CoursePromo = () => {
 											<Image
 												src={myCourse}
 												alt="Muyalogy course preview"
-												layout="fill"
-												objectFit="contain"
-												className="transition duration-500 group-hover:scale-[1.03]"
+					fill
+												className="object-contain transition duration-500 group-hover:scale-[1.03]"
 											/>
 										</div>
 										<div

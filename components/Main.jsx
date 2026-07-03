@@ -185,11 +185,11 @@ function HeroMatrixResumeCta({ reduceMotion }) {
 			className="mx-auto mt-5 flex w-full max-w-md justify-center lg:mx-0 lg:justify-start"
 		>
 			<MagneticWrap reduceMotion={reduceMotion} className="w-full max-w-[17.5rem]">
-				<Link href="/resume">
-					<a
-						className="hero-matrix-resume-btn group"
-						aria-label="Open matrix terminal resume"
-					>
+				<Link
+					href="/resume"
+					className="hero-matrix-resume-btn group"
+					aria-label="Open matrix terminal resume"
+				>
 						<span className="hero-matrix-resume-btn__border" aria-hidden />
 						<span className="hero-matrix-resume-btn__glow" aria-hidden />
 
@@ -228,7 +228,6 @@ function HeroMatrixResumeCta({ reduceMotion }) {
 								</span>
 							</span>
 						</span>
-					</a>
 				</Link>
 			</MagneticWrap>
 		</div>

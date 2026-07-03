@@ -42,7 +42,7 @@ const Logo = ({ size = 'medium' }) => {
           </defs>
           <motion.path
             d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"
-            fill="none"
+					fill="none"
             stroke={`url(#${strokeId})`}
             strokeWidth="2"
             initial={{ pathLength: 0 }}
@@ -51,7 +51,7 @@ const Logo = ({ size = 'medium' }) => {
           />
           <motion.path
             d="M19 16H5V19H19V16Z"
-            fill={`url(#${fillId})`}
+					fill={`url(#${fillId})`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5 }}

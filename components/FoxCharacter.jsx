@@ -255,7 +255,7 @@ const FoxCharacter = () => {
             >
               <path
                 d="M 148 165 Q 175 140 188 118 Q 194 108 185 102 Q 178 98 172 108 Q 158 132 138 158 Z"
-                fill="url(#furMain)"
+					fill="url(#furMain)"
                 stroke="#4a2c10"
                 strokeWidth="0.8"
                 strokeLinejoin="round"
@@ -274,12 +274,13 @@ const FoxCharacter = () => {
             >
               <path
                 d="M 58 72 Q 38 12 78 38 Q 88 52 82 78 Z"
-                fill="url(#furLight)"
+					fill="url(#furLight)"
                 stroke="#4a2c10"
                 strokeWidth="0.9"
                 strokeLinejoin="round"
               />
-              <path d="M 56 58 Q 48 34 70 46 Q 74 56 68 72" fill="#d4a09a" opacity="0.85" />
+              <path d="M 56 58 Q 48 34 70 46 Q 74 56 68 72"
+					fill="#d4a09a" opacity="0.85" />
             </motion.g>
 
             {/* Right ear */}
@@ -294,26 +295,34 @@ const FoxCharacter = () => {
             >
               <path
                 d="M 142 72 Q 162 12 122 38 Q 112 52 118 78 Z"
-                fill="url(#furLight)"
+					fill="url(#furLight)"
                 stroke="#4a2c10"
                 strokeWidth="0.9"
                 strokeLinejoin="round"
               />
-              <path d="M 144 58 Q 152 34 130 46 Q 126 56 132 72" fill="#d4a09a" opacity="0.85" />
+              <path d="M 144 58 Q 152 34 130 46 Q 126 56 132 72"
+					fill="#d4a09a" opacity="0.85" />
             </motion.g>
 
             {/* Head + neck */}
-            <ellipse cx="100" cy="108" rx="76" ry="72" fill="url(#furMain)" stroke="#4a2c10" strokeWidth="1.2" />
-            <ellipse cx="100" cy="118" rx="62" ry="58" fill="url(#cheekGlow)" opacity="0.9" />
+            <ellipse cx="100" cy="108" rx="76" ry="72"
+					fill="url(#furMain)" stroke="#4a2c10" strokeWidth="1.2" />
+            <ellipse cx="100" cy="118" rx="62" ry="58"
+					fill="url(#cheekGlow)" opacity="0.9" />
 
             {/* Snout */}
-            <ellipse cx="100" cy="134" rx="44" ry="32" fill="url(#snoutGrad)" stroke="#a67c52" strokeWidth="0.8" />
+            <ellipse cx="100" cy="134" rx="44" ry="32"
+					fill="url(#snoutGrad)" stroke="#a67c52" strokeWidth="0.8" />
 
             {/* Nose */}
-            <ellipse cx="100" cy="120" rx="15" ry="11" fill="url(#noseShine)" />
-            <ellipse cx="96" cy="122" rx="2.2" ry="1.6" fill="#000" opacity="0.55" />
-            <ellipse cx="104" cy="122" rx="2.2" ry="1.6" fill="#000" opacity="0.55" />
-            <ellipse cx="94" cy="116" rx="4" ry="2.5" fill="#fff" opacity="0.12" />
+            <ellipse cx="100" cy="120" rx="15" ry="11"
+					fill="url(#noseShine)" />
+            <ellipse cx="96" cy="122" rx="2.2" ry="1.6"
+					fill="#000" opacity="0.55" />
+            <ellipse cx="104" cy="122" rx="2.2" ry="1.6"
+					fill="#000" opacity="0.55" />
+            <ellipse cx="94" cy="116" rx="4" ry="2.5"
+					fill="#fff" opacity="0.12" />
 
             {/* Whiskers */}
             <g stroke="#4a2c10" strokeWidth="0.6" strokeLinecap="round" opacity="0.45">
@@ -330,18 +339,22 @@ const FoxCharacter = () => {
               {isSleeping ? (
                 <path
                   d="M -14 0 Q 0 -5 14 0"
-                  fill="none"
+					fill="none"
                   stroke="#2d1a0a"
                   strokeWidth="2.2"
                   strokeLinecap="round"
                 />
               ) : (
                 <>
-                  <ellipse cx="0" cy="2" rx="16" ry="18" fill="#fefefe" stroke="#c5b89a" strokeWidth="0.6" />
+                  <ellipse cx="0" cy="2" rx="16" ry="18"
+					fill="#fefefe" stroke="#c5b89a" strokeWidth="0.6" />
                   <g transform={`translate(${pupilDx}, ${pupilDy})`}>
-                    <ellipse cx="0" cy="2" rx="9" ry="10" fill="#3d2914" />
-                    <ellipse cx="-3" cy="-1" rx="3" ry="3.5" fill="#0a0603" opacity="0.55" />
-                    <ellipse cx="3" cy="-2" rx="2.2" ry="2.2" fill="#fff" opacity="0.9" />
+                    <ellipse cx="0" cy="2" rx="9" ry="10"
+					fill="#3d2914" />
+                    <ellipse cx="-3" cy="-1" rx="3" ry="3.5"
+					fill="#0a0603" opacity="0.55" />
+                    <ellipse cx="3" cy="-2" rx="2.2" ry="2.2"
+					fill="#fff" opacity="0.9" />
                   </g>
                 </>
               )}
@@ -352,18 +365,22 @@ const FoxCharacter = () => {
               {isSleeping || isWinking ? (
                 <path
                   d="M -14 0 Q 0 -5 14 0"
-                  fill="none"
+					fill="none"
                   stroke="#2d1a0a"
                   strokeWidth="2.2"
                   strokeLinecap="round"
                 />
               ) : (
                 <>
-                  <ellipse cx="0" cy="2" rx="16" ry="18" fill="#fefefe" stroke="#c5b89a" strokeWidth="0.6" />
+                  <ellipse cx="0" cy="2" rx="16" ry="18"
+					fill="#fefefe" stroke="#c5b89a" strokeWidth="0.6" />
                   <g transform={`translate(${pupilDx}, ${pupilDy})`}>
-                    <ellipse cx="0" cy="2" rx="9" ry="10" fill="#3d2914" />
-                    <ellipse cx="-3" cy="-1" rx="3" ry="3.5" fill="#0a0603" opacity="0.55" />
-                    <ellipse cx="3" cy="-2" rx="2.2" ry="2.2" fill="#fff" opacity="0.9" />
+                    <ellipse cx="0" cy="2" rx="9" ry="10"
+					fill="#3d2914" />
+                    <ellipse cx="-3" cy="-1" rx="3" ry="3.5"
+					fill="#0a0603" opacity="0.55" />
+                    <ellipse cx="3" cy="-2" rx="2.2" ry="2.2"
+					fill="#fff" opacity="0.9" />
                   </g>
                 </>
               )}
@@ -373,17 +390,18 @@ const FoxCharacter = () => {
             {mouthHappy ? (
               <path
                 d="M 76 150 Q 100 172 124 150"
-                fill="none"
+					fill="none"
                 stroke="#3d2914"
                 strokeWidth="2.4"
                 strokeLinecap="round"
               />
             ) : mood === 'surprised' ? (
-              <ellipse cx="100" cy="154" rx="8" ry="10" fill="#2a1810" opacity="0.25" />
+              <ellipse cx="100" cy="154" rx="8" ry="10"
+					fill="#2a1810" opacity="0.25" />
             ) : (
               <path
                 d="M 88 154 L 112 154"
-                fill="none"
+					fill="none"
                 stroke="#3d2914"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -392,9 +410,12 @@ const FoxCharacter = () => {
 
             {/* Subtle fur texture */}
             <g opacity="0.12" stroke="#fff" strokeWidth="0.5" strokeLinecap="round">
-              <path d="M 48 100 Q 52 92 56 100" fill="none" />
-              <path d="M 144 100 Q 148 92 152 100" fill="none" />
-              <path d="M 100 48 Q 104 40 108 48" fill="none" />
+              <path d="M 48 100 Q 52 92 56 100"
+					fill="none" />
+              <path d="M 144 100 Q 148 92 152 100"
+					fill="none" />
+              <path d="M 100 48 Q 104 40 108 48"
+					fill="none" />
             </g>
           </svg>
 

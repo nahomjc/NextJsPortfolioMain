@@ -413,9 +413,8 @@ const AISection = () => {
 								<Image
 									src="/assets/channel-admin.jpg"
 									alt="Telegram channel and bot context — AI-integrated community workflows"
-									layout="fill"
-									objectFit="cover"
-									className="ai-showcase-image opacity-95"
+					fill
+									className="object-cover ai-showcase-image opacity-95"
 									sizes="(max-width: 1024px) 100vw, 50vw"
 								/>
 								<div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-900/20" />

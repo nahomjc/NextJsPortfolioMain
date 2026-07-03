@@ -506,8 +506,7 @@ const Contact = () => {
 													className="object-cover"
 													src="/assets/contact-me.jpg"
 													alt="Nahom Tesfaye"
-													layout="fill"
-													objectFit="cover"
+					fill
 													sizes="(max-width: 1024px) 100vw, 384px"
 												/>
 											</div>
