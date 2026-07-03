@@ -1656,22 +1656,26 @@ const HeroGltfRobot = ({ compact = false }) => {
 											scale: { type: "spring", stiffness: 380, damping: 26 },
 										}
 							}
-							className="pointer-events-none absolute bottom-[3%] left-1/2 z-30 w-[min(94%,300px)] -translate-x-1/2 px-2 md:hidden"
+							className="pointer-events-none fixed bottom-[5.75rem] left-1/2 z-40 w-[min(calc(100vw-2rem),300px)] -translate-x-1/2 md:hidden"
 						>
-							<div className="pointer-events-auto relative border border-cyan-400/50 bg-white/94 px-3 py-2.5 shadow-lg shadow-cyan-500/10 backdrop-blur-md dark:bg-[#05030a]/92 dark:shadow-[0_0_28px_rgba(34,211,238,0.18),inset_0_1px_0_rgba(255,255,255,0.06)]">
-								<button
-									type="button"
-									onClick={dismissMobileHint}
-									className="absolute right-1.5 top-1.5 rounded-sm p-1 font-mono text-[10px] leading-none text-slate-400 transition hover:text-cyan-300"
-									aria-label="Dismiss voice chat hint"
-								>
-									×
-								</button>
-								<div className="absolute left-2 top-1.5 h-1 w-1 rounded-[1px] bg-fuchsia-500 shadow-[0_0_8px_rgba(217,70,239,0.55)] dark:bg-fuchsia-400 dark:shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
-								<div className="absolute right-8 top-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-cyan-600/75 dark:text-cyan-400/70">
-									UX.HUD
+							<div className="pointer-events-auto relative overflow-visible border border-cyan-400/50 bg-white/94 px-3.5 py-2.5 shadow-lg shadow-cyan-500/10 backdrop-blur-md dark:bg-[#05030a]/92 dark:shadow-[0_0_28px_rgba(34,211,238,0.18),inset_0_1px_0_rgba(255,255,255,0.06)]">
+								<div className="mb-2 flex items-center justify-between gap-2">
+									<div className="flex min-w-0 items-center gap-1.5">
+										<div className="h-1 w-1 shrink-0 rounded-[1px] bg-fuchsia-500 shadow-[0_0_8px_rgba(217,70,239,0.55)] dark:bg-fuchsia-400 dark:shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
+										<div className="truncate font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-cyan-600/75 dark:text-cyan-400/70">
+											UX.HUD
+										</div>
+									</div>
+									<button
+										type="button"
+										onClick={dismissMobileHint}
+										className="shrink-0 rounded-sm border border-slate-200/80 bg-white/80 px-1.5 py-0.5 font-mono text-xs leading-none text-slate-500 transition hover:border-cyan-400/40 hover:text-cyan-600 dark:border-white/15 dark:bg-black/40 dark:text-slate-300 dark:hover:text-cyan-200"
+										aria-label="Dismiss voice chat hint"
+									>
+										×
+									</button>
 								</div>
-								<p className="mt-4 font-mono text-[11px] font-semibold uppercase leading-snug tracking-[0.12em] text-slate-800 dark:text-cyan-100/95">
+								<p className="font-mono text-[11px] font-semibold uppercase leading-snug tracking-[0.12em] text-slate-800 dark:text-cyan-100/95">
 									<span className="text-fuchsia-600/90 dark:text-fuchsia-400/90">
 										&gt;
 									</span>{" "}

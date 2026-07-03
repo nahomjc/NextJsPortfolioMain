@@ -24,7 +24,8 @@ import {
 
 const POP_W = 320;
 const POP_H_EST = 380;
-const PAD = 10;
+const PAD = 12;
+const HUD_CLIP_INSET = 14;
 
 const VOICE_GREETING =
 	"Hey — I'm Nahom's assistant. Ask about his work, book a meeting, say call to reach him, or say terminate to close.";
@@ -65,19 +66,33 @@ function computePosition(clientX, clientY) {
 	}
 	const vw = window.innerWidth;
 	const vh = window.innerHeight;
+	const panelW = Math.min(POP_W, vw - PAD * 2);
+
+	if (vw < 640) {
+		const top = Math.min(
+			Math.max(PAD, clientY + 16),
+			vh - POP_H_EST - PAD,
+		);
+		return {
+			left: (vw - panelW) / 2,
+			top,
+			originX: "50%",
+			originY: "0%",
+		};
+	}
 
 	const spaceR = vw - clientX - PAD;
 	const spaceL = clientX - PAD;
 	const spaceB = vh - clientY - PAD;
 	const spaceT = clientY - PAD;
 
-	const openRight = spaceR >= POP_W || spaceR >= spaceL;
+	const openRight = spaceR >= panelW || spaceR >= spaceL;
 	const openDown = spaceB >= POP_H_EST || spaceB >= spaceT;
 
-	let left = openRight ? clientX + 12 : clientX - POP_W - 12;
+	let left = openRight ? clientX + 12 : clientX - panelW - 12;
 	let top = openDown ? clientY + 12 : clientY - POP_H_EST - 12;
 
-	left = Math.min(Math.max(PAD, left), vw - POP_W - PAD);
+	left = Math.min(Math.max(PAD, left), vw - panelW - PAD);
 	top = Math.min(Math.max(PAD, top), vh - POP_H_EST - PAD);
 
 	const originX = openRight ? "0%" : "100%";
@@ -231,7 +246,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 
 	const tether = useMemo(() => {
 		if (!open || !anchor || typeof window === "undefined") return null;
-		const w = Math.min(POP_W, window.innerWidth - 20);
+		const w = Math.min(POP_W, window.innerWidth - PAD * 2);
 		const { x: tx, y: ty } = closestPanelCorner(
 			anchor.x,
 			anchor.y,
@@ -712,7 +727,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							aria-modal="true"
 							aria-labelledby="hero-voice-hud-title"
 							aria-describedby="hero-voice-hud-body"
-							className="pointer-events-auto w-[min(320px,calc(100vw-20px))] max-w-[calc(100vw-20px)]"
+							className="pointer-events-auto w-[min(320px,calc(100vw-24px))] max-w-[calc(100vw-24px)]"
 							style={{ transformOrigin: `${pos.originX} ${pos.originY}` }}
 							initial={
 								reduceMotion
@@ -740,21 +755,27 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 								delay: reduceMotion ? 0 : 0.06,
 							}}
 						>
-							<div
-								className="relative overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
-								style={{
-									clipPath:
-										"polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px))",
-								}}
-							>
+								<div
+									className="relative overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+									style={{
+										clipPath: `polygon(0 ${HUD_CLIP_INSET}px, ${HUD_CLIP_INSET}px 0, calc(100% - ${HUD_CLIP_INSET}px) 0, 100% ${HUD_CLIP_INSET}px, 100% calc(100% - ${HUD_CLIP_INSET}px), calc(100% - ${HUD_CLIP_INSET}px) 100%, ${HUD_CLIP_INSET}px 100%, 0 calc(100% - ${HUD_CLIP_INSET}px))`,
+									}}
+								>
 								<HudCorner className="left-2 top-2 border-l-2 border-t-2" />
 								<HudCorner className="right-2 top-2 border-r-2 border-t-2" />
 								<HudCorner className="bottom-2 left-2 border-b-2 border-l-2" />
 								<HudCorner className="bottom-2 right-2 border-b-2 border-r-2" />
 
-								<div className="relative px-3.5 pb-3 pt-2 sm:px-4 sm:pb-3.5 sm:pt-2.5">
-									<div className="mb-2 flex items-start justify-between gap-2 border-b border-cyan-500/15 pb-2">
-										<div className="flex min-w-0 items-center gap-2.5">
+								<div
+									className="relative px-4 pb-3.5 pt-3.5 sm:px-4 sm:pb-3.5 sm:pt-3"
+									style={{
+										paddingTop: HUD_CLIP_INSET + 4,
+										paddingRight: HUD_CLIP_INSET + 2,
+										paddingLeft: HUD_CLIP_INSET,
+									}}
+								>
+									<div className="mb-2 flex items-start justify-between gap-3 border-b border-cyan-500/15 pb-2">
+										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<StatusOrb state={agentState} reduceMotion={reduceMotion} />
 											<div className="min-w-0">
 												<p
@@ -771,10 +792,10 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 										<button
 											type="button"
 											onClick={onClose}
-											className="shrink-0 rounded-sm border border-cyan-500/35 bg-cyan-950/40 p-1 text-cyan-200/90 transition hover:border-fuchsia-400/50 hover:text-fuchsia-100"
+											className="ml-1 shrink-0 rounded-sm border border-cyan-500/35 bg-cyan-950/40 p-1.5 text-cyan-200/90 transition hover:border-fuchsia-400/50 hover:text-fuchsia-100"
 											aria-label="Close voice session"
 										>
-											<AiOutlineClose className="h-3.5 w-3.5" />
+											<AiOutlineClose className="h-4 w-4" />
 										</button>
 									</div>
 
