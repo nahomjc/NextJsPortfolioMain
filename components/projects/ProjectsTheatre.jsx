@@ -76,11 +76,14 @@ export default function ProjectsTheatre({
 							04
 						</span>
 						<div>
-							<p className="font-mono text-[10px] uppercase tracking-[0.28em] text-cyan-200">
-								Production Command Vault
-							</p>
-							<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
-								Scroll · browse · deploy dossiers
+							<h3 className="font-display text-lg font-bold text-white sm:text-xl">
+								What I&apos;ve{" "}
+								<span className="bg-gradient-to-r from-cyan-300 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+									Built
+								</span>
+							</h3>
+							<p className="mt-0.5 font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
+								Scroll · browse · open dossiers
 							</p>
 						</div>
 					</div>

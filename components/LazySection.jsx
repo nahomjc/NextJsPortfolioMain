@@ -6,9 +6,14 @@ export default function LazySection({
 	rootMargin = "320px 0px",
 	minHeight = "40vh",
 	className = "",
+	forceMount = false,
 }) {
 	const ref = useRef(null);
-	const [visible, setVisible] = useState(false);
+	const [visible, setVisible] = useState(forceMount);
+
+	useEffect(() => {
+		if (forceMount) setVisible(true);
+	}, [forceMount]);
 
 	useEffect(() => {
 		const el = ref.current;

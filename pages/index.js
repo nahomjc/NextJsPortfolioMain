@@ -1,8 +1,10 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Main from "../components/Main";
 import LazySection from "../components/LazySection";
+import HomeHashScroll from "../components/HomeHashScroll";
 import {
 	SITE_URL,
 	SITE_NAME,
@@ -48,8 +50,26 @@ function DeferredAIChat() {
 }
 
 export default function Home() {
+	const router = useRouter();
+	const [hashId, setHashId] = useState(() =>
+		typeof window !== "undefined"
+			? window.location.hash.replace("#", "")
+			: "",
+	);
 	const ogImage = absoluteUrl(homeMeta.ogImagePath);
 	const jsonLd = homeJsonLd();
+
+	useEffect(() => {
+		const readHash = () =>
+			setHashId(window.location.hash.replace("#", ""));
+		readHash();
+		window.addEventListener("hashchange", readHash);
+		router.events.on("routeChangeComplete", readHash);
+		return () => {
+			window.removeEventListener("hashchange", readHash);
+			router.events.off("routeChangeComplete", readHash);
+		};
+	}, [router]);
 
 	return (
 		<>
@@ -131,6 +151,7 @@ export default function Home() {
 			</Head>
 
 			<main className="relative min-h-screen overflow-x-clip">
+				<HomeHashScroll />
 				<Main />
 				<DeferredAIChat />
 				<LazySection minHeight="80vh">
@@ -148,7 +169,7 @@ export default function Home() {
 				<LazySection minHeight="70vh">
 					<Timeline />
 				</LazySection>
-				<LazySection minHeight="80vh">
+				<LazySection minHeight="80vh" forceMount={hashId === "projects"}>
 					<Projects />
 				</LazySection>
 				<LazySection minHeight="50vh">

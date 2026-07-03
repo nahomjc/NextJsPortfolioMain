@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { useReducedMotion } from "framer-motion";
 import { useLenis } from "./LenisProvider";
 import { scrollToProgress, scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
@@ -7,10 +8,10 @@ import ProjectsHero from "./projects/ProjectsHero";
 import ProjectsTheatre from "./projects/ProjectsTheatre";
 import ProjectsMobile from "./projects/ProjectsMobile";
 import ProjectsSandbox from "./projects/ProjectsSandbox";
-import ProjectsProductionBento from "./projects/ProjectsProductionBento";
 import useProjectsAnimations from "./projects/useProjectsAnimations";
 
 const Projects = () => {
+	const router = useRouter();
 	const reduceMotion = useReducedMotion();
 	const lenis = useLenis();
 	const [activeIndex, setActiveIndex] = useState(0);
@@ -35,8 +36,6 @@ const Projects = () => {
 	const segmentRefs = useRef([]);
 	const sandboxRef = useRef(null);
 	const sandboxCardRefs = useRef([]);
-	const bentoRef = useRef(null);
-	const bentoCardRefs = useRef([]);
 	const mobileCardRefs = useRef([]);
 
 	const animationRefs = useRef({
@@ -59,8 +58,6 @@ const Projects = () => {
 		segmentRefs,
 		sandboxRef,
 		sandboxCardRefs,
-		bentoRef,
-		bentoCardRefs,
 		mobileCardRefs,
 	});
 
@@ -89,6 +86,55 @@ const Projects = () => {
 		if (reduceMotion || typeof window === "undefined") return;
 		scheduleScrollTriggerRefresh(400);
 	}, [reduceMotion]);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return undefined;
+		if (window.location.hash !== "#projects") return undefined;
+
+		let cancelled = false;
+		let timer = null;
+		let attempts = 0;
+		const TARGET_TOP = 32;
+
+		const alignToSection = () => {
+			if (cancelled) return;
+			const section = sectionRef.current;
+			if (!section) return;
+
+			const top = section.getBoundingClientRect().top;
+			if (Math.abs(top - TARGET_TOP) < 8 && attempts > 2) return;
+
+			const y = top + window.scrollY - TARGET_TOP;
+			if (lenis) {
+				lenis.scrollTo(y, {
+					duration: attempts === 0 ? 1.15 : 0.55,
+				});
+			} else {
+				window.scrollTo({ top: y, behavior: "smooth" });
+			}
+			scheduleScrollTriggerRefresh(200);
+
+			attempts += 1;
+			if (attempts < 30) {
+				timer = window.setTimeout(alignToSection, 250);
+			}
+		};
+
+		const resetAndAlign = () => {
+			attempts = 0;
+			if (timer) window.clearTimeout(timer);
+			alignToSection();
+		};
+
+		resetAndAlign();
+		router.events.on("routeChangeComplete", resetAndAlign);
+
+		return () => {
+			cancelled = true;
+			if (timer) window.clearTimeout(timer);
+			router.events.off("routeChangeComplete", resetAndAlign);
+		};
+	}, [lenis, router]);
 
 	return (
 		<section
@@ -142,11 +188,6 @@ const Projects = () => {
 						segmentRefs={segmentRefs}
 						activeIndex={activeIndex}
 						jumpToProject={jumpToProject}
-					/>
-
-					<ProjectsProductionBento
-						bentoRef={bentoRef}
-						cardRefs={bentoCardRefs}
 					/>
 
 					<ProjectsMobile mobileCardRefs={mobileCardRefs} />

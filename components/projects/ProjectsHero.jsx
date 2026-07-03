@@ -105,7 +105,7 @@ export default function ProjectsHero({
 							))}
 						</div>
 						<p className="projects-hero-hint about-hero-hint border-t border-white/6 px-4 py-3 font-mono text-[8px] uppercase tracking-[0.2em] text-slate-500">
-							↓ Enter the command vault
+							↓ What I&apos;ve Built — command vault
 						</p>
 					</div>
 				</div>

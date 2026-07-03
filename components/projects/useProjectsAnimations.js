@@ -71,8 +71,6 @@ export default function useProjectsAnimations({
 		segmentRefs,
 		sandboxRef,
 		sandboxCardRefs,
-		bentoRef,
-		bentoCardRefs,
 		mobileCardRefs,
 	} = refs;
 
@@ -444,76 +442,6 @@ export default function useProjectsAnimations({
 					},
 				});
 			});
-
-			if (bentoRef.current) {
-				const bentoCards = bentoCardRefs.current.filter(Boolean);
-				gsap.from(bentoRef.current.querySelector(".projects-bento-vault__header"), {
-					y: 40,
-					opacity: 0,
-					duration: 0.9,
-					ease: "power3.out",
-					scrollTrigger: scrollTriggerBase({
-						trigger: bentoRef.current,
-						start: "top 88%",
-						toggleActions: "play none none reverse",
-					}),
-				});
-
-				bentoCards.forEach((card, i) => {
-					if (!card) return;
-					const reveal = card.querySelector(".project-card-reveal");
-					const inner = card.querySelector(".project-card-inner");
-					const isFeatured = card.classList.contains("project-card--featured");
-					const delay = isFeatured ? 0 : (i % 3) * 0.04;
-
-					if (reveal) {
-						gsap.fromTo(
-							reveal,
-							{
-								clipPath: isFeatured
-									? "inset(100% 0 0 0 round 18px)"
-									: i % 2 === 0
-										? "inset(0 100% 0 0 round 16px)"
-										: "inset(0 0 0 100% round 16px)",
-								opacity: 0.35,
-							},
-							{
-								clipPath: "inset(0 0 0 0 round 16px)",
-								opacity: 1,
-								ease: "power2.out",
-								scrollTrigger: scrollTriggerBase({
-									trigger: card,
-									start: "top 94%",
-									end: "top 64%",
-									scrub: 0.58,
-								}),
-								delay,
-							},
-						);
-					}
-
-					if (inner) {
-						gsap.fromTo(
-							inner,
-							{ y: isFeatured ? 72 : 40, scale: isFeatured ? 1.05 : 0.94, rotateX: 10 },
-							{
-								y: 0,
-								scale: 1,
-								rotateX: 0,
-								ease: "power2.out",
-								transformOrigin: "50% 100%",
-								scrollTrigger: scrollTriggerBase({
-									trigger: card,
-									start: "top 92%",
-									end: "top 62%",
-									scrub: 0.52,
-								}),
-								delay,
-							},
-						);
-					}
-				});
-			}
 
 			if (sandboxRef.current) {
 				const sandboxCards = sandboxCardRefs.current.filter(Boolean);
