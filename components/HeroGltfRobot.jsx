@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { HiOutlineMicrophone } from "react-icons/hi";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -12,6 +14,154 @@ import {
 	shouldCapIdleFps,
 } from "../lib/animationControl";
 import { createWebGLRendererSafe } from "../lib/webgl";
+
+const CHAT_CTA_DISMISS_KEY = "hero-chat-cta-dismissed";
+
+function useRobotScreenAnchor(ref, enabled) {
+	const [anchor, setAnchor] = useState(null);
+
+	useEffect(() => {
+		if (!enabled) {
+			setAnchor(null);
+			return undefined;
+		}
+		const el = ref.current;
+		if (!el) return undefined;
+
+		const update = () => {
+			const r = el.getBoundingClientRect();
+			if (r.width < 1 || r.height < 1) return;
+			setAnchor({
+				cx: r.left + r.width / 2,
+				top: r.top,
+				midY: r.top + r.height * 0.14,
+				bottom: r.bottom,
+			});
+		};
+
+		update();
+		const ro = new ResizeObserver(update);
+		ro.observe(el);
+		window.addEventListener("resize", update);
+		window.addEventListener("scroll", update, { passive: true });
+		return () => {
+			ro.disconnect();
+			window.removeEventListener("resize", update);
+			window.removeEventListener("scroll", update);
+		};
+	}, [ref, enabled]);
+
+	return anchor;
+}
+
+function HeroRobotHoverHint({ anchor, reduceMotion }) {
+	if (typeof document === "undefined" || !anchor) return null;
+
+	return createPortal(
+		<motion.div
+			initial={{ opacity: 0, y: 6, scale: 0.96 }}
+			animate={{ opacity: 1, y: 0, scale: 1 }}
+			exit={{ opacity: 0, y: 4, scale: 0.98 }}
+			transition={reduceMotion ? { duration: 0.15 } : { duration: 0.22 }}
+			className="hero-robot-hover-hint pointer-events-none"
+			style={{
+				position: "fixed",
+				left: anchor.cx,
+				top: anchor.midY,
+				transform: "translate(-50%, 0)",
+				zIndex: 9988,
+			}}
+		>
+			<span className="hero-robot-hover-hint__scan" aria-hidden />
+			<span className="hero-robot-hover-hint__text">Chat with me · AI</span>
+		</motion.div>,
+		document.body,
+	);
+}
+
+function HeroRobotChatCta({ anchor, reduceMotion, finePointer, onOpen, onDismiss }) {
+	if (typeof document === "undefined" || !anchor) return null;
+
+	const actionLabel = finePointer
+		? "Click to start AI voice chat"
+		: "Tap to start AI voice chat";
+	const placeAbove = anchor.top > 96;
+
+	return createPortal(
+		<motion.div
+			key="robot-chat-cta"
+			role="presentation"
+			initial={{ opacity: 0, y: placeAbove ? 10 : -10, scale: 0.94 }}
+			animate={{
+				opacity: 1,
+				y: reduceMotion ? 0 : placeAbove ? [0, -5, 0] : [0, 5, 0],
+				scale: 1,
+			}}
+			exit={{ opacity: 0, y: placeAbove ? 8 : -8, scale: 0.96 }}
+			transition={
+				reduceMotion
+					? { duration: 0.25 }
+					: {
+							y: {
+								duration: 2.8,
+								repeat: Number.POSITIVE_INFINITY,
+								ease: "easeInOut",
+							},
+							opacity: { duration: 0.4 },
+							scale: { type: "spring", stiffness: 360, damping: 24 },
+						}
+			}
+			className="hero-robot-chat-cta-wrap pointer-events-none w-[min(calc(100vw-1.5rem),320px)]"
+			style={{
+				position: "fixed",
+				left: anchor.cx,
+				top: placeAbove ? anchor.top - 10 : anchor.bottom + 10,
+				transform: placeAbove ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+				zIndex: 9990,
+			}}
+		>
+			<div className="relative">
+				<button
+					type="button"
+					onClick={onOpen}
+					className="hero-robot-chat-cta group pointer-events-auto w-full text-left"
+					aria-label={actionLabel}
+				>
+					<span className="hero-robot-chat-cta__border" aria-hidden />
+					<span className="hero-robot-chat-cta__glow" aria-hidden />
+					<span className="hero-robot-chat-cta__scan" aria-hidden />
+					<span className="hero-robot-chat-cta__body">
+						<span className="hero-robot-chat-cta__icon" aria-hidden>
+							<HiOutlineMicrophone className="h-5 w-5" />
+							<span className="hero-robot-chat-cta__icon-pulse" />
+						</span>
+						<span className="hero-robot-chat-cta__copy">
+							<span className="hero-robot-chat-cta__eyebrow">VOICE_LINK · ONLINE</span>
+							<span className="hero-robot-chat-cta__title">Chat with me · AI</span>
+							<span className="hero-robot-chat-cta__sub">{actionLabel}</span>
+						</span>
+						<span className="hero-robot-chat-cta__arrow" aria-hidden>
+							↗
+						</span>
+					</span>
+				</button>
+				<button
+					type="button"
+					onClick={(e) => {
+						e.stopPropagation();
+						onDismiss();
+					}}
+					className="hero-robot-chat-cta__dismiss pointer-events-auto"
+					aria-label="Dismiss chat invite"
+				>
+					×
+				</button>
+			</div>
+		</motion.div>,
+		document.body,
+	);
+}
+
 
 const MODEL_PATH = `/assets/${encodeURIComponent("object_0 (9).glb")}`;
 
@@ -304,7 +454,8 @@ const HeroGltfRobot = ({ compact = false }) => {
 	const [introAnchor, setIntroAnchor] = useState(null);
 	const [hoverRobot, setHoverRobot] = useState(false);
 	const [finePointerHover, setFinePointerHover] = useState(true);
-	const [mobileHintDismissed, setMobileHintDismissed] = useState(false);
+	const [chatHintDismissed, setChatHintDismissed] = useState(false);
+	const [showCtaFallback, setShowCtaFallback] = useState(false);
 	const reduceMotionUi = useReducedMotion();
 	const setIntroOpenRef = useRef(setIntroOpen);
 	const setIntroAnchorRef = useRef(setIntroAnchor);
@@ -319,8 +470,8 @@ const HeroGltfRobot = ({ compact = false }) => {
 	useEffect(() => {
 		if (typeof window === "undefined") return;
 		try {
-			if (sessionStorage.getItem("hero-voice-hint-seen") === "1") {
-				setMobileHintDismissed(true);
+			if (sessionStorage.getItem(CHAT_CTA_DISMISS_KEY) === "1") {
+				setChatHintDismissed(true);
 			}
 		} catch {
 			/* noop */
@@ -328,23 +479,38 @@ const HeroGltfRobot = ({ compact = false }) => {
 	}, []);
 
 	useEffect(() => {
-		if (!introOpen) return;
-		setMobileHintDismissed(true);
-		try {
-			sessionStorage.setItem("hero-voice-hint-seen", "1");
-		} catch {
-			/* noop */
-		}
-	}, [introOpen]);
+		const t = window.setTimeout(() => setShowCtaFallback(true), 1200);
+		return () => window.clearTimeout(t);
+	}, []);
 
-	const dismissMobileHint = () => {
-		setMobileHintDismissed(true);
+	const dismissChatHint = () => {
+		setChatHintDismissed(true);
 		try {
-			sessionStorage.setItem("hero-voice-hint-seen", "1");
+			sessionStorage.setItem(CHAT_CTA_DISMISS_KEY, "1");
 		} catch {
 			/* noop */
 		}
 	};
+
+	const openVoiceChat = useCallback(() => {
+		triggerClickGlowRef.current();
+		const el = wrapRef.current;
+		if (el) {
+			const r = el.getBoundingClientRect();
+			setIntroAnchor({
+				x: r.left + r.width / 2,
+				y: r.top + r.height / 2,
+				variantKey: pickHudVariantKey(0.5, 0.5),
+			});
+		} else {
+			setIntroAnchor({
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
+				variantKey: HUD_DEFAULT_VARIANT,
+			});
+		}
+		setIntroOpen(true);
+	}, []);
 	const rafRef = useRef(0);
 	const flashOverlayRef = useRef(null);
 	const clickRingRef = useRef(null);
@@ -1510,12 +1676,18 @@ const HeroGltfRobot = ({ compact = false }) => {
 		};
 	}, []);
 
-	const showHoverHint = loaded && finePointerHover && hoverRobot && !introOpen;
-	const showMobileHint =
-		loaded && !finePointerHover && !introOpen && !mobileHintDismissed;
+	const showChatCta =
+		!introOpen &&
+		!chatHintDismissed &&
+		(loaded || showCtaFallback) &&
+		!(finePointerHover && hoverRobot);
+	const showHoverHint =
+		hoverRobot && finePointerHover && !introOpen && loaded && !chatHintDismissed;
+	const ctaAnchor = useRobotScreenAnchor(wrapRef, showChatCta);
+	const hoverAnchor = useRobotScreenAnchor(wrapRef, showHoverHint);
 	const robotAriaLabel = finePointerHover
-		? "Hero robot — moves with your pointer; click and drag to orbit, click for AI voice chat"
-		: "Hero robot — tap to open AI voice chat";
+		? "Hero robot — moves with your pointer; click and drag to orbit, click to chat with AI voice assistant"
+		: "Hero robot — tap to chat with AI voice assistant";
 
 	return (
 		<>
@@ -1632,102 +1804,22 @@ const HeroGltfRobot = ({ compact = false }) => {
 					aria-hidden
 				/>
 				<AnimatePresence>
-					{showMobileHint ? (
-						<motion.div
-							key="robot-mobile-hint"
-							role="status"
-							initial={{ opacity: 0, y: 10, scale: 0.96 }}
-							animate={{
-								opacity: 1,
-								y: reduceMotionUi ? 0 : [0, -5, 0],
-								scale: 1,
-							}}
-							exit={{ opacity: 0, y: 8, scale: 0.97 }}
-							transition={
-								reduceMotionUi
-									? { duration: 0.2 }
-									: {
-											y: {
-												duration: 2.4,
-												repeat: Number.POSITIVE_INFINITY,
-												ease: "easeInOut",
-											},
-											opacity: { duration: 0.35 },
-											scale: { type: "spring", stiffness: 380, damping: 26 },
-										}
-							}
-							className="pointer-events-none fixed bottom-[5.75rem] left-1/2 z-40 w-[min(calc(100vw-2rem),300px)] -translate-x-1/2 md:hidden"
-						>
-							<div className="pointer-events-auto relative overflow-visible border border-cyan-400/50 bg-white/94 px-3.5 py-2.5 shadow-lg shadow-cyan-500/10 backdrop-blur-md dark:bg-[#05030a]/92 dark:shadow-[0_0_28px_rgba(34,211,238,0.18),inset_0_1px_0_rgba(255,255,255,0.06)]">
-								<div className="mb-2 flex items-center justify-between gap-2">
-									<div className="flex min-w-0 items-center gap-1.5">
-										<div className="h-1 w-1 shrink-0 rounded-[1px] bg-fuchsia-500 shadow-[0_0_8px_rgba(217,70,239,0.55)] dark:bg-fuchsia-400 dark:shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
-										<div className="truncate font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-cyan-600/75 dark:text-cyan-400/70">
-											UX.HUD
-										</div>
-									</div>
-									<button
-										type="button"
-										onClick={dismissMobileHint}
-										className="shrink-0 rounded-sm border border-slate-200/80 bg-white/80 px-1.5 py-0.5 font-mono text-xs leading-none text-slate-500 transition hover:border-cyan-400/40 hover:text-cyan-600 dark:border-white/15 dark:bg-black/40 dark:text-slate-300 dark:hover:text-cyan-200"
-										aria-label="Dismiss voice chat hint"
-									>
-										×
-									</button>
-								</div>
-								<p className="font-mono text-[11px] font-semibold uppercase leading-snug tracking-[0.12em] text-slate-800 dark:text-cyan-100/95">
-									<span className="text-fuchsia-600/90 dark:text-fuchsia-400/90">
-										&gt;
-									</span>{" "}
-									Talk to me
-								</p>
-								<p className="mt-1.5 font-mono text-[10px] leading-snug tracking-[0.04em] text-slate-600 dark:text-slate-300/85">
-									Tap the robot for AI voice chat
-								</p>
-								<div className="mt-2 flex items-center gap-1.5 border-t border-slate-200/80 pt-2 font-mono text-[9px] tracking-wider text-slate-500 dark:border-white/10 dark:text-cyan-400/65">
-									<span className="inline-block h-px w-3 bg-cyan-400/60" />
-									<span>TAP · VOICE_LINK</span>
-								</div>
-							</div>
-						</motion.div>
+					{showHoverHint ? (
+						<HeroRobotHoverHint
+							anchor={hoverAnchor}
+							reduceMotion={reduceMotionUi}
+						/>
 					) : null}
 				</AnimatePresence>
 				<AnimatePresence>
-					{showHoverHint ? (
-						<motion.div
-							key="robot-hover-hint"
-							role="tooltip"
-							aria-hidden
-							initial={{ opacity: 0, y: 8, scale: 0.97 }}
-							animate={{ opacity: 1, y: 0, scale: 1 }}
-							exit={{ opacity: 0, y: 6, scale: 0.98 }}
-							transition={
-								reduceMotionUi
-									? { duration: 0.15 }
-									: { type: "spring", stiffness: 420, damping: 28 }
-							}
-							className="pointer-events-none absolute left-1/2 top-[5%] z-30 hidden w-[min(92%,280px)] -translate-x-1/2 px-2 md:block"
-						>
-							<div className="relative border border-cyan-400/45 bg-white/92 px-3 py-2.5 shadow-md backdrop-blur-md dark:bg-[#05030a]/88 dark:shadow-[0_0_24px_rgba(34,211,238,0.12),inset_0_1px_0_rgba(255,255,255,0.06)]">
-								<div className="absolute left-2 top-1.5 h-1 w-1 rounded-[1px] bg-fuchsia-500 shadow-[0_0_8px_rgba(217,70,239,0.55)] dark:bg-fuchsia-400 dark:shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
-								<div className="absolute right-2 top-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-cyan-600/75 dark:text-cyan-400/70">
-									UX.HUD
-								</div>
-								<p className="mt-4 font-mono text-[11px] font-medium uppercase leading-snug tracking-[0.12em] text-slate-700 sm:text-xs dark:text-cyan-100/95">
-									<span className="text-fuchsia-600/90 dark:text-fuchsia-400/90">
-										&gt;
-									</span>{" "}
-									Talk to me
-								</p>
-								<p className="mt-1 font-mono text-[10px] leading-snug tracking-[0.04em] text-slate-600 dark:text-slate-300/80">
-									Click for AI voice chat
-								</p>
-								<div className="mt-2 flex items-center gap-1.5 border-t border-slate-200/80 pt-2 font-mono text-[9px] tracking-wider text-slate-500 dark:border-white/10">
-									<span className="inline-block h-px w-3 bg-cyan-400/60" />
-									<span>VOICE_LINK</span>
-								</div>
-							</div>
-						</motion.div>
+					{showChatCta ? (
+						<HeroRobotChatCta
+							anchor={ctaAnchor}
+							reduceMotion={reduceMotionUi}
+							finePointer={finePointerHover}
+							onOpen={openVoiceChat}
+							onDismiss={dismissChatHint}
+						/>
 					) : null}
 				</AnimatePresence>
 			</div>

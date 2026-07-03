@@ -26,8 +26,10 @@ import {
 	normalizeVoiceTranscript,
 } from "../lib/voiceTranscriptNormalize";
 
-const POP_W = 320;
-const POP_H_EST = 380;
+const POP_W = 360;
+const POP_H_EST = 420;
+const POP_MAX_H = 480;
+const MOBILE_DOCK_CLEARANCE = 88;
 const PAD = 12;
 const HUD_CLIP_INSET = 14;
 
@@ -73,9 +75,10 @@ function computePosition(clientX, clientY) {
 	const panelW = Math.min(POP_W, vw - PAD * 2);
 
 	if (vw < 640) {
-		const top = Math.min(
-			Math.max(PAD, clientY + 16),
-			vh - POP_H_EST - PAD,
+		const maxCardH = Math.min(vh * 0.72, POP_MAX_H);
+		const top = Math.max(
+			PAD,
+			Math.min(vh - maxCardH - MOBILE_DOCK_CLEARANCE, vh * 0.1),
 		);
 		return {
 			left: (vw - panelW) / 2,
@@ -166,51 +169,89 @@ function StatusOrb({ state, reduceMotion }) {
 	);
 }
 
+function TranscriptBubble({ label, accentBar, labelClass, borderClass, bgClass, children }) {
+	return (
+		<div
+			className={`relative rounded-sm border px-2.5 py-2 pl-3.5 text-slate-100/95 ${borderClass} ${bgClass}`}
+		>
+			<span
+				className={`absolute bottom-2 left-1.5 top-2 w-0.5 rounded-full ${accentBar}`}
+				aria-hidden
+			/>
+			<p className={`text-[9px] font-semibold uppercase tracking-wider ${labelClass}`}>
+				{label}
+			</p>
+			<div className="mt-1 break-words text-[11px] leading-relaxed sm:text-xs">
+				{children}
+			</div>
+		</div>
+	);
+}
+
 function BookingPanel({ snapshot }) {
 	if (!snapshot?.active) return null;
 	const { progress, name, email, phone, day, timeWindow, topic } = snapshot;
+	const pct = Math.round((progress.step / progress.total) * 100);
 
 	return (
-		<div className="rounded-sm border border-violet-500/25 bg-violet-950/20 px-2.5 py-2">
-			<p className="text-[9px] uppercase tracking-wider text-violet-400/90">
-				Booking · step {progress.step} of {progress.total}
-				{progress.label ? ` — ${progress.label}` : ""}
-			</p>
-			<dl className="mt-1.5 space-y-0.5 text-[10px] text-slate-300">
+		<div className="rounded-sm border border-violet-500/30 bg-violet-950/25 px-2.5 py-2.5">
+			<div className="flex items-center justify-between gap-2">
+				<p className="text-[9px] font-semibold uppercase tracking-wider text-violet-300/90">
+					Booking · step {progress.step}/{progress.total}
+				</p>
+				{progress.label ? (
+					<span className="truncate font-mono text-[9px] text-violet-400/75">
+						{progress.label}
+					</span>
+				) : null}
+			</div>
+			<div
+				className="mt-2 h-1 overflow-hidden rounded-full bg-violet-950/80"
+				role="progressbar"
+				aria-valuenow={progress.step}
+				aria-valuemin={1}
+				aria-valuemax={progress.total}
+			>
+				<div
+					className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 transition-all duration-500"
+					style={{ width: `${pct}%` }}
+				/>
+			</div>
+			<dl className="mt-2 space-y-1 text-[10px] text-slate-300">
 				{name ? (
-					<div className="flex gap-2">
+					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Name</dt>
-						<dd className="min-w-0 truncate text-slate-100">{name}</dd>
+						<dd className="break-words text-slate-100">{name}</dd>
 					</div>
 				) : null}
 				{email ? (
-					<div className="flex gap-2">
+					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Email</dt>
-						<dd className="min-w-0 break-all text-cyan-200/95">{email}</dd>
+						<dd className="break-all text-cyan-200/95">{email}</dd>
 					</div>
 				) : null}
 				{phone ? (
-					<div className="flex gap-2">
+					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Phone</dt>
-						<dd className="text-slate-100">{phone}</dd>
+						<dd className="break-words text-slate-100">{phone}</dd>
 					</div>
 				) : null}
 				{day ? (
-					<div className="flex gap-2">
+					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Day</dt>
-						<dd className="text-slate-100">{day}</dd>
+						<dd className="break-words text-slate-100">{day}</dd>
 					</div>
 				) : null}
 				{timeWindow ? (
-					<div className="flex gap-2">
+					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Time</dt>
-						<dd className="text-slate-100">{timeWindow}</dd>
+						<dd className="break-words text-slate-100">{timeWindow}</dd>
 					</div>
 				) : null}
 				{topic ? (
-					<div className="flex gap-2">
+					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Topic</dt>
-						<dd className="min-w-0 text-slate-100">{topic}</dd>
+						<dd className="break-words text-slate-100">{topic}</dd>
 					</div>
 				) : null}
 			</dl>
@@ -238,6 +279,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 	const handleUtteranceRef = useRef(null);
 	const speakTextRef = useRef(null);
 	const closeVoiceSessionRef = useRef(null);
+	const transcriptRef = useRef(null);
 
 	const reduceMotion =
 		typeof window !== "undefined" &&
@@ -555,6 +597,12 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 	}, []);
 
 	useEffect(() => {
+		const el = transcriptRef.current;
+		if (!el) return;
+		el.scrollTop = el.scrollHeight;
+	}, [lastUserText, lastAssistantText, scheduleSnapshot, errorMessage]);
+
+	useEffect(() => {
 		if (!open) return;
 		const onKey = (e) => {
 			if (e.key === "Escape") onClose();
@@ -737,7 +785,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							aria-modal="true"
 							aria-labelledby="hero-voice-hud-title"
 							aria-describedby="hero-voice-hud-body"
-							className="pointer-events-auto w-[min(320px,calc(100vw-24px))] max-w-[calc(100vw-24px)]"
+							className="pointer-events-auto w-[min(360px,calc(100vw-24px))] max-w-[calc(100vw-24px)]"
 							style={{ transformOrigin: `${pos.originX} ${pos.originY}` }}
 							initial={
 								reduceMotion
@@ -766,25 +814,35 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							}}
 						>
 								<div
-									className="relative overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+									className="relative flex max-h-[min(72vh,30rem)] flex-col overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
 									style={{
 										clipPath: `polygon(0 ${HUD_CLIP_INSET}px, ${HUD_CLIP_INSET}px 0, calc(100% - ${HUD_CLIP_INSET}px) 0, 100% ${HUD_CLIP_INSET}px, 100% calc(100% - ${HUD_CLIP_INSET}px), calc(100% - ${HUD_CLIP_INSET}px) 100%, ${HUD_CLIP_INSET}px 100%, 0 calc(100% - ${HUD_CLIP_INSET}px))`,
 									}}
 								>
+								<div
+									className="pointer-events-none absolute inset-0 opacity-[0.04]"
+									style={{
+										backgroundImage:
+											"linear-gradient(rgba(34,211,238,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(217,70,239,0.25) 1px, transparent 1px)",
+										backgroundSize: "20px 20px",
+									}}
+									aria-hidden
+								/>
 								<HudCorner className="left-2 top-2 border-l-2 border-t-2" />
 								<HudCorner className="right-2 top-2 border-r-2 border-t-2" />
 								<HudCorner className="bottom-2 left-2 border-b-2 border-l-2" />
 								<HudCorner className="bottom-2 right-2 border-b-2 border-r-2" />
 
 								<div
-									className="relative px-4 pb-3.5 pt-3.5 sm:px-4 sm:pb-3.5 sm:pt-3"
+									className="relative flex min-h-0 flex-1 flex-col pb-3"
 									style={{
 										paddingTop: HUD_CLIP_INSET + 4,
 										paddingRight: HUD_CLIP_INSET + 2,
 										paddingLeft: HUD_CLIP_INSET,
 									}}
 								>
-									<div className="mb-2 flex items-start justify-between gap-3 border-b border-cyan-500/15 pb-2">
+									<div className="shrink-0 px-4 pb-2 pt-1 sm:px-4">
+									<div className="flex items-start justify-between gap-3 border-b border-cyan-500/15 pb-2">
 										<div className="flex min-w-0 flex-1 items-center gap-2.5">
 											<StatusOrb state={agentState} reduceMotion={reduceMotion} />
 											<div className="min-w-0">
@@ -808,38 +866,47 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 											<AiOutlineClose className="h-4 w-4" />
 										</button>
 									</div>
+									</div>
 
 									<div
+										ref={transcriptRef}
 										id="hero-voice-hud-body"
-										className="space-y-2 font-mono text-[11px] leading-relaxed sm:text-xs"
+										className="voice-hud-scroll relative min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 pb-2 font-mono"
 									>
 										<BookingPanel snapshot={scheduleSnapshot} />
 										{lastUserText ? (
-											<div className="rounded-sm border border-fuchsia-500/20 bg-fuchsia-950/20 px-2.5 py-2 text-slate-100/95">
-												<p className="text-[9px] uppercase tracking-wider text-fuchsia-400/80">
-													You
-												</p>
-												<p className="mt-1">{lastUserText}</p>
-											</div>
+											<TranscriptBubble
+												label="You"
+												accentBar="bg-fuchsia-400/80"
+												labelClass="text-fuchsia-400/80"
+												borderClass="border-fuchsia-500/25"
+												bgClass="bg-fuchsia-950/25"
+											>
+												{lastUserText}
+											</TranscriptBubble>
 										) : null}
-										<div className="rounded-sm border border-cyan-500/20 bg-black/55 px-2.5 py-2 text-slate-100/95 shadow-[inset_0_0_24px_rgba(34,211,238,0.04)]">
-											<p className="text-[9px] uppercase tracking-wider text-cyan-400/80">
-												Assistant
-											</p>
-											<p className="mt-1">
-												<span className="text-cyan-500/70">&gt; </span>
-												{lastAssistantText}
-											</p>
-										</div>
+										<TranscriptBubble
+											label="Assistant"
+											accentBar="bg-cyan-400/80"
+											labelClass="text-cyan-400/80"
+											borderClass="border-cyan-500/25"
+											bgClass="bg-black/55 shadow-[inset_0_0_24px_rgba(34,211,238,0.04)]"
+										>
+											<span className="text-cyan-500/70">&gt; </span>
+											{lastAssistantText}
+										</TranscriptBubble>
 									</div>
 
 									{errorMessage ? (
-										<div className="mt-2 rounded-sm border border-red-500/30 bg-red-500/10 px-2.5 py-2 font-mono text-[10px] text-red-300">
+										<div className="shrink-0 px-4 pb-1">
+										<div className="rounded-sm border border-red-500/30 bg-red-500/10 px-2.5 py-2 font-mono text-[10px] text-red-300">
 											{errorMessage}
+										</div>
 										</div>
 									) : null}
 
-									<div className="mt-2.5 flex flex-wrap items-center gap-2">
+									<div className="shrink-0 border-t border-cyan-500/10 px-4 py-3">
+									<div className="flex flex-wrap items-center gap-2">
 										{agentState === "mic_denied" || agentState === "error" ? (
 											<button
 												type="button"
@@ -859,6 +926,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 										>
 											[ terminate ]
 										</button>
+									</div>
 									</div>
 								</div>
 							</div>
