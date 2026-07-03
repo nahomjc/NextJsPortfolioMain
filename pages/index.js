@@ -16,6 +16,7 @@ const Skills = dynamic(() => import("../components/Skills"));
 const SkillsProgress = dynamic(() => import("../components/SkillCategory"));
 const Timeline = dynamic(() => import("../components/ExperienceTimeLine"));
 const Projects = dynamic(() => import("../components/Projects"));
+const ClientLogos = dynamic(() => import("../components/ClientLogos"));
 const AISection = dynamic(() => import("../components/AISection"));
 const CertificateShowcase = dynamic(() =>
 	import("../components/CertificateShowCase"),
@@ -114,6 +115,7 @@ export default function Home() {
 				<Main />
 				<AIChat />
 				<About />
+				<ClientLogos />
 				<Skills />
 				<SkillsProgress />
 				<Timeline />

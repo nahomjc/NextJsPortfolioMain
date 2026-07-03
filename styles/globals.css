@@ -2199,6 +2199,15 @@ html.lenis.lenis-stopped {
 	.hero-robot-col {
 		opacity: 1 !important;
 	}
+
+	.client-logo-marquee-track {
+		animation: none !important;
+		transform: none !important;
+	}
+
+	.client-logo-panel-scan {
+		animation: none !important;
+	}
 }
 
 /* Skills — tabbed bento grid + GSAP */
@@ -2367,6 +2376,65 @@ html.lenis.lenis-stopped {
 		filter: none !important;
 		clip-path: none !important;
 		opacity: 1 !important;
+	}
+}
+
+/* Client logos — production trust net */
+.client-logos-section {
+	perspective: 1200px;
+}
+
+.client-logo-marquee-track {
+	animation: client-logo-marquee 42s linear infinite;
+	will-change: transform;
+}
+
+.client-logo-marquee--reverse .client-logo-marquee-track {
+	animation-name: client-logo-marquee-reverse;
+	animation-duration: 48s;
+}
+
+.client-logo-marquee:hover .client-logo-marquee-track {
+	animation-play-state: paused;
+}
+
+.client-logo-panel-scan {
+	animation: client-logo-panel-scan 4.8s ease-in-out infinite;
+}
+
+@keyframes client-logo-marquee {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(-50%);
+	}
+}
+
+@keyframes client-logo-marquee-reverse {
+	from {
+		transform: translateX(-50%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes client-logo-panel-scan {
+	0%,
+	100% {
+		top: 0;
+		opacity: 0;
+	}
+	8% {
+		opacity: 0.85;
+	}
+	50% {
+		top: calc(100% - 1px);
+		opacity: 0.65;
+	}
+	92% {
+		opacity: 0;
 	}
 }
 
