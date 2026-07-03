@@ -1,3 +1,5 @@
+import { getSttPrompt } from "../../lib/voiceSttPrompt";
+
 const GROQ_TRANSCRIPTIONS_URL =
 	"https://api.groq.com/openai/v1/audio/transcriptions";
 
@@ -49,6 +51,7 @@ export default async function handler(req, res) {
 	form.append("language", "en");
 	form.append("response_format", "json");
 	form.append("temperature", "0");
+	form.append("prompt", getSttPrompt());
 
 	try {
 		const upstream = await fetch(GROQ_TRANSCRIPTIONS_URL, {

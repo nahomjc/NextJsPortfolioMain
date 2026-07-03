@@ -21,6 +21,10 @@ import {
 	markGroqTtsRateLimited,
 	prefersBrowserTts,
 } from "../lib/voiceTtsRoute";
+import {
+	isEmptyTranscript,
+	normalizeVoiceTranscript,
+} from "../lib/voiceTranscriptNormalize";
 
 const POP_W = 320;
 const POP_H_EST = 380;
@@ -411,9 +415,10 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 					throw new Error(data.error || "Transcription failed.");
 				}
 				const { text } = await transcribeRes.json();
-				const trimmed = (text || "").trim();
-				if (!trimmed) {
+				const trimmed = normalizeVoiceTranscript(text);
+				if (isEmptyTranscript(trimmed)) {
 					processingRef.current = false;
+					setLastAssistantText("Didn't catch that — try again.");
 					setAgentState("listening");
 					setPausedListening(false);
 					return;
