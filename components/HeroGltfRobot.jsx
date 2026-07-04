@@ -84,20 +84,52 @@ function HeroRobotChatCta({ anchor, reduceMotion, finePointer, onOpen, onDismiss
 
 	const actionLabel = finePointer
 		? "Click to start AI voice chat"
-		: "Tap to start AI voice chat";
-	const placeAbove = anchor.top > 96;
+		: "Tap for AI voice";
+	const mobileLayout = !finePointer;
+	const placeAbove = finePointer && anchor.top > 120;
+
+	const viewportW = typeof window !== "undefined" ? window.innerWidth : 390;
+	const cardMaxW = mobileLayout ? viewportW - 24 : Math.min(viewportW - 32, 300);
+	const pad = mobileLayout ? 12 : 16;
+	const clampedLeft = Math.min(
+		Math.max(anchor.cx, pad + cardMaxW / 2),
+		viewportW - pad - cardMaxW / 2,
+	);
+
+	const wrapStyle = mobileLayout
+		? {
+				position: "fixed",
+				left: pad,
+				right: pad,
+				top: anchor.bottom + 8,
+				transform: "none",
+				zIndex: 9990,
+			}
+		: {
+				position: "fixed",
+				left: clampedLeft,
+				top: placeAbove ? anchor.top - 10 : anchor.bottom + 10,
+				transform: placeAbove ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+				zIndex: 9990,
+			};
 
 	return createPortal(
 		<motion.div
 			key="robot-chat-cta"
 			role="presentation"
-			initial={{ opacity: 0, y: placeAbove ? 10 : -10, scale: 0.94 }}
+			initial={{ opacity: 0, y: mobileLayout ? 8 : placeAbove ? 10 : -10, scale: 0.94 }}
 			animate={{
 				opacity: 1,
-				y: reduceMotion ? 0 : placeAbove ? [0, -5, 0] : [0, 5, 0],
+				y: reduceMotion
+					? 0
+					: mobileLayout
+						? [0, -3, 0]
+						: placeAbove
+							? [0, -5, 0]
+							: [0, 5, 0],
 				scale: 1,
 			}}
-			exit={{ opacity: 0, y: placeAbove ? 8 : -8, scale: 0.96 }}
+			exit={{ opacity: 0, y: mobileLayout ? 6 : placeAbove ? 8 : -8, scale: 0.96 }}
 			transition={
 				reduceMotion
 					? { duration: 0.25 }
@@ -111,14 +143,10 @@ function HeroRobotChatCta({ anchor, reduceMotion, finePointer, onOpen, onDismiss
 							scale: { type: "spring", stiffness: 360, damping: 24 },
 						}
 			}
-			className="hero-robot-chat-cta-wrap pointer-events-none w-[min(calc(100vw-1.5rem),320px)]"
-			style={{
-				position: "fixed",
-				left: anchor.cx,
-				top: placeAbove ? anchor.top - 10 : anchor.bottom + 10,
-				transform: placeAbove ? "translate(-50%, -100%)" : "translate(-50%, 0)",
-				zIndex: 9990,
-			}}
+			className={`hero-robot-chat-cta-wrap pointer-events-none ${
+				mobileLayout ? "hero-robot-chat-cta-wrap--mobile" : "w-[min(calc(100vw-2rem),300px)]"
+			}`}
+			style={wrapStyle}
 		>
 			<div className="relative">
 				<button
@@ -132,17 +160,21 @@ function HeroRobotChatCta({ anchor, reduceMotion, finePointer, onOpen, onDismiss
 					<span className="hero-robot-chat-cta__scan" aria-hidden />
 					<span className="hero-robot-chat-cta__body">
 						<span className="hero-robot-chat-cta__icon" aria-hidden>
-							<HiOutlineMicrophone className="h-5 w-5" />
+							<HiOutlineMicrophone className="h-4 w-4 sm:h-5 sm:w-5" />
 							<span className="hero-robot-chat-cta__icon-pulse" />
 						</span>
 						<span className="hero-robot-chat-cta__copy">
 							<span className="hero-robot-chat-cta__eyebrow">VOICE_LINK · ONLINE</span>
-							<span className="hero-robot-chat-cta__title">Chat with me · AI</span>
+							<span className="hero-robot-chat-cta__title">
+								{mobileLayout ? "Chat with me" : "Chat with me · AI"}
+							</span>
 							<span className="hero-robot-chat-cta__sub">{actionLabel}</span>
 						</span>
-						<span className="hero-robot-chat-cta__arrow" aria-hidden>
-							↗
-						</span>
+						{!mobileLayout ? (
+							<span className="hero-robot-chat-cta__arrow" aria-hidden>
+								↗
+							</span>
+						) : null}
 					</span>
 				</button>
 				<button
@@ -453,7 +485,11 @@ const HeroGltfRobot = ({ compact = false }) => {
 	const [introOpen, setIntroOpen] = useState(false);
 	const [introAnchor, setIntroAnchor] = useState(null);
 	const [hoverRobot, setHoverRobot] = useState(false);
-	const [finePointerHover, setFinePointerHover] = useState(true);
+	const [finePointerHover, setFinePointerHover] = useState(() =>
+		typeof window !== "undefined"
+			? window.matchMedia("(hover: hover)").matches
+			: true,
+	);
 	const [chatHintDismissed, setChatHintDismissed] = useState(false);
 	const [showCtaFallback, setShowCtaFallback] = useState(false);
 	const reduceMotionUi = useReducedMotion();
