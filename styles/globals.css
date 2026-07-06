@@ -4367,6 +4367,18 @@ section#contact {
 	background: rgba(34, 211, 238, 0.75);
 }
 
+/* Voice booking — typed input strip */
+.voice-schedule-typed__input {
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+@media (max-width: 639px) {
+	.voice-schedule-typed__input {
+		font-size: 16px;
+	}
+}
+
 /* Hero robot — voice chat CTA */
 @property --hero-robot-cta-angle {
 	syntax: "<angle>";

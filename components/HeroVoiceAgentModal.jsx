@@ -10,6 +10,7 @@ import {
 	getScheduleSnapshot,
 	processScheduleInput,
 	resetSchedule,
+	SCHEDULE_TYPED_STEPS,
 	startSchedule,
 	submitVoiceAppointment,
 	triggerPhoneCall,
@@ -26,9 +27,9 @@ import {
 	normalizeVoiceTranscript,
 } from "../lib/voiceTranscriptNormalize";
 
-const POP_W = 360;
-const POP_H_EST = 420;
-const POP_MAX_H = 480;
+const POP_W = 440;
+const POP_H_EST = 560;
+const POP_MAX_H = 680;
 const MOBILE_DOCK_CLEARANCE = 88;
 const PAD = 12;
 const HUD_CLIP_INSET = 14;
@@ -72,10 +73,11 @@ function computePosition(clientX, clientY) {
 	}
 	const vw = window.innerWidth;
 	const vh = window.innerHeight;
-	const panelW = Math.min(POP_W, vw - PAD * 2);
+	const isMobile = vw < 640;
+	const panelW = isMobile ? vw - PAD * 2 : Math.min(POP_W, vw - PAD * 2);
 
-	if (vw < 640) {
-		const maxCardH = Math.min(vh * 0.72, POP_MAX_H);
+	if (isMobile) {
+		const maxCardH = Math.min(vh * 0.85, POP_MAX_H);
 		const top = Math.max(
 			PAD,
 			Math.min(vh - maxCardH - MOBILE_DOCK_CLEARANCE, vh * 0.1),
@@ -259,6 +261,89 @@ function BookingPanel({ snapshot }) {
 	);
 }
 
+const TYPED_FIELD_CONFIG = {
+	name: {
+		label: "Your name",
+		type: "text",
+		autoComplete: "name",
+		placeholder: "Type your name",
+	},
+	email: {
+		label: "Your email",
+		type: "email",
+		autoComplete: "email",
+		placeholder: "you@example.com",
+	},
+	phone: {
+		label: "Your phone",
+		type: "tel",
+		autoComplete: "tel",
+		placeholder: "+251 9XX XXX XXX",
+	},
+};
+
+function ScheduleTypedInput({ step, onSubmit, onSkip, onFocus, onBlur }) {
+	const [draft, setDraft] = useState("");
+	const config = TYPED_FIELD_CONFIG[step];
+
+	useEffect(() => {
+		setDraft("");
+	}, [step]);
+
+	if (!config) return null;
+
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		const value = draft.trim();
+		if (!value) return;
+		onSubmit(value);
+		setDraft("");
+	};
+
+	return (
+		<form
+			onSubmit={handleSubmit}
+			className="voice-schedule-typed rounded-sm border border-cyan-500/30 bg-cyan-950/20 px-2.5 py-2.5"
+		>
+			<p className="font-mono text-[9px] font-semibold uppercase tracking-wider text-cyan-400/80">
+				Or type it
+			</p>
+			<label className="mt-2 block">
+				<span className="sr-only">{config.label}</span>
+				<input
+					type={config.type}
+					name={`schedule-${step}`}
+					value={draft}
+					onChange={(e) => setDraft(e.target.value)}
+					onFocus={onFocus}
+					onBlur={onBlur}
+					autoComplete={config.autoComplete}
+					placeholder={config.placeholder}
+					className="voice-schedule-typed__input mt-1 w-full rounded-sm border border-cyan-500/25 bg-black/50 px-2.5 py-2 font-mono text-base text-cyan-50 placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+				/>
+			</label>
+			<div className="mt-2 flex flex-wrap items-center gap-2">
+				<button
+					type="submit"
+					disabled={!draft.trim()}
+					className="rounded-sm border border-cyan-500/45 bg-cyan-950/50 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-100 transition enabled:hover:border-cyan-400/70 disabled:cursor-not-allowed disabled:opacity-40"
+				>
+					Continue
+				</button>
+				{step === "phone" ? (
+					<button
+						type="button"
+						onClick={onSkip}
+						className="rounded-sm border border-white/15 bg-white/[0.03] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-400 transition hover:border-slate-400/40 hover:text-slate-200"
+					>
+						Skip
+					</button>
+				) : null}
+			</div>
+		</form>
+	);
+}
+
 const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) => {
 	const [mounted, setMounted] = useState(false);
 	const [, setLayoutVersion] = useState(0);
@@ -403,12 +488,12 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 	}, []);
 
 	const handleScheduleTurn = useCallback(
-		async (trimmed) => {
+		async (trimmed, options = {}) => {
 			setLastUserText(trimmed);
 			setAgentState("scheduling");
 			setPausedListening(true);
 
-			const result = processScheduleInput(scheduleRef.current, trimmed);
+			const result = processScheduleInput(scheduleRef.current, trimmed, options);
 			syncScheduleHud();
 
 			if (result.kind === "terminate") {
@@ -441,6 +526,29 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 		},
 		[speakAndResume, setPausedListening, syncScheduleHud, closeVoiceSession],
 	);
+
+	const handleTypedScheduleSubmit = useCallback(
+		async (value) => {
+			if (processingRef.current || !openRef.current) return;
+			processingRef.current = true;
+			try {
+				await handleScheduleTurn(value, { typed: true });
+			} finally {
+				processingRef.current = false;
+			}
+		},
+		[handleScheduleTurn],
+	);
+
+	const handleTypedScheduleSkip = useCallback(async () => {
+		if (processingRef.current || !openRef.current) return;
+		processingRef.current = true;
+		try {
+			await handleScheduleTurn("skip", { typed: true });
+		} finally {
+			processingRef.current = false;
+		}
+	}, [handleScheduleTurn]);
 
 	const handleUtterance = useCallback(
 		async (blob, mimeType) => {
@@ -785,7 +893,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							aria-modal="true"
 							aria-labelledby="hero-voice-hud-title"
 							aria-describedby="hero-voice-hud-body"
-							className="pointer-events-auto w-[min(360px,calc(100vw-24px))] max-w-[calc(100vw-24px)]"
+							className="pointer-events-auto w-[min(440px,calc(100vw-24px))] max-w-[calc(100vw-24px)]"
 							style={{ transformOrigin: `${pos.originX} ${pos.originY}` }}
 							initial={
 								reduceMotion
@@ -814,7 +922,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							}}
 						>
 								<div
-									className="relative flex max-h-[min(72vh,30rem)] flex-col overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+									className="relative flex max-h-[min(85vh,42rem)] min-h-[min(52vh,28rem)] flex-col overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
 									style={{
 										clipPath: `polygon(0 ${HUD_CLIP_INSET}px, ${HUD_CLIP_INSET}px 0, calc(100% - ${HUD_CLIP_INSET}px) 0, 100% ${HUD_CLIP_INSET}px, 100% calc(100% - ${HUD_CLIP_INSET}px), calc(100% - ${HUD_CLIP_INSET}px) 100%, ${HUD_CLIP_INSET}px 100%, 0 calc(100% - ${HUD_CLIP_INSET}px))`,
 									}}
@@ -874,6 +982,24 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 										className="voice-hud-scroll relative min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 pb-2 font-mono"
 									>
 										<BookingPanel snapshot={scheduleSnapshot} />
+										{scheduleSnapshot?.active &&
+										SCHEDULE_TYPED_STEPS.has(scheduleSnapshot.step) ? (
+											<ScheduleTypedInput
+												step={scheduleSnapshot.step}
+												onSubmit={handleTypedScheduleSubmit}
+												onSkip={handleTypedScheduleSkip}
+												onFocus={() => setPausedListening(true)}
+												onBlur={() => {
+													if (
+														openRef.current &&
+														!processingRef.current &&
+														agentState !== "speaking"
+													) {
+														setPausedListening(false);
+													}
+												}}
+											/>
+										) : null}
 										{lastUserText ? (
 											<TranscriptBubble
 												label="You"
