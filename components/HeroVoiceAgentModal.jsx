@@ -270,7 +270,8 @@ const TYPED_FIELD_CONFIG = {
 	},
 	email: {
 		label: "Your email",
-		type: "email",
+		type: "text",
+		inputMode: "email",
 		autoComplete: "email",
 		placeholder: "you@example.com",
 	},
@@ -292,17 +293,22 @@ function ScheduleTypedInput({ step, onSubmit, onSkip, onFocus, onBlur }) {
 
 	if (!config) return null;
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
+	const submitDraft = () => {
 		const value = draft.trim();
 		if (!value) return;
 		onSubmit(value);
 		setDraft("");
 	};
 
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		submitDraft();
+	};
+
 	return (
 		<form
 			onSubmit={handleSubmit}
+			noValidate
 			className="voice-schedule-typed rounded-sm border border-cyan-500/30 bg-cyan-950/20 px-2.5 py-2.5"
 		>
 			<p className="font-mono text-[9px] font-semibold uppercase tracking-wider text-cyan-400/80">
@@ -318,13 +324,18 @@ function ScheduleTypedInput({ step, onSubmit, onSkip, onFocus, onBlur }) {
 					onFocus={onFocus}
 					onBlur={onBlur}
 					autoComplete={config.autoComplete}
+					inputMode={config.inputMode}
+					autoCapitalize={step === "email" ? "none" : undefined}
+					autoCorrect={step === "email" ? "off" : undefined}
+					spellCheck={step === "email" ? false : undefined}
 					placeholder={config.placeholder}
 					className="voice-schedule-typed__input mt-1 w-full rounded-sm border border-cyan-500/25 bg-black/50 px-2.5 py-2 font-mono text-base text-cyan-50 placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
 				/>
 			</label>
 			<div className="mt-2 flex flex-wrap items-center gap-2">
 				<button
-					type="submit"
+					type="button"
+					onClick={submitDraft}
 					disabled={!draft.trim()}
 					className="rounded-sm border border-cyan-500/45 bg-cyan-950/50 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-100 transition enabled:hover:border-cyan-400/70 disabled:cursor-not-allowed disabled:opacity-40"
 				>
