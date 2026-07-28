@@ -12,12 +12,14 @@ const PARTICLE_COUNT_MOBILE = 16;
 const LINK_DIST = 108;
 const MOUSE_RADIUS = 140;
 
-function HeroInteractiveLayer({ containerRef, reduceMotion }) {
+function HeroInteractiveLayer({ containerRef, reduceMotion, active = true }) {
 	const canvasRef = useRef(null);
 	const spotlightRef = useRef(null);
 	const rafRef = useRef(0);
 
 	useEffect(() => {
+		if (!active) return undefined;
+
 		const container = containerRef?.current;
 		const canvas = canvasRef.current;
 		const spotlight = spotlightRef.current;
@@ -197,7 +199,7 @@ function HeroInteractiveLayer({ containerRef, reduceMotion }) {
 			container.removeEventListener("pointermove", onPointerMove);
 			container.removeEventListener("pointerleave", onPointerLeave);
 		};
-	}, [containerRef, reduceMotion]);
+	}, [active, containerRef, reduceMotion]);
 
 	return (
 		<>

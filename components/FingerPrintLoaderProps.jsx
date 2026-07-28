@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
+import {
+	bindVisibilityPause,
+	getCanvasDpr,
+	isLowPowerDevice,
+} from "../lib/animationControl";
+import { preloadHeroAssets } from "../lib/preloadHeroAssets";
 
 /** Halfwidth katakana + hex + symbols — reads “Matrix” without extra font files */
 const GLYPHS =
@@ -11,10 +17,14 @@ function pickGlyph() {
 
 /** Tight column spacing = dense vertical Matrix rain */
 function buildColumns(cssW, cssH, fontSize, colStep) {
-	const n = Math.max(1, Math.ceil(cssW / colStep));
+	const lowPower = isLowPowerDevice();
+	const step = lowPower ? colStep * 1.12 : colStep;
+	const n = Math.max(1, Math.ceil(cssW / step));
 	const cols = [];
 	for (let i = 0; i < n; i++) {
-		const len = 22 + Math.floor(Math.random() * 48);
+		const len = lowPower
+			? 18 + Math.floor(Math.random() * 36)
+			: 22 + Math.floor(Math.random() * 48);
 		cols.push({
 			y: Math.random() * cssH * 1.2 - cssH * 0.15,
 			speed: 0.45 + Math.random() * 1.35,
@@ -22,7 +32,7 @@ function buildColumns(cssW, cssH, fontSize, colStep) {
 			headTick: 0,
 			chars: Array.from({ length: len }, pickGlyph),
 			limeBias: Math.random() < 0.12,
-			colStep,
+			colStep: step,
 		});
 	}
 	return cols;
@@ -56,12 +66,14 @@ const MatrixRain = () => {
 		let lastW = 0;
 		let lastH = 0;
 
+		const lowPower = isLowPowerDevice();
+
 		const applySize = () => {
 			const { w, h } = cssSize();
 			lastW = w;
 			lastH = h;
 			fontSize = w < 480 ? 13 : w < 900 ? 14 : 15;
-			const dpr = Math.min(window.devicePixelRatio || 1, 2);
+			const dpr = getCanvasDpr(lowPower ? 1.25 : 2);
 			canvas.width = Math.floor(w * dpr);
 			canvas.height = Math.floor(h * dpr);
 			canvas.style.width = `${w}px`;
@@ -76,8 +88,25 @@ const MatrixRain = () => {
 		applySize();
 
 		let last = performance.now();
+		let running = true;
+		let paused = false;
+		let lastFrameAt = 0;
+
+		const schedule = () => {
+			if (!running || paused) return;
+			rafRef.current = requestAnimationFrame(tick);
+		};
 
 		const tick = (now) => {
+			if (!running || paused) return;
+
+			const frameGap = lowPower ? 33 : 0;
+			if (frameGap > 0 && now - lastFrameAt < frameGap) {
+				schedule();
+				return;
+			}
+			lastFrameAt = now;
+
 			const w = lastW;
 			const h = lastH;
 			const dt = Math.min((now - last) / 16.67, 2.4);
@@ -100,6 +129,8 @@ const MatrixRain = () => {
 			ctx.fillRect(0, 0, w, h);
 
 			const cols = colsRef.current;
+			const headShadow = lowPower ? 10 : 16;
+			const headShadowSoft = lowPower ? 6 : 9;
 
 			for (let i = 0; i < cols.length; i++) {
 				const col = cols[i];
@@ -110,7 +141,9 @@ const MatrixRain = () => {
 				if (resetAbove) {
 					col.y = -Math.random() * h * 0.5 - col.len * fontSize;
 					col.speed = 0.45 + Math.random() * 1.35;
-					col.len = 22 + Math.floor(Math.random() * 48);
+					col.len = lowPower
+						? 18 + Math.floor(Math.random() * 36)
+						: 22 + Math.floor(Math.random() * 48);
 					col.chars = Array.from({ length: col.len }, pickGlyph);
 				}
 
@@ -119,7 +152,7 @@ const MatrixRain = () => {
 					col.headTick = 0;
 					col.chars[0] = pickGlyph();
 				}
-				if (Math.random() < 0.045) {
+				if (Math.random() < (lowPower ? 0.03 : 0.045)) {
 					const idx = 1 + Math.floor(Math.random() * Math.min(col.len - 1, 16));
 					col.chars[idx] = pickGlyph();
 				}
@@ -138,10 +171,10 @@ const MatrixRain = () => {
 
 					if (isHead) {
 						ctx.shadowColor = "rgba(34, 211, 238, 0.95)";
-						ctx.shadowBlur = 16;
+						ctx.shadowBlur = headShadow;
 						ctx.fillStyle = "#ecfeff";
 						ctx.fillText(ch, x, y);
-						ctx.shadowBlur = 9;
+						ctx.shadowBlur = headShadowSoft;
 						ctx.fillStyle = "rgba(167, 243, 252, 0.45)";
 						ctx.fillText(ch, x, y);
 					} else {
@@ -159,22 +192,49 @@ const MatrixRain = () => {
 			}
 
 			ctx.shadowBlur = 0;
-			rafRef.current = requestAnimationFrame(tick);
+			schedule();
 		};
 
 		const onResize = () => {
 			applySize();
 			if (reducedRef.current) {
 				cancelAnimationFrame(rafRef.current);
-				rafRef.current = requestAnimationFrame(tick);
+				schedule();
 			}
 		};
 		window.addEventListener("resize", onResize);
 		window.visualViewport?.addEventListener("resize", onResize);
 
-		rafRef.current = requestAnimationFrame(tick);
+		const unbindVisibility = bindVisibilityPause(canvas, {
+			onPause: () => {
+				paused = true;
+				cancelAnimationFrame(rafRef.current);
+			},
+			onResume: () => {
+				paused = false;
+				last = performance.now();
+				schedule();
+			},
+		});
+
+		const onVisibility = () => {
+			if (document.hidden) {
+				paused = true;
+				cancelAnimationFrame(rafRef.current);
+				return;
+			}
+			paused = false;
+			last = performance.now();
+			schedule();
+		};
+		document.addEventListener("visibilitychange", onVisibility);
+
+		schedule();
 
 		return () => {
+			running = false;
+			unbindVisibility();
+			document.removeEventListener("visibilitychange", onVisibility);
 			cancelAnimationFrame(rafRef.current);
 			window.removeEventListener("resize", onResize);
 			window.visualViewport?.removeEventListener("resize", onResize);
@@ -202,6 +262,19 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 
 	useEffect(() => {
 		document.documentElement.classList.add("intro-loading");
+
+		const kickPreload = () => preloadHeroAssets();
+		let preloadIdleId = 0;
+		let preloadTimerId = 0;
+		if (typeof window !== "undefined") {
+			if ("requestIdleCallback" in window) {
+				preloadIdleId = window.requestIdleCallback(kickPreload, {
+					timeout: 500,
+				});
+			} else {
+				preloadTimerId = window.setTimeout(kickPreload, 180);
+			}
+		}
 
 		const reduced =
 			typeof window !== "undefined" &&
@@ -306,6 +379,10 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 		return () => {
 			ctx.revert();
 			document.documentElement.classList.remove("intro-loading");
+			if (preloadIdleId && "cancelIdleCallback" in window) {
+				window.cancelIdleCallback(preloadIdleId);
+			}
+			if (preloadTimerId) window.clearTimeout(preloadTimerId);
 		};
 	}, [onLoadingComplete]);
 

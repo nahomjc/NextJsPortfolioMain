@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { scrollTriggerBase, scheduleScrollTriggerRefresh } from "../../lib/gsapScroll";
+import { scrollTriggerBase, scheduleScrollTriggerRefresh, ensureGsapScrollSetup } from "../../lib/gsapScroll";
 import { PROJECTS_HERO_DESC, productionProjects } from "./projectsData";
 
 const DECODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&";
@@ -77,7 +77,7 @@ export default function useProjectsAnimations({
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") return;
 
-		gsap.registerPlugin(ScrollTrigger);
+		ensureGsapScrollSetup();
 
 		const ctx = gsap.context(() => {
 			if (heroRef.current) {

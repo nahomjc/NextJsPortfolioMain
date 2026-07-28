@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { scrollTriggerBase, scheduleScrollTriggerRefresh } from "../../lib/gsapScroll";
+import { scrollTriggerBase, scheduleScrollTriggerRefresh, ensureGsapScrollSetup } from "../../lib/gsapScroll";
 import { HERO_SUBTEXT } from "./aboutData";
 
 const DECODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&";
@@ -78,7 +78,7 @@ export default function useAboutAnimations({
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") return;
 
-		gsap.registerPlugin(ScrollTrigger);
+		ensureGsapScrollSetup();
 
 		const cleanups = [];
 

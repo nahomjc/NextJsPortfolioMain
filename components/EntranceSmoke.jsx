@@ -1,5 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import {
+	bindVisibilityPause,
+	getCanvasDpr,
+	isLowPowerDevice,
+} from "../lib/animationControl";
 
 const SMOKE_DURATION_MS = 5200;
 
@@ -166,7 +171,8 @@ function SmokeCanvas({ phase }) {
 		};
 
 		const resize = () => {
-			const dpr = Math.min(window.devicePixelRatio || 1, 2);
+			const lowPower = isLowPowerDevice();
+			const dpr = getCanvasDpr(lowPower ? 1.25 : 2);
 			const { w, h } = viewportCssSize();
 			const narrow = w < 768;
 			/* WebKit mobile: "screen" on 2d canvas is unreliable; desktop keeps screen in dark mode */
@@ -181,9 +187,14 @@ function SmokeCanvas({ phase }) {
 			canvas.style.width = `${w}px`;
 			canvas.style.height = `${h}px`;
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			const count = Math.min(95, Math.floor(42 + (w * h) / 22000));
+			const areaDivisor = lowPower ? 28000 : 22000;
+			const count = Math.min(
+				lowPower ? 72 : 95,
+				Math.floor(42 + (w * h) / areaDivisor),
+			);
 			const sideCount = Math.floor(count * 0.22);
 			const floorCount = count - sideCount * 2;
+			const wispCount = lowPower ? 22 : 36;
 			plumesRef.current = [];
 			for (let i = 0; i < floorCount; i++) {
 				plumesRef.current.push(
@@ -216,7 +227,7 @@ function SmokeCanvas({ phase }) {
 					}),
 				);
 			}
-			for (let i = 0; i < 36; i++) {
+			for (let i = 0; i < wispCount; i++) {
 				plumesRef.current.push(
 					new SmokePlume(w, h, {
 						zone: Math.random() > 0.5 ? "left" : "right",
@@ -227,6 +238,7 @@ function SmokeCanvas({ phase }) {
 					}),
 				);
 			}
+			plumesRef.current.sort((a, b) => a.rx * a.ry - b.rx * b.ry);
 		};
 
 		resize();
@@ -236,8 +248,27 @@ function SmokeCanvas({ phase }) {
 
 		startRef.current = performance.now();
 
+		let running = true;
+		let paused = false;
+		let sortFrame = 0;
+		let lastFrameAt = 0;
+		const lowPower = isLowPowerDevice();
+
+		const schedule = () => {
+			if (!running || paused) return;
+			rafRef.current = requestAnimationFrame(tick);
+		};
+
 		const tick = (now) => {
-			if (!canvasRef.current) return;
+			if (!running || paused || !canvasRef.current) return;
+
+			const frameGap = lowPower ? 33 : 0;
+			if (frameGap > 0 && now - lastFrameAt < frameGap) {
+				schedule();
+				return;
+			}
+			lastFrameAt = now;
+
 			const { w, h } = viewportCssSize();
 			const t = now - startRef.current;
 			const dark = isDocumentDark();
@@ -257,20 +288,50 @@ function SmokeCanvas({ phase }) {
 			for (let i = 0; i < plumes.length; i++) {
 				plumes[i].update(t, globalFade, w, h);
 			}
-			plumes.sort((a, b) => a.rx * a.ry - b.rx * b.ry);
+			sortFrame += 1;
+			if (sortFrame % 3 === 0) {
+				plumes.sort((a, b) => a.rx * a.ry - b.rx * b.ry);
+			}
 			const useScreen = useScreenBlendRef.current;
 			for (let i = 0; i < plumes.length; i++) {
 				plumes[i].draw(ctx, dark, useScreen);
 			}
 
 			if (t < SMOKE_DURATION_MS + 400) {
-				rafRef.current = requestAnimationFrame(tick);
+				schedule();
 			}
 		};
 
-		rafRef.current = requestAnimationFrame(tick);
+		const unbindVisibility = bindVisibilityPause(canvas, {
+			onPause: () => {
+				paused = true;
+				cancelAnimationFrame(rafRef.current);
+			},
+			onResume: () => {
+				paused = false;
+				lastFrameAt = 0;
+				schedule();
+			},
+		});
+
+		const onVisibility = () => {
+			if (document.hidden) {
+				paused = true;
+				cancelAnimationFrame(rafRef.current);
+				return;
+			}
+			paused = false;
+			lastFrameAt = 0;
+			schedule();
+		};
+		document.addEventListener("visibilitychange", onVisibility);
+
+		schedule();
 
 		return () => {
+			running = false;
+			unbindVisibility();
+			document.removeEventListener("visibilitychange", onVisibility);
 			window.removeEventListener("resize", resize);
 			window.visualViewport?.removeEventListener("resize", resize);
 			window.visualViewport?.removeEventListener("scroll", resize);

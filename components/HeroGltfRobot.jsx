@@ -1685,7 +1685,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 				bootRaf = requestAnimationFrame(boot);
 			};
 			if ("requestIdleCallback" in window) {
-				idleId = window.requestIdleCallback(run, { timeout: 900 });
+				idleId = window.requestIdleCallback(run, { timeout: 1200 });
 			} else {
 				bootRaf = requestAnimationFrame(run);
 			}

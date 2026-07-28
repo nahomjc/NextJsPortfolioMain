@@ -9,7 +9,10 @@ import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { shouldRunSmoothScroll } from "../lib/animationControl";
-import { scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
+import {
+	ensureGsapScrollSetup,
+	scheduleScrollTriggerRefresh,
+} from "../lib/gsapScroll";
 
 const LenisContext = createContext(null);
 
@@ -32,7 +35,7 @@ export default function LenisProvider({ children }) {
 		).matches;
 		if (prefersReduced || !shouldRunSmoothScroll()) return;
 
-		gsap.registerPlugin(ScrollTrigger);
+		ensureGsapScrollSetup();
 
 		const lenisInstance = new Lenis({
 			lerp: 0.085,
@@ -51,7 +54,6 @@ export default function LenisProvider({ children }) {
 		};
 		tickerRef.current = ticker;
 		gsap.ticker.add(ticker);
-		gsap.ticker.lagSmoothing(0);
 
 		ScrollTrigger.scrollerProxy(document.documentElement, {
 			scrollTop(value) {

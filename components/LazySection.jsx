@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 /** Mount children when near the viewport — cuts initial JS/hydration cost. */
 export default function LazySection({
 	children,
-	rootMargin = "320px 0px",
+	rootMargin = "180px 0px",
 	minHeight = "40vh",
 	className = "",
 	forceMount = false,

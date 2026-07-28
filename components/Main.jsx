@@ -6,9 +6,8 @@ import { AiOutlineMail } from "react-icons/ai";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { isLowPowerDevice, bindVisibilityPause, getCanvasDpr, shouldCapIdleFps } from "../lib/animationControl";
-import { scrollTriggerBase } from "../lib/gsapScroll";
+import { scrollTriggerBase, ensureGsapScrollSetup } from "../lib/gsapScroll";
 
 const HeroGltfRobot = dynamic(() => import("./HeroGltfRobot"), { ssr: false });
 const HeroInteractiveLayer = dynamic(() => import("./HeroInteractiveLayer"), {
@@ -34,6 +33,9 @@ const HERO_TRAITS = [
 	"Performance",
 	"Scalable architecture",
 ];
+
+const HERO_ROBOT_PLACEHOLDER_CLASS =
+	"relative z-20 mx-auto h-[min(280px,62vw)] w-full max-w-[min(100%,20rem)] opacity-40 sm:h-[min(360px,58vw)] sm:max-w-md md:h-[min(500px,76vw)] md:max-w-3xl lg:h-[min(620px,60vh)]";
 
 const sparklePositions = [
 	[12, 8],
@@ -337,22 +339,46 @@ const Main = () => {
 	const heroExitVeilRef = useRef(null);
 	const heroFractureRef = useRef(null);
 	const statRefs = useRef([]);
+	const statValueRefs = useRef([]);
 	const pointerRafRef = useRef(0);
 	const pendingPointerRef = useRef(null);
 
 	const [sparkleOffset, setSparkleOffset] = useState({ x: 0, y: 0 });
 	const [terminalText, setTerminalText] = useState("");
-	const [statDisplay, setStatDisplay] = useState(HERO_STATS.map(() => 0));
 	const [bootComplete, setBootComplete] = useState(false);
+	const [mountHeavyHero, setMountHeavyHero] = useState(false);
+
+	useEffect(() => {
+		if (reduceMotion || typeof window === "undefined") {
+			setMountHeavyHero(true);
+			return undefined;
+		}
+		if (!bootComplete) return undefined;
+
+		const enable = () => setMountHeavyHero(true);
+		if ("requestIdleCallback" in window) {
+			const id = window.requestIdleCallback(enable, { timeout: 700 });
+			return () => window.cancelIdleCallback(id);
+		}
+		const t = window.setTimeout(enable, 350);
+		return () => window.clearTimeout(t);
+	}, [bootComplete, reduceMotion]);
 
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") {
 			setBootComplete(true);
-			setStatDisplay(HERO_STATS.map((s) => s.value));
+			HERO_STATS.forEach((stat, i) => {
+				const el = statValueRefs.current[i];
+				if (!el || stat.static) return;
+				el.textContent =
+					stat.decimals != null
+						? stat.value.toFixed(stat.decimals)
+						: String(Math.round(stat.value));
+			});
 			return;
 		}
 
-		gsap.registerPlugin(ScrollTrigger);
+		ensureGsapScrollSetup();
 
 		const ctx = gsap.context(() => {
 			const intro = gsap.timeline({
@@ -433,14 +459,12 @@ const Main = () => {
 						duration: 1.4,
 						ease: "power2.out",
 						onUpdate: () => {
-							setStatDisplay((prev) => {
-								const next = [...prev];
-								next[i] =
-									stat.decimals != null
-										? Number(obj.val.toFixed(stat.decimals))
-										: Math.round(obj.val);
-								return next;
-							});
+							const el = statValueRefs.current[i];
+							if (!el) return;
+							el.textContent =
+								stat.decimals != null
+									? obj.val.toFixed(stat.decimals)
+									: String(Math.round(obj.val));
 						},
 					},
 					0.75 + i * 0.1,
@@ -736,6 +760,7 @@ const Main = () => {
 			<HeroInteractiveLayer
 				containerRef={heroRef}
 				reduceMotion={reduceMotion}
+				active={mountHeavyHero}
 			/>
 			<HeroHudFrame />
 
@@ -876,7 +901,13 @@ const Main = () => {
 									<p className="mt-0.5 font-display text-sm font-bold text-slate-900 dark:text-white">
 										{stat.static ?? (
 											<>
-												{statDisplay[i]}
+												<span
+													ref={(el) => {
+														statValueRefs.current[i] = el;
+													}}
+												>
+													0
+												</span>
 												<span className="text-xs font-semibold text-cyan-600 dark:text-cyan-300/90">
 													{stat.suffix}
 												</span>
@@ -998,7 +1029,11 @@ const Main = () => {
 							aria-hidden
 						/>
 						<div className="relative z-10 w-full">
-							<HeroGltfRobot />
+							{mountHeavyHero ? (
+								<HeroGltfRobot />
+							) : (
+								<div className={HERO_ROBOT_PLACEHOLDER_CLASS} aria-hidden />
+							)}
 						</div>
 						<p className="pointer-events-none absolute -bottom-1 left-1/2 z-10 hidden -translate-x-1/2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500 lg:block">
 							Interactive · drag · tap

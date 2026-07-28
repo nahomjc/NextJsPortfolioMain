@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import EntranceSmoke from "../components/EntranceSmoke";
 import { useState, useCallback, useEffect } from "react";
 import { shouldRunAmbientEffects } from "../lib/animationControl";
+import { preloadHeroAssets } from "../lib/preloadHeroAssets";
 
 const FingerPrintLoader = dynamic(
 	() => import("../components/FingerPrintLoaderProps"),
@@ -40,6 +41,14 @@ function MyApp({ Component, pageProps }) {
 		}
 		const t = window.setTimeout(enable, 1600);
 		return () => window.clearTimeout(t);
+	}, []);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return undefined;
+		const reduced = window.matchMedia(
+			"(prefers-reduced-motion: reduce)",
+		).matches;
+		if (reduced) preloadHeroAssets();
 	}, []);
 
 	const handleLoadingComplete = useCallback(() => {

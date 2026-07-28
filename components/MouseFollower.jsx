@@ -33,6 +33,12 @@ const MouseFollower = () => {
 
 		const lerp = (start, end, factor) => start + (end - start) * factor;
 
+		const schedule = () => {
+			if (!animationFrameRef.current) {
+				animationFrameRef.current = requestAnimationFrame(animate);
+			}
+		};
+
 		const animate = () => {
 			if (document.hidden) {
 				animationFrameRef.current = null;
@@ -53,7 +59,14 @@ const MouseFollower = () => {
 			);
 
 			applyTransform();
-			animationFrameRef.current = requestAnimationFrame(animate);
+
+			const dx = Math.abs(cursorRef.current.x - mouseRef.current.x);
+			const dy = Math.abs(cursorRef.current.y - mouseRef.current.y);
+			if (dx > 0.15 || dy > 0.15) {
+				animationFrameRef.current = requestAnimationFrame(animate);
+			} else {
+				animationFrameRef.current = null;
+			}
 		};
 
 		const handleMouseMove = (e) => {
@@ -69,6 +82,8 @@ const MouseFollower = () => {
 				};
 				applyTransform();
 			}
+
+			schedule();
 		};
 
 		const handleMouseEnter = () => {
@@ -94,9 +109,7 @@ const MouseFollower = () => {
 					cursorRef.current = { ...mouseRef.current };
 					applyTransform();
 				}
-				if (!animationFrameRef.current) {
-					animate();
-				}
+				schedule();
 			}
 		};
 
@@ -104,8 +117,6 @@ const MouseFollower = () => {
 		window.addEventListener("mouseenter", handleMouseEnter);
 		window.addEventListener("mouseleave", handleMouseLeave);
 		document.addEventListener("visibilitychange", handleVisibilityChange);
-
-		animate();
 
 		return () => {
 			window.removeEventListener("mousemove", handleMouseMove);

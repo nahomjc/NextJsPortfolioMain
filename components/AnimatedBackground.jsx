@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
 	bindVisibilityPause,
 	isLowPowerDevice,
+	shouldCapIdleFps,
 	shouldRunAmbientEffects,
 } from "../lib/animationControl";
 
@@ -25,6 +26,8 @@ const AnimatedBackground = () => {
 		let animationFrameId = 0;
 		let running = true;
 		let paused = false;
+		let lastFrameAt = 0;
+		let lastActivityAt = performance.now();
 		let lines = [];
 		const mouse = { x: null, y: null, radius: 100 };
 		const lowPower = isLowPowerDevice();
@@ -51,6 +54,7 @@ const AnimatedBackground = () => {
 		window.addEventListener("resize", setCanvasSize);
 
 		const trackMouse = (e) => {
+			lastActivityAt = performance.now();
 			mouse.x = e.clientX;
 			mouse.y = e.clientY;
 		};
@@ -136,8 +140,17 @@ const AnimatedBackground = () => {
 		};
 
 		let linkFrame = 0;
-		const animate = () => {
+		const animate = (now = performance.now()) => {
 			if (!running || paused) return;
+
+			const capFps = shouldCapIdleFps(lastActivityAt, {
+				active: mouse.x != null && mouse.y != null,
+			});
+			if (capFps && now - lastFrameAt < 33) {
+				schedule();
+				return;
+			}
+			lastFrameAt = now;
 
 			ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
