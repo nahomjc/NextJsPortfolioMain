@@ -3780,21 +3780,201 @@ html.lenis.lenis-stopped {
 	will-change: transform, opacity;
 }
 
-.hero-robot-ring {
-	animation: hero-robot-orbit 22s linear infinite;
+.hero-halo {
+	isolation: isolate;
 }
 
-.hero-robot-ring--reverse {
-	animation-duration: 32s;
-	animation-direction: reverse;
+.hero-halo__stage {
+	position: absolute;
+	inset: 0;
+	transform: rotateX(12deg) scaleY(0.94);
+	transform-style: preserve-3d;
 }
 
-@keyframes hero-robot-orbit {
+.hero-halo__well {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	border-radius: 9999px;
+	transform: translate(-50%, -50%);
+	filter: blur(28px);
+	pointer-events: none;
+}
+
+.hero-halo__well--cyan {
+	width: 72%;
+	height: 72%;
+	background: radial-gradient(
+		circle,
+		rgba(34, 211, 238, 0.2) 0%,
+		transparent 68%
+	);
+}
+
+.hero-halo__well--fuchsia {
+	width: 58%;
+	height: 58%;
+	top: 54%;
+	background: radial-gradient(
+		circle,
+		rgba(217, 70, 239, 0.14) 0%,
+		transparent 70%
+	);
+}
+
+.hero-halo__well--core {
+	width: 36%;
+	height: 36%;
+	background: radial-gradient(
+		circle,
+		rgba(255, 255, 255, 0.08) 0%,
+		transparent 72%
+	);
+	filter: blur(16px);
+}
+
+.hero-halo__svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+.hero-halo__svg--static {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.hero-halo__spin {
+	position: absolute;
+	inset: 0;
+	will-change: transform;
+}
+
+.hero-halo__spin--outer {
+	animation: hero-halo-spin 36s linear infinite;
+	filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.22));
+}
+
+.hero-halo__spin--mid {
+	inset: 8%;
+	animation: hero-halo-spin 26s linear infinite reverse;
+	filter: drop-shadow(0 0 10px rgba(217, 70, 239, 0.2));
+}
+
+.hero-halo__spin--inner {
+	inset: 18%;
+	animation: hero-halo-spin 48s linear infinite;
+	filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.12));
+}
+
+.hero-halo__node {
+	filter: drop-shadow(0 0 6px rgba(103, 232, 249, 0.9));
+	animation: hero-halo-node-pulse 2.4s ease-in-out infinite;
+}
+
+.hero-halo__node--fuchsia {
+	filter: drop-shadow(0 0 5px rgba(232, 121, 249, 0.85));
+	animation: hero-halo-node-pulse 2.8s ease-in-out infinite 0.4s;
+}
+
+.hero-halo__scan-arc {
+	opacity: 0.95;
+}
+
+.hero-halo__pulse-arc {
+	animation: hero-halo-arc-pulse 3.2s ease-in-out infinite;
+}
+
+.hero-halo__label {
+	position: absolute;
+	z-index: 2;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.55rem;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: rgba(103, 232, 249, 0.55);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.hero-halo__label--tl {
+	top: 6%;
+	left: 4%;
+}
+
+.hero-halo__label--tr {
+	top: 6%;
+	right: 4%;
+	color: rgba(232, 121, 249, 0.55);
+}
+
+.hero-halo__label--bl {
+	bottom: 8%;
+	left: 4%;
+}
+
+.hero-halo__label--br {
+	bottom: 8%;
+	right: 4%;
+	color: rgba(52, 211, 153, 0.65);
+}
+
+.hero-halo__label-pulse {
+	width: 0.35rem;
+	height: 0.35rem;
+	border-radius: 9999px;
+	background: #34d399;
+	box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+	animation: hero-halo-node-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hero-halo-spin {
 	from {
 		transform: rotate(0deg);
 	}
 	to {
 		transform: rotate(360deg);
+	}
+}
+
+@keyframes hero-halo-node-pulse {
+	0%,
+	100% {
+		opacity: 0.55;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+
+@keyframes hero-halo-arc-pulse {
+	0%,
+	100% {
+		opacity: 0.45;
+		stroke-width: 1.6;
+	}
+	50% {
+		opacity: 1;
+		stroke-width: 2.4;
+	}
+}
+
+/* legacy aliases kept for reduced-motion block */
+.hero-robot-ring,
+.hero-robot-ring--reverse {
+	animation: none;
+}
+
+@media (max-width: 1023px) {
+	.hero-halo__label {
+		display: none;
+	}
+
+	.hero-halo__stage {
+		transform: rotateX(8deg) scaleY(0.96);
 	}
 }
 
@@ -4648,8 +4828,19 @@ html.lenis.lenis-stopped {
 	}
 
 	.hero-robot-ring,
-	.hero-robot-ring--reverse {
-		animation: none;
+	.hero-robot-ring--reverse,
+	.hero-halo__spin--outer,
+	.hero-halo__spin--mid,
+	.hero-halo__spin--inner,
+	.hero-halo__node,
+	.hero-halo__node--fuchsia,
+	.hero-halo__pulse-arc,
+	.hero-halo__label-pulse {
+		animation: none !important;
+	}
+
+	.hero-halo__stage {
+		transform: none;
 	}
 
 	.hero-robot-col {

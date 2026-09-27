@@ -9,6 +9,7 @@ import gsap from "gsap";
 import { isLowPowerDevice, bindVisibilityPause, getCanvasDpr, shouldCapIdleFps } from "../lib/animationControl";
 import { scrollTriggerBase, ensureGsapScrollSetup } from "../lib/gsapScroll";
 import { btnIconSm } from "./section/SectionShell";
+import HeroRobotHalo from "./HeroRobotHalo";
 
 const HeroGltfRobot = dynamic(() => import("./HeroGltfRobot"), { ssr: false });
 const HeroInteractiveLayer = dynamic(() => import("./HeroInteractiveLayer"), {
@@ -1016,19 +1017,7 @@ const Main = () => {
 						className="hero-robot-col relative order-1 flex min-h-0 items-center justify-center pt-4 opacity-0 max-lg:min-h-0 sm:pt-6 lg:order-2 lg:min-h-0 lg:pt-8"
 						style={{ transformStyle: "preserve-3d", perspective: 1200 }}
 					>
-						<div
-							className="hero-robot-ring pointer-events-none absolute inset-[8%] rounded-[2rem] border border-cyan-400/20"
-							aria-hidden
-						/>
-						<div
-							className="hero-robot-ring hero-robot-ring--reverse pointer-events-none absolute inset-[2%] rounded-[2.25rem] border border-fuchsia-400/15"
-							aria-hidden
-						/>
-						<div className="pointer-events-none absolute inset-x-[2%] bottom-[4%] top-[26%] z-0 rounded-[2rem] bg-gradient-to-b from-cyan-400/[0.1] via-slate-200/30 to-transparent ring-1 ring-cyan-400/25 dark:from-cyan-400/[0.08] dark:via-white/[0.04] dark:ring-cyan-400/20" />
-						<div
-							className="pointer-events-none absolute inset-x-[6%] bottom-[8%] top-[34%] z-0 rounded-[1.75rem] bg-gradient-to-t from-fuchsia-500/[0.06] to-transparent"
-							aria-hidden
-						/>
+						<HeroRobotHalo />
 						<div className="relative z-10 w-full">
 							{mountHeavyHero ? (
 								<HeroGltfRobot />
