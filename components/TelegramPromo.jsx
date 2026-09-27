@@ -4,7 +4,7 @@ import { FaBolt, FaNewspaper, FaTelegram, FaUsers } from "react-icons/fa";
 import SectionShell, {
 	panelClass,
 	monoMetaClass,
-	ctaClass,
+	btnPrimary,
 } from "./section/SectionShell";
 
 const TELEGRAM_URL = "https://t.me/kingdom_code";
@@ -55,7 +55,7 @@ const TelegramPromo = () => {
 						href={TELEGRAM_URL}
 						target="_blank"
 						rel="noopener noreferrer"
-						className={ctaClass}
+						className={btnPrimary}
 					>
 						<FaTelegram aria-hidden />
 						Join channel

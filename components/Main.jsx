@@ -8,6 +8,7 @@ import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { isLowPowerDevice, bindVisibilityPause, getCanvasDpr, shouldCapIdleFps } from "../lib/animationControl";
 import { scrollTriggerBase, ensureGsapScrollSetup } from "../lib/gsapScroll";
+import { btnIconSm } from "./section/SectionShell";
 
 const HeroGltfRobot = dynamic(() => import("./HeroGltfRobot"), { ssr: false });
 const HeroInteractiveLayer = dynamic(() => import("./HeroInteractiveLayer"), {
@@ -975,7 +976,7 @@ const Main = () => {
 											href={href}
 											target="_blank"
 											rel="noreferrer"
-											className="hero-social-btn flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/90 bg-white/85 text-slate-700 shadow-sm transition hover:border-fuchsia-400/50 hover:text-fuchsia-600 dark:border-white/15 dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:text-fuchsia-200"
+											className={`hero-social-btn ${btnIconSm}`}
 											aria-label={label}
 										>
 											<Icon className="text-lg" />
@@ -983,7 +984,7 @@ const Main = () => {
 									) : (
 										<Link
 											href={href}
-											className="hero-social-btn flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/90 bg-white/85 text-slate-700 shadow-sm transition hover:border-fuchsia-400/50 hover:text-fuchsia-600 dark:border-white/15 dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:text-fuchsia-200"
+											className={`hero-social-btn ${btnIconSm}`}
 											aria-label={label}
 										>
 											<Icon className="text-lg" />

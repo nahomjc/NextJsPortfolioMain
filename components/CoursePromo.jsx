@@ -6,8 +6,8 @@ import { FaCheck, FaPlay, FaTimes } from "react-icons/fa";
 import myCourse from "../public/assets/my-course.png";
 import SectionShell, {
 	monoMetaClass,
-	ctaClass,
-	ghostCtaClass,
+	btnPrimary,
+	btnGhost,
 } from "./section/SectionShell";
 
 const features = [
@@ -141,7 +141,7 @@ const CoursePromo = () => {
 								href={COURSE_URL}
 								target="_blank"
 								rel="noopener noreferrer"
-								className={ctaClass}
+								className={btnPrimary}
 							>
 								Enroll on Muyalogy
 							</a>
@@ -149,7 +149,7 @@ const CoursePromo = () => {
 								href={INSTRUCTOR_URL}
 								target="_blank"
 								rel="noopener noreferrer"
-								className={ghostCtaClass}
+								className={btnGhost}
 							>
 								Instructor profile →
 							</Link>

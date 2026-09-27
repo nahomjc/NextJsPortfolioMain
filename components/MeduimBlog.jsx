@@ -3,7 +3,7 @@ import Image from "next/image";
 import { FaArrowRight, FaClock, FaMedium } from "react-icons/fa";
 import SectionShell, {
 	monoMetaClass,
-	linkAccentClass,
+	btnGhost,
 } from "./section/SectionShell";
 
 const MEDIUM_PROFILE = "https://medium.com/@aslandjc7";
@@ -62,7 +62,7 @@ const MediumBlog = () => {
 					href={MEDIUM_PROFILE}
 					target="_blank"
 					rel="noopener noreferrer"
-					className={`text-sm font-semibold ${linkAccentClass}`}
+					className={btnGhost}
 				>
 					View profile →
 				</a>
@@ -103,7 +103,7 @@ const MediumBlog = () => {
 									href={post.link}
 									target="_blank"
 									rel="noopener noreferrer"
-									className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold ${linkAccentClass}`}
+									className={`mt-4 ${btnGhost}`}
 								>
 									Read article
 									<FaArrowRight className="text-xs" aria-hidden />

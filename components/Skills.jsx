@@ -25,7 +25,7 @@ import Tailwind from "../public/assets/skills/tailwind.png";
 import Github from "../public/assets/skills/github1.png";
 import Firebase from "../public/assets/skills/firebase.png";
 import NextJS from "../public/assets/skills/nextjs.png";
-import SectionShell, { monoMetaClass } from "./section/SectionShell";
+import SectionShell, { monoMetaClass, btnChipOnDark } from "./section/SectionShell";
 
 const LANES = [
 	{ id: "all", label: "All", code: "00" },
@@ -282,13 +282,9 @@ const Skills = () => {
 										role="tab"
 										aria-selected={on}
 										onClick={() => setLane(item.id)}
-										className={`unstyled rounded-lg border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition ${
-											on
-												? "border-cyan-400/50 bg-cyan-400/15 text-cyan-200 shadow-[0_0_20px_-8px_rgba(34,211,238,0.7)]"
-												: "border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200"
-										}`}
+										className={`${btnChipOnDark} font-mono text-[10px] uppercase tracking-[0.14em]`}
 									>
-										<span className="mr-1.5 text-cyan-500/70">{item.code}</span>
+										<span className="text-cyan-500/70">{item.code}</span>
 										{item.label}
 									</button>
 								);

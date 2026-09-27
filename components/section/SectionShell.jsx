@@ -89,13 +89,36 @@ export const panelClass =
 export const hairlineClass = "border-slate-900/10 dark:border-white/10";
 
 export const linkAccentClass =
-	"text-cyan-700 transition hover:text-cyan-600 dark:text-cyan-300 dark:hover:text-cyan-200";
+	"ui-link inline-flex items-center gap-1.5 text-sm font-medium text-cyan-700 transition hover:text-cyan-600 dark:text-cyan-300 dark:hover:text-cyan-200";
 
 export const monoMetaClass =
 	"font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400";
 
-export const ctaClass =
-	"inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)] transition hover:bg-cyan-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400";
+/** Shared landing-page button system */
+export const btnPrimary =
+	"ui-btn ui-btn--primary unstyled inline-flex items-center justify-center gap-2";
 
-export const ghostCtaClass =
-	"inline-flex items-center gap-2 text-sm font-medium text-slate-700 transition hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-300";
+export const btnSecondary =
+	"ui-btn ui-btn--secondary unstyled inline-flex items-center justify-center gap-2";
+
+export const btnGhost =
+	"ui-btn ui-btn--ghost unstyled inline-flex items-center justify-center gap-2";
+
+export const btnChip =
+	"ui-btn ui-btn--chip unstyled inline-flex items-center justify-center gap-1.5";
+
+/** Chips on always-dark surfaces (e.g. stack matrix) */
+export const btnChipOnDark =
+	"ui-btn ui-btn--chip ui-btn--chip-on-dark unstyled inline-flex items-center justify-center gap-1.5";
+
+export const btnIcon =
+	"ui-btn ui-btn--icon unstyled inline-flex items-center justify-center";
+
+export const btnIconSm =
+	"ui-btn ui-btn--icon ui-btn--icon-sm unstyled inline-flex items-center justify-center";
+
+/** @deprecated use btnPrimary */
+export const ctaClass = btnPrimary;
+
+/** @deprecated use btnGhost */
+export const ghostCtaClass = btnGhost;

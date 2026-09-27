@@ -8,7 +8,11 @@ import {
 	FaCode,
 	FaArrowUpRightFromSquare,
 } from "react-icons/fa6";
-import SectionShell, { monoMetaClass, linkAccentClass } from "./section/SectionShell";
+import SectionShell, {
+	monoMetaClass,
+	linkAccentClass,
+	btnChip,
+} from "./section/SectionShell";
 
 const FILTERS = [
 	{ id: "all", label: "All" },
@@ -268,11 +272,7 @@ const ExperienceTimeLine = () => {
 									role="tab"
 									aria-selected={on}
 									onClick={() => setFilter(f.id)}
-									className={`unstyled rounded-full px-3.5 py-1.5 text-sm transition ${
-										on
-											? "bg-slate-900 text-white dark:bg-white dark:text-slate-950"
-											: "text-slate-600 hover:bg-slate-900/5 dark:text-slate-400 dark:hover:bg-white/5"
-									}`}
+									className={btnChip}
 								>
 									{f.label}
 								</button>

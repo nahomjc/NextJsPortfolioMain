@@ -1,6 +1,79 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FaCode } from "react-icons/fa";
 import { prefersEffects } from "../lib/animationControl";
+
+/** Sci-fi HUD reticle — replaces the old </> code glyph */
+function SciFiReticle({ active }) {
+	return (
+		<svg
+			viewBox="0 0 40 40"
+			className="h-full w-full"
+			aria-hidden
+			fill="none"
+		>
+			{/* Outer ring */}
+			<circle
+				cx="20"
+				cy="20"
+				r="15.5"
+				stroke="currentColor"
+				strokeWidth="1"
+				opacity={active ? 0.9 : 0.55}
+				strokeDasharray={active ? "4 3" : "none"}
+			/>
+			{/* Inner ring */}
+			<circle
+				cx="20"
+				cy="20"
+				r="7.5"
+				stroke="currentColor"
+				strokeWidth="1.25"
+				opacity={0.85}
+			/>
+			{/* Corner brackets */}
+			<path
+				d="M8 14 V8 H14"
+				stroke="currentColor"
+				strokeWidth="1.5"
+				strokeLinecap="square"
+			/>
+			<path
+				d="M26 8 H32 V14"
+				stroke="currentColor"
+				strokeWidth="1.5"
+				strokeLinecap="square"
+			/>
+			<path
+				d="M32 26 V32 H26"
+				stroke="currentColor"
+				strokeWidth="1.5"
+				strokeLinecap="square"
+			/>
+			<path
+				d="M14 32 H8 V26"
+				stroke="currentColor"
+				strokeWidth="1.5"
+				strokeLinecap="square"
+			/>
+			{/* Crosshair ticks */}
+			<line x1="20" y1="2" x2="20" y2="7" stroke="currentColor" strokeWidth="1.25" />
+			<line x1="20" y1="33" x2="20" y2="38" stroke="currentColor" strokeWidth="1.25" />
+			<line x1="2" y1="20" x2="7" y2="20" stroke="currentColor" strokeWidth="1.25" />
+			<line x1="33" y1="20" x2="38" y2="20" stroke="currentColor" strokeWidth="1.25" />
+			{/* Center core */}
+			<circle cx="20" cy="20" r="1.75" fill="currentColor" />
+			{active ? (
+				<circle
+					cx="20"
+					cy="20"
+					r="4"
+					stroke="currentColor"
+					strokeWidth="1"
+					opacity="0.5"
+				/>
+			) : null}
+		</svg>
+	);
+}
 
 const MouseFollower = () => {
 	const outerRef = useRef(null);
@@ -134,41 +207,27 @@ const MouseFollower = () => {
 	return (
 		<div
 			ref={outerRef}
-			className={`fixed pointer-events-none z-[9999] transition-opacity duration-300 ease-out hidden md:block ${
+			className={`pointer-events-none fixed z-[9999] hidden transition-opacity duration-300 ease-out md:block ${
 				isVisible ? "opacity-100" : "opacity-0"
 			}`}
 			style={{ willChange: "transform" }}
+			aria-hidden
 		>
 			<div
-				className={`relative transition-all duration-300 ${
-					isHovering ? "scale-150" : "scale-100"
+				className={`relative h-10 w-10 text-cyan-500 transition-transform duration-300 dark:text-cyan-300 ${
+					isHovering ? "scale-125" : "scale-100"
 				}`}
 			>
+				{/* Soft glow */}
 				<div
-					className={`w-8 h-8 rounded-full bg-[#5651e5] shadow-lg transition-all duration-300 ${
-						isHovering ? "bg-opacity-80" : "bg-opacity-100"
-					}`}
-				>
-					<div
-						className={`absolute inset-0 m-1 rounded-full bg-white transition-all duration-300 ${
-							isHovering ? "scale-75" : "scale-100"
-						}`}
-					>
-						<div
-							className={`absolute inset-0 flex items-center justify-center text-[#5651e5] transition-all duration-300 ${
-								isHovering ? "scale-125" : "scale-100"
-							}`}
-						>
-							<FaCode className="w-4 h-4" />
-						</div>
-					</div>
-				</div>
-
-				<div
-					className={`absolute inset-0 rounded-full bg-[#5651e5] blur-sm transition-all duration-300 ${
-						isHovering ? "scale-150 opacity-30" : "scale-100 opacity-20"
+					className={`absolute inset-0 rounded-full bg-cyan-400/25 blur-md transition-opacity duration-300 dark:bg-cyan-400/35 ${
+						isHovering ? "opacity-90" : "opacity-50"
 					}`}
 				/>
+				{/* Reticle */}
+				<div className="relative h-full w-full drop-shadow-[0_0_6px_rgba(34,211,238,0.65)]">
+					<SciFiReticle active={isHovering} />
+				</div>
 			</div>
 		</div>
 	);

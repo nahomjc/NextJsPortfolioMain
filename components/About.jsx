@@ -10,7 +10,7 @@ import { highlights, HERO_SUBTEXT, HERO_STATS } from "./about/aboutData";
 import SectionShell, {
 	monoMetaClass,
 	linkAccentClass,
-	ctaClass,
+	btnPrimary,
 } from "./section/SectionShell";
 
 const AboutWorkspacePly = dynamic(() => import("./AboutWorkspacePly"), {
@@ -379,7 +379,7 @@ const About = () => {
 						</div>
 
 						<div className="space-y-3">
-							<Link href="/#projects" className={`${ctaClass} w-full`}>
+							<Link href="/#projects" className={`${btnPrimary} ui-btn--block`}>
 								View projects
 							</Link>
 							<p className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">

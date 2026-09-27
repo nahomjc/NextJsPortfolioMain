@@ -10,8 +10,9 @@ import {
 import SectionShell, {
 	panelClass,
 	monoMetaClass,
-	linkAccentClass,
-	ctaClass,
+	btnPrimary,
+	btnGhost,
+	btnChip,
 } from "./section/SectionShell";
 
 const certificates = [
@@ -127,8 +128,8 @@ function CertificateModal({ certificate, onClose }) {
 							</li>
 						))}
 					</ul>
-					<div className="mt-6 flex flex-wrap gap-3">
-						<a href={certificate.downloadLink} download className={ctaClass}>
+					<div className="mt-6 flex flex-wrap items-center gap-3">
+						<a href={certificate.downloadLink} download className={btnPrimary}>
 							<FaDownload aria-hidden />
 							Download
 						</a>
@@ -138,7 +139,7 @@ function CertificateModal({ certificate, onClose }) {
 								href={certificate.verificationLink}
 								target="_blank"
 								rel="noopener noreferrer"
-								className={`inline-flex items-center gap-2 text-sm font-medium ${linkAccentClass}`}
+								className={btnGhost}
 							>
 								Verify
 								<FaExternalLinkAlt className="text-xs" aria-hidden />
@@ -193,14 +194,19 @@ const CertificateShowCase = () => {
 							className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-200"
 						/>
 					</label>
-					<div className="flex flex-wrap gap-1.5 rounded-full border border-slate-900/10 bg-white/50 p-1.5 dark:border-white/10 dark:bg-white/[0.03]">
+					<div
+						className="flex flex-wrap gap-1.5"
+						role="tablist"
+						aria-label="Credential categories"
+					>
 						{categories.map((cat) => (
 							<button
 								key={cat}
 								type="button"
+								role="tab"
 								aria-selected={category === cat}
 								onClick={() => setCategory(cat)}
-								className="eng-lane unstyled"
+								className={btnChip}
 							>
 								{cat === "Frontend Development" ? "Frontend" : cat}
 							</button>

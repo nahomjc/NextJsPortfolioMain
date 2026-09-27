@@ -8,7 +8,9 @@ import { CV_DOWNLOAD_NAME, CV_PATH } from "../lib/seo";
 import SectionShell, {
 	panelClass,
 	monoMetaClass,
-	ctaClass,
+	btnPrimary,
+	btnIcon,
+	btnGhost,
 } from "./section/SectionShell";
 
 const LINKEDIN = "https://www.linkedin.com/in/nahom-tesfaye-35b97420b/";
@@ -66,7 +68,7 @@ const Contact = () => {
 									href={href}
 									target={href.startsWith("http") ? "_blank" : undefined}
 									rel={href.startsWith("http") ? "noreferrer" : undefined}
-									className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-900/10 text-slate-700 transition hover:border-cyan-500/40 hover:text-cyan-700 dark:border-white/12 dark:text-slate-200 dark:hover:text-cyan-300"
+									className={btnIcon}
 									aria-label={label}
 								>
 									<Icon className="text-lg" aria-hidden />
@@ -76,7 +78,7 @@ const Contact = () => {
 						<a
 							href={CV_PATH}
 							download={CV_DOWNLOAD_NAME}
-							className={`${ctaClass} mt-5 w-full`}
+							className={`${btnPrimary} ui-btn--block mt-5`}
 						>
 							Download CV
 							<HiDownload className="text-lg" aria-hidden />
@@ -162,7 +164,7 @@ const Contact = () => {
 							/>
 						</div>
 						<div className="md:col-span-2">
-							<button type="submit" className={`${ctaClass} w-full sm:w-auto`}>
+							<button type="submit" className={`${btnPrimary} w-full sm:w-auto`}>
 								Send message
 							</button>
 						</div>
@@ -173,7 +175,7 @@ const Contact = () => {
 			<div className="mt-16 flex justify-center">
 				<a
 					href="#home"
-					className="inline-flex flex-col items-center gap-1.5 text-slate-500 transition hover:text-cyan-600 dark:hover:text-cyan-400"
+					className={`${btnGhost} flex-col gap-1.5`}
 					aria-label="Back to top"
 				>
 					<HiOutlineChevronDoubleUp className="text-xl" aria-hidden />
