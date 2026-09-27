@@ -40,7 +40,7 @@ export const productionProjects = [
 		title: "AR solution trading PLC",
 		backgroundImg: arSolutionsImg,
 		projectUrl: "/ar-solutions",
-		tech: "Digital marketing & web · Next.js · TypeScript · Brand site — Ethiopia",
+		tech: "Digital marketing & web · Next.js · TypeScript · Brand site, Ethiopia",
 	},
 	{
 		title: "Afrocado Exports",
@@ -79,7 +79,7 @@ export const personalProjects = [
 		title: "Conflict Reporter",
 		backgroundImg: conflictReporterImg,
 		projectUrl: "/conflict-reporter",
-		tech: "Next.js · 3D globe · OpenRouter — situational reflection dashboard",
+		tech: "Next.js · 3D globe · OpenRouter · Situational reflection dashboard",
 	},
 	{
 		title: "Netflix clone",
@@ -114,7 +114,7 @@ export const personalProjects = [
 ];
 
 export const PROJECTS_HERO_DESC =
-	"Production platforms, client shipping, and high-fidelity experiments — each deployment ships with a dedicated case route.";
+	"Production platforms, client shipping, and high-fidelity experiments. Each deployment ships with a dedicated case route.";
 
 export const PROJECTS_HERO_STATS = [
 	{ label: "Production", value: String(productionProjects.length), accent: "cyan" },

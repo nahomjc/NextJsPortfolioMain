@@ -2,7 +2,7 @@ export const highlights = [
 	{
 		label: "Product delivery",
 		value:
-			"Production web applications — ERP, HCM, CRM, LMS, e-commerce, and portfolio platforms built for scale.",
+			"Production web applications: ERP, HCM, CRM, LMS, e-commerce, and portfolio platforms built for scale.",
 		icon: "◆",
 	},
 	{
@@ -18,7 +18,7 @@ export const highlights = [
 	},
 	{
 		label: "Track record",
-		value: "2016–present — from CMS e-commerce to enterprise systems and intelligent product interfaces.",
+		value: "2016 to present: from CMS e-commerce to enterprise systems and intelligent product interfaces.",
 		icon: "▣",
 	},
 ];
@@ -31,10 +31,10 @@ export const SCENES = [
 ];
 
 export const HERO_SUBTEXT =
-	"Full-stack developer and tech lead — building enterprise software, AI agents, and intelligent bot integrations.";
+	"Full-stack developer and tech lead building enterprise software, AI agents, and intelligent bot integrations.";
 
 export const HERO_STATS = [
-	{ label: "Experience", value: "2016 — Present", accent: "cyan" },
+	{ label: "Experience", value: "2016 to Present", accent: "cyan" },
 	{ label: "Specialty", value: "Full-Stack + AI", accent: "violet" },
 	{ label: "Availability", value: "Open for work", accent: "emerald" },
 ];

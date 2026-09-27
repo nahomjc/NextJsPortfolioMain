@@ -55,7 +55,7 @@ function randBetween(min, max) {
 	return min + Math.random() * (max - min);
 }
 
-function AboutWorkspacePly() {
+function AboutWorkspacePly({ size = "default" }) {
 	const mountRef = useRef(null);
 	const reduceMotion = useReducedMotion();
 	const [projectsModalOpen, setProjectsModalOpen] = useState(false);
@@ -65,6 +65,11 @@ function AboutWorkspacePly() {
 	const hintFirstCycleRef = useRef(true);
 	const openProjectsModalRef = useRef(() => {});
 	openProjectsModalRef.current = () => setProjectsModalOpen(true);
+
+	const sizeClass =
+		size === "immersive"
+			? "about-desk-canvas about-desk-canvas--immersive"
+			: "about-desk-canvas";
 
 	const clearHintTimer = () => {
 		if (hintTimeoutRef.current != null) {
@@ -354,7 +359,7 @@ function AboutWorkspacePly() {
 	return (
 		<>
 			<div
-				className="relative h-[min(58vw,380px)] w-full sm:h-[320px] md:h-[350px] lg:h-[380px]"
+				className={`relative w-full ${sizeClass}`}
 				role="region"
 				aria-label="3D workspace model viewer"
 			>
@@ -370,7 +375,7 @@ function AboutWorkspacePly() {
 						aria-hidden
 					>
 						<p className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400 sm:text-xs">
-							3D preview unavailable — WebGL disabled in this browser
+							3D preview unavailable. WebGL disabled in this browser
 						</p>
 					</div>
 				) : null}
@@ -399,56 +404,29 @@ function AboutWorkspacePly() {
 						>
 							<button
 								type="button"
-								className="unstyled pointer-events-auto group max-w-[min(100%,20rem)] border-2 border-cyan-500/55 bg-slate-950/90 px-3 py-2.5 text-left shadow-[0_0_0_1px_rgba(217,70,239,0.15),0_0_28px_rgba(34,211,238,0.14),0_12px_40px_-8px_rgba(0,0,0,0.75)] backdrop-blur-md transition hover:border-fuchsia-400/55 hover:shadow-[0_0_32px_rgba(217,70,239,0.2)] dark:border-cyan-400/45 dark:bg-black/88 sm:max-w-none sm:px-4"
+								className="unstyled pointer-events-auto group max-w-[min(100%,20rem)] rounded-2xl border border-white/15 bg-slate-950/80 px-4 py-3.5 text-left shadow-[0_20px_50px_-16px_rgba(0,0,0,0.7)] backdrop-blur-xl transition hover:border-cyan-400/40 hover:bg-slate-950/90"
 								onClick={() => {
 									clearHintTimer();
 									setShowTapHint(false);
 									setProjectsModalOpen(true);
 								}}
 							>
-								<span className="flex flex-col gap-1.5">
-									<span className="flex items-center gap-2">
-										<span
-											className="relative flex h-1.5 w-1.5 shrink-0"
-											aria-hidden
-										>
-											<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400/45" />
-											<span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]" />
+								<span className="flex items-start gap-3">
+									<span
+										className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-400/15 text-cyan-300 ring-1 ring-cyan-400/30"
+										aria-hidden
+									>
+										→
+									</span>
+									<span className="flex flex-col gap-0.5">
+										<span className="font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-400/90">
+											Open archive
 										</span>
-										<span className="font-mono text-[9px] uppercase tracking-[0.24em] text-cyan-400/95">
-											UPLINK // PERSONAL.VAULT
-										</span>
-									</span>
-									<span className="font-display text-sm font-bold leading-tight text-white sm:text-base">
-										Click me —{" "}
-										<span className="text-gradient-future">see projects</span>
-									</span>
-									<span className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">
-										Tap workspace or this panel · deploy dossier
-									</span>
-									<span className="mt-0.5 flex items-center gap-2 border-t border-cyan-500/25 pt-1.5 font-mono text-[9px] text-fuchsia-400/85">
-										<span className="text-cyan-400/80">[EXEC]</span>
-										<span className="tracking-wider group-hover:text-fuchsia-300">
-											OPEN_ARCHIVE →
+										<span className="text-sm font-semibold leading-snug text-white">
+											Browse projects from this desk
 										</span>
 									</span>
 								</span>
-								<span
-									className="pointer-events-none absolute left-1.5 top-1.5 h-2.5 w-2.5 border-l-2 border-t-2 border-cyan-400/80"
-									aria-hidden
-								/>
-								<span
-									className="pointer-events-none absolute right-1.5 top-1.5 h-2.5 w-2.5 border-r-2 border-t-2 border-cyan-400/80"
-									aria-hidden
-								/>
-								<span
-									className="pointer-events-none absolute bottom-1.5 left-1.5 h-2.5 w-2.5 border-b-2 border-l-2 border-fuchsia-500/50"
-									aria-hidden
-								/>
-								<span
-									className="pointer-events-none absolute bottom-1.5 right-1.5 h-2.5 w-2.5 border-b-2 border-r-2 border-fuchsia-500/50"
-									aria-hidden
-								/>
 							</button>
 						</motion.div>
 					) : null}

@@ -52,13 +52,13 @@ const FoxCharacter = () => {
     { count: 5, text: 'Stop poking me! 😅' },
     { count: 6, text: 'I can chat about his skills too! 🚀' },
     { count: 7, text: 'Okay okay, I am getting dizzy! 😵‍💫' },
-    { count: 8, text: 'Seriously — the chat box is comfier! ➡️' },
+    { count: 8, text: 'Seriously, the chat box is comfier! ➡️' },
     { count: 9, text: 'I have so much to tell you about Nahom! 🤖' },
     { count: 10, text: '*woof* Chat is the best way to talk! 📱' },
     { count: 11, text: 'Did you know Nahom had a 3.9 GPA? Ask in chat! 🎓' },
     { count: 12, text: 'I am running out of barks here! 😅' },
     { count: 13, text: 'The chat box is better for real conversation! 💭' },
-    { count: 14, text: 'Click the chat icon — I’ll spill everything! 🗨️' },
+    { count: 14, text: 'Click the chat icon. I’ll spill everything! 🗨️' },
     { count: 15, text: 'Alright, nap time if you do not chat! 😴' },
   ];
 

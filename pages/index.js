@@ -17,7 +17,6 @@ import {
 const AIChat = dynamic(() => import("../components/AIChat"), { ssr: false });
 const About = dynamic(() => import("../components/About"));
 const Skills = dynamic(() => import("../components/Skills"));
-const SkillsProgress = dynamic(() => import("../components/SkillCategory"));
 const Timeline = dynamic(() => import("../components/ExperienceTimeLine"));
 const Projects = dynamic(() => import("../components/Projects"));
 const ClientLogos = dynamic(() => import("../components/ClientLogos"));
@@ -83,7 +82,7 @@ export default function Home() {
 				<meta name="theme-color" content="#0f172a" />
 				<meta
 					name="subject"
-					content="ERP, HCM, CRM & Full Stack Developer Ethiopia — Nahom Tesfaye"
+					content="ERP, HCM, CRM & Full Stack Developer Ethiopia, Nahom Tesfaye"
 				/>
 				<meta
 					name="classification"
@@ -154,40 +153,37 @@ export default function Home() {
 				<HomeHashScroll />
 				<Main />
 				<DeferredAIChat />
-				<LazySection minHeight="80vh">
+				<LazySection minHeight="56rem">
 					<About />
 				</LazySection>
-				<LazySection minHeight="28rem">
+				<LazySection minHeight="16rem">
 					<ClientLogos />
 				</LazySection>
-				<LazySection minHeight="60vh">
+				<LazySection minHeight="36rem">
 					<Skills />
 				</LazySection>
-				<LazySection minHeight="50vh">
-					<SkillsProgress />
-				</LazySection>
-				<LazySection minHeight="70vh">
+				<LazySection minHeight="40rem">
 					<Timeline />
 				</LazySection>
-				<LazySection minHeight="80vh" forceMount={hashId === "projects"}>
+				<LazySection minHeight="48rem" forceMount={hashId === "projects"}>
 					<Projects />
 				</LazySection>
-				<LazySection minHeight="50vh">
+				<LazySection minHeight="28rem">
 					<AISection />
 				</LazySection>
-				<LazySection minHeight="50vh">
+				<LazySection minHeight="28rem">
 					<CertificateShowcase />
 				</LazySection>
-				<LazySection minHeight="24rem">
+				<LazySection minHeight="20rem">
 					<CoursePromo />
 				</LazySection>
-				<LazySection minHeight="24rem">
+				<LazySection minHeight="16rem">
 					<TelegramPromo />
 				</LazySection>
-				<LazySection minHeight="50vh">
+				<LazySection minHeight="24rem">
 					<MediumBlog />
 				</LazySection>
-				<LazySection minHeight="60vh">
+				<LazySection minHeight="32rem">
 					<Contact />
 				</LazySection>
 			</main>

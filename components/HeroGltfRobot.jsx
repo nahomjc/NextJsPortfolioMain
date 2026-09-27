@@ -1722,8 +1722,8 @@ const HeroGltfRobot = ({ compact = false }) => {
 	const ctaAnchor = useRobotScreenAnchor(wrapRef, showChatCta);
 	const hoverAnchor = useRobotScreenAnchor(wrapRef, showHoverHint);
 	const robotAriaLabel = finePointerHover
-		? "Hero robot — moves with your pointer; click and drag to orbit, click to chat with AI voice assistant"
-		: "Hero robot — tap to chat with AI voice assistant";
+		? "Hero robot. Moves with your pointer; click and drag to orbit, click to chat with AI voice assistant"
+		: "Hero robot. Tap to chat with AI voice assistant";
 
 	return (
 		<>

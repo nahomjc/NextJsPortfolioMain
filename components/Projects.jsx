@@ -1,204 +1,139 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/router";
-import { useReducedMotion } from "framer-motion";
-import { useLenis } from "./LenisProvider";
-import { scrollToProgress, scheduleScrollTriggerRefresh } from "../lib/gsapScroll";
-import { productionProjects } from "./projects/projectsData";
-import ProjectsHero from "./projects/ProjectsHero";
-import ProjectsTheatre from "./projects/ProjectsTheatre";
-import ProjectsMobile from "./projects/ProjectsMobile";
-import ProjectsSandbox from "./projects/ProjectsSandbox";
-import useProjectsAnimations from "./projects/useProjectsAnimations";
+import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+	productionProjects,
+	personalProjects,
+	PROJECTS_HERO_DESC,
+} from "./projects/projectsData";
+import SectionShell, { monoMetaClass } from "./section/SectionShell";
 
-const Projects = () => {
-	const router = useRouter();
-	const reduceMotion = useReducedMotion();
-	const lenis = useLenis();
-	const [activeIndex, setActiveIndex] = useState(0);
+function techTags(tech) {
+	return String(tech)
+		.split("·")
+		.map((t) => t.trim())
+		.filter(Boolean)
+		.slice(0, 5);
+}
 
-	const sectionRef = useRef(null);
-	const heroRef = useRef(null);
-	const heroDescRef = useRef(null);
-	const heroScanRef = useRef(null);
-	const bgIndexRef = useRef(null);
-	const theatreRef = useRef(null);
-	const pinRef = useRef(null);
-	const theatreGlowRef = useRef(null);
-	const scanBeamRef = useRef(null);
-	const circuitBgRef = useRef(null);
-	const bgBuildRef = useRef(null);
-	const bgShipRef = useRef(null);
-	const hudRailRef = useRef(null);
-	const stageDividerRef = useRef(null);
-	const previewRefs = useRef([]);
-	const dossierRefs = useRef([]);
-	const ghostRefs = useRef([]);
-	const segmentRefs = useRef([]);
-	const sandboxRef = useRef(null);
-	const sandboxCardRefs = useRef([]);
-	const mobileCardRefs = useRef([]);
-
-	const animationRefs = useRef({
-		heroRef,
-		heroDescRef,
-		heroScanRef,
-		bgIndexRef,
-		theatreRef,
-		pinRef,
-		theatreGlowRef,
-		scanBeamRef,
-		circuitBgRef,
-		bgBuildRef,
-		bgShipRef,
-		hudRailRef,
-		stageDividerRef,
-		previewRefs,
-		dossierRefs,
-		ghostRefs,
-		segmentRefs,
-		sandboxRef,
-		sandboxCardRefs,
-		mobileCardRefs,
-	});
-
-	const jumpToProject = useCallback(
-		(index) => {
-			const count = productionProjects.length;
-			if (index < 0 || index >= count) return;
-			const progress = count > 1 ? index / (count - 1) : 0;
-			scrollToProgress(progress, {
-				lenis,
-				duration: 1.1,
-				pinId: "projects-theatre-pin",
-			});
-		},
-		[lenis],
-	);
-
-	useProjectsAnimations({
-		sectionRef,
-		refs: animationRefs.current,
-		reduceMotion,
-		setActiveIndex,
-	});
-
-	useEffect(() => {
-		if (reduceMotion || typeof window === "undefined") return;
-		scheduleScrollTriggerRefresh(400);
-	}, [reduceMotion]);
-
-	useEffect(() => {
-		if (typeof window === "undefined") return undefined;
-		if (window.location.hash !== "#projects") return undefined;
-
-		let cancelled = false;
-		let timer = null;
-		let attempts = 0;
-		const TARGET_TOP = 32;
-
-		const alignToSection = () => {
-			if (cancelled) return;
-			const section = sectionRef.current;
-			if (!section) return;
-
-			const top = section.getBoundingClientRect().top;
-			if (Math.abs(top - TARGET_TOP) < 8 && attempts > 2) return;
-
-			const y = top + window.scrollY - TARGET_TOP;
-			if (lenis) {
-				lenis.scrollTo(y, {
-					duration: attempts === 0 ? 1.15 : 0.55,
-				});
-			} else {
-				window.scrollTo({ top: y, behavior: "smooth" });
-			}
-			scheduleScrollTriggerRefresh(200);
-
-			attempts += 1;
-			if (attempts < 30) {
-				timer = window.setTimeout(alignToSection, 250);
-			}
-		};
-
-		const resetAndAlign = () => {
-			attempts = 0;
-			if (timer) window.clearTimeout(timer);
-			alignToSection();
-		};
-
-		resetAndAlign();
-		router.events.on("routeChangeComplete", resetAndAlign);
-
-		return () => {
-			cancelled = true;
-			if (timer) window.clearTimeout(timer);
-			router.events.off("routeChangeComplete", resetAndAlign);
-		};
-	}, [lenis, router]);
+function ProjectCard({ project, featured = false }) {
+	const tags = techTags(project.tech);
 
 	return (
-		<section
-			id="projects"
-			ref={sectionRef}
-			className="projects-section projects-section--vault about-section--interface relative w-full scroll-mt-24 overflow-hidden text-slate-100"
+		<Link
+			href={project.projectUrl}
+			className={`eng-project-card group ${featured ? "eng-project-card--featured" : ""}`}
 		>
-			<div
-				className="projects-section__mesh about-section__mesh pointer-events-none absolute inset-0"
-				aria-hidden
-			/>
-			<div
-				className="projects-section__vignette about-section__vignette pointer-events-none absolute inset-0"
-				aria-hidden
-			/>
-			<div
-				className="pointer-events-none absolute inset-0 bg-grid-future opacity-[0.28]"
-				aria-hidden
-			/>
-			<div
-				className="pointer-events-none absolute left-0 top-0 h-[min(75vw,560px)] w-[min(75vw,560px)] -translate-x-1/4 rounded-full bg-cyan-400/10 blur-[120px]"
-				aria-hidden
-			/>
-			<div
-				className="pointer-events-none absolute right-0 bottom-0 h-[min(65vw,480px)] w-[min(65vw,480px)] translate-x-1/4 rounded-full bg-fuchsia-500/8 blur-[100px]"
-				aria-hidden
-			/>
+			<div className="eng-project-card__media">
+				<Image
+					src={project.backgroundImg}
+					alt={project.title}
+					fill
+					className="object-cover object-top"
+					sizes={
+						featured
+							? "(max-width: 768px) 100vw, 66vw"
+							: "(max-width: 768px) 100vw, 33vw"
+					}
+				/>
+				<div className="eng-project-card__shade" aria-hidden />
+				{featured ? (
+					<div className="absolute inset-x-0 bottom-0 z-[2] p-6 sm:p-8 md:p-10">
+						<div className="flex flex-wrap items-center gap-3">
+							<span className="rounded-md border border-cyan-300/30 bg-cyan-400/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-200">
+								Featured
+							</span>
+							<span className={`${monoMetaClass} text-slate-300`}>
+								Production
+							</span>
+						</div>
+						<h3 className="mt-3 max-w-xl text-2xl font-semibold tracking-tight text-white sm:text-3xl md:text-4xl">
+							{project.title}
+						</h3>
+						<p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-300 sm:text-base">
+							{project.tech}
+						</p>
+						<span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition group-hover:gap-3">
+							Open case study
+							<span aria-hidden>→</span>
+						</span>
+					</div>
+				) : null}
+			</div>
+			{!featured ? (
+				<div className="p-5">
+					<div className="flex items-start justify-between gap-3">
+						<h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
+							{project.title}
+						</h3>
+						<span
+							className="mt-1 font-mono text-cyan-600 opacity-0 transition group-hover:opacity-100 dark:text-cyan-400"
+							aria-hidden
+						>
+							→
+						</span>
+					</div>
+					<div className="mt-3 flex flex-wrap gap-1.5">
+						{tags.map((tag) => (
+							<span
+								key={tag}
+								className="rounded-md border border-slate-900/10 px-2 py-0.5 font-mono text-[10px] text-slate-600 dark:border-white/10 dark:text-slate-400"
+							>
+								{tag}
+							</span>
+						))}
+					</div>
+				</div>
+			) : null}
+		</Link>
+	);
+}
 
-			<div className="relative z-10 px-4 pb-16 pt-10 md:pb-24 md:pt-20">
-				<div className="mx-auto max-w-[1240px]">
-					<ProjectsHero
-						heroRef={heroRef}
-						heroDescRef={heroDescRef}
-						heroScanRef={heroScanRef}
-						bgIndexRef={bgIndexRef}
-					/>
+const Projects = () => {
+	const [featured, ...rest] = productionProjects;
 
-					<ProjectsTheatre
-						theatreRef={theatreRef}
-						pinRef={pinRef}
-						theatreGlowRef={theatreGlowRef}
-						scanBeamRef={scanBeamRef}
-						circuitBgRef={circuitBgRef}
-						bgBuildRef={bgBuildRef}
-						bgShipRef={bgShipRef}
-						hudRailRef={hudRailRef}
-						stageDividerRef={stageDividerRef}
-						previewRefs={previewRefs}
-						dossierRefs={dossierRefs}
-						ghostRefs={ghostRefs}
-						segmentRefs={segmentRefs}
-						activeIndex={activeIndex}
-						jumpToProject={jumpToProject}
-					/>
+	return (
+		<SectionShell
+			id="projects"
+			index="04"
+			eyebrow="projects/"
+			title="Selected work"
+			description={PROJECTS_HERO_DESC}
+			wide
+		>
+			<div className="mb-6 flex items-baseline justify-between gap-4">
+				<p className={monoMetaClass}>Production · shipped</p>
+				<p className="font-mono text-[11px] tabular-nums text-slate-500">
+					{productionProjects.length}
+				</p>
+			</div>
 
-					<ProjectsMobile mobileCardRefs={mobileCardRefs} />
+			<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+				{featured ? <ProjectCard project={featured} featured /> : null}
+				{rest.map((project) => (
+					<ProjectCard key={project.projectUrl} project={project} />
+				))}
+			</div>
 
-					<ProjectsSandbox
-						sandboxRef={sandboxRef}
-						cardRefs={sandboxCardRefs}
-					/>
+			<div className="mt-20">
+				<div className="mb-6 flex items-end justify-between gap-4 border-b border-slate-900/10 pb-4 dark:border-white/10">
+					<div>
+						<p className={monoMetaClass}>Sandbox</p>
+						<p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+							Experiments and learning builds
+						</p>
+					</div>
+					<p className="font-mono text-[11px] tabular-nums text-slate-500">
+						{personalProjects.length}
+					</p>
+				</div>
+				<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{personalProjects.map((project) => (
+						<ProjectCard key={project.projectUrl} project={project} />
+					))}
 				</div>
 			</div>
-		</section>
+		</SectionShell>
 	);
 };
 

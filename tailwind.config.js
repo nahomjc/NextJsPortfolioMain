@@ -10,6 +10,7 @@ module.exports = {
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         display: ['var(--font-display)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
         future: {

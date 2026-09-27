@@ -35,11 +35,11 @@ const PAD = 12;
 const HUD_CLIP_INSET = 14;
 
 const VOICE_GREETING =
-	"Hey — I'm Nahom's assistant. Ask about his work, book a meeting, say call to reach him, or say terminate to close.";
+	"Hey. I'm Nahom's assistant. Ask about his work, book a meeting, say call to reach him, or say terminate to close.";
 
 const STATUS_LABELS = {
 	initializing: "Initializing voice link…",
-	listening: "Listening — speak anytime",
+	listening: "Listening. Speak anytime",
 	capturing: "Hearing you…",
 	transcribing: "Transcribing…",
 	thinking: "Thinking…",
@@ -584,7 +584,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 				const trimmed = normalizeVoiceTranscript(text);
 				if (isEmptyTranscript(trimmed)) {
 					processingRef.current = false;
-					setLastAssistantText("Didn't catch that — try again.");
+					setLastAssistantText("Didn't catch that. Try again.");
 					setAgentState("listening");
 					setPausedListening(false);
 					return;

@@ -878,7 +878,7 @@ const Main = () => {
 								{PERSON.name}
 							</h1>
 							<p className="mt-1 text-sm font-medium leading-snug text-slate-600 dark:text-slate-400">
-								ERP · HCM · CRM · portfolio sites — React, Next.js &amp; TypeScript
+								ERP · HCM · CRM · portfolio sites. React, Next.js &amp; TypeScript
 							</p>
 						</header>
 

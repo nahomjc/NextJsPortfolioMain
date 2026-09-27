@@ -12,7 +12,7 @@ const USER_PROMPT = "visitor@portfolio";
 const ASSISTANT_PROMPT = "assistant@nahom";
 
 const WELCOME =
-	"Hi — I'm Nahom's portfolio assistant. Ask about his experience, stack, projects, education, or how to collaborate.";
+	"Hi. I'm Nahom's portfolio assistant. Ask about his experience, stack, projects, education, or how to collaborate.";
 
 function TerminalTitleBar({ onClose, onToggleFullscreen, isFullscreen }) {
 	return (
@@ -39,7 +39,7 @@ function TerminalTitleBar({ onClose, onToggleFullscreen, isFullscreen }) {
 					className="truncate font-mono text-[11px] text-slate-400"
 				>
 					<span className="text-emerald-400">nahom-assistant</span>
-					<span className="text-slate-600"> — </span>
+					<span className="text-slate-600"> · </span>
 					<span className="text-slate-500">bash</span>
 				</p>
 			</div>
@@ -144,7 +144,7 @@ function BootLines() {
 	return (
 		<div className="space-y-1 border-b border-emerald-500/10 px-4 py-2.5 font-mono text-[10px] leading-relaxed text-slate-500">
 			<p>
-				<span className="text-emerald-500/80">$</span> init session — portfolio assistant v1.0
+				<span className="text-emerald-500/80">$</span> init session · portfolio assistant v1.0
 			</p>
 			<p>
 				<span className="text-emerald-500/80">$</span> model:{" "}
