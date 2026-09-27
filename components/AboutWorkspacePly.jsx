@@ -361,12 +361,10 @@ function AboutWorkspacePly({ size = "default" }) {
 			<div
 				className={`relative w-full ${sizeClass}`}
 				role="region"
-				aria-label="3D workspace model viewer"
+				aria-label="Workspace desk"
 			>
 				<span className="sr-only">
-					Interactive 3D workspace model. Drag to rotate the view. Scroll or pinch
-					to zoom. Rotates automatically when idle. Quick tap opens a personal
-					projects archive.
+					Workspace desk. Tap to open selected projects from this setup.
 				</span>
 				<div ref={mountRef} className="h-full w-full" />
 				{webglUnavailable ? (

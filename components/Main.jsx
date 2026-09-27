@@ -58,19 +58,19 @@ function HeroHudFrame() {
 	return (
 		<>
 			<span
-				className={`${corner} left-3 top-14 border-l-2 border-t-2 md:left-5 md:top-16`}
+				className={`${corner} left-2 top-14 border-l-2 border-t-2 sm:left-3 md:left-4 md:top-16`}
 				aria-hidden
 			/>
 			<span
-				className={`${corner} right-3 top-14 border-r-2 border-t-2 md:right-5 md:top-16`}
+				className={`${corner} right-2 top-14 border-r-2 border-t-2 sm:right-3 md:right-4 md:top-16`}
 				aria-hidden
 			/>
 			<span
-				className={`${corner} bottom-6 left-3 border-b-2 border-l-2 md:bottom-8 md:left-5`}
+				className={`${corner} bottom-6 left-2 border-b-2 border-l-2 sm:left-3 md:bottom-8 md:left-4`}
 				aria-hidden
 			/>
 			<span
-				className={`${corner} bottom-6 right-3 border-b-2 border-r-2 md:bottom-8 md:right-5`}
+				className={`${corner} bottom-6 right-2 border-b-2 border-r-2 sm:right-3 md:bottom-8 md:right-4`}
 				aria-hidden
 			/>
 		</>
@@ -756,7 +756,7 @@ const Main = () => {
 		<div
 			id="home"
 			ref={heroRef}
-			className="hero-section hero-theatre relative flex w-full items-center overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 pb-6 pt-12 text-slate-900 max-lg:min-h-0 md:pb-12 md:pt-16 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
+			className="hero-section hero-theatre relative flex w-full items-center overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 px-2 pb-6 pt-12 text-slate-900 max-lg:min-h-0 sm:px-3 md:pb-12 md:pt-16 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden lg:px-4 dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
 		>
 			<HeroInteractiveLayer
 				containerRef={heroRef}
@@ -835,7 +835,7 @@ const Main = () => {
 			{/* HUD status rail */}
 			<div
 				data-hero-hud
-				className="absolute left-4 right-4 top-4 z-20 mx-auto flex max-w-6xl items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 md:left-6 md:right-6 md:top-5 md:text-[10px]"
+				className="absolute left-2 right-2 top-4 z-20 mx-auto flex max-w-[96rem] items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500 sm:left-3 sm:right-3 md:left-4 md:right-4 md:top-5 md:text-[10px]"
 			>
 				<span className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400/90">
 					<span className="relative flex h-1.5 w-1.5">
@@ -854,9 +854,9 @@ const Main = () => {
 
 			<div
 				ref={heroInnerRef}
-				className="hero-inner relative z-10 mx-auto w-full min-h-0 max-h-full max-w-6xl will-change-transform"
+				className="hero-inner relative z-10 mx-auto w-full min-h-0 max-h-full max-w-[96rem] will-change-transform"
 			>
-				<div className="grid w-full min-h-0 max-h-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-10 lg:py-0">
+				<div className="grid w-full min-h-0 max-h-full gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:items-center lg:gap-6 lg:py-0 xl:gap-8">
 					<div
 						ref={contentRef}
 						className="relative order-2 flex min-h-0 flex-col text-center [perspective:1200px] lg:order-1 lg:min-h-0 lg:text-left"
@@ -1043,7 +1043,7 @@ const Main = () => {
 				</div>
 			</div>
 
-			<div className="absolute bottom-4 left-4 right-4 z-20 mx-auto max-w-6xl md:bottom-6">
+			<div className="absolute bottom-4 left-2 right-2 z-20 mx-auto max-w-[96rem] sm:left-3 sm:right-3 md:bottom-6 md:left-4 md:right-4">
 				<div className="h-px overflow-hidden rounded-full bg-white/10">
 					<div
 						ref={scrollExitRef}

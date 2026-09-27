@@ -30,10 +30,10 @@ const BIO_SHORT = [
 	"Since 2016 I've gone from CMS e-commerce to leading full-stack delivery on Sourcepin, HCM, Muyalogy, Jiret, Afriwork Learn, Green Bag, Afrocado, AR Solutions, Peragos, Loop State, and Bazra E-Wallet.",
 ];
 
-const DESK_CONTROLS = [
-	{ key: "Drag", action: "Orbit view" },
-	{ key: "Scroll", action: "Zoom in / out" },
-	{ key: "Tap", action: "Open project archive" },
+const DESK_NOTES = [
+	{ key: "Focus", action: "Ship production systems" },
+	{ key: "Stack", action: "Full-stack · AI · bots" },
+	{ key: "Base", action: "Addis Ababa · remote" },
 ];
 
 function PortraitLightbox({ open, onClose }) {
@@ -354,15 +354,15 @@ const About = () => {
 								The desk
 							</h3>
 							<p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-								Interactive 3D workspace. Orbit freely, then tap the model to open
-								selected builds from this setup.
+								Where production work gets done. Explore selected builds that
+								shipped from this setup.
 							</p>
 						</div>
 
 						<div>
-							<p className={`${monoMetaClass} mb-3`}>Controls</p>
+							<p className={`${monoMetaClass} mb-3`}>At a glance</p>
 							<ul className="space-y-2.5">
-								{DESK_CONTROLS.map((item) => (
+								{DESK_NOTES.map((item) => (
 									<li
 										key={item.key}
 										className="flex items-center justify-between gap-3 text-sm"
@@ -382,9 +382,6 @@ const About = () => {
 							<Link href="/#projects" className={`${btnPrimary} ui-btn--block`}>
 								View projects
 							</Link>
-							<p className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
-								desk.glb · webgl
-							</p>
 						</div>
 					</aside>
 
