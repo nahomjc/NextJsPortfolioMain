@@ -527,18 +527,49 @@ const FingerPrintLoader = ({ onLoadingComplete }) => {
 					</svg>
 				</div>
 
-				<div className="mt-8 w-full text-center">
+				<div className="mt-8 w-full max-w-sm px-2 text-center sm:max-w-md">
 					<p
 						ref={statusRef}
-						className="matrix-status-text mb-3 font-mono text-base uppercase tracking-[0.14em] text-cyan-300/90 opacity-0 sm:text-lg"
+						className="matrix-status-text mb-4 font-mono text-base uppercase tracking-[0.14em] text-cyan-300/90 opacity-0 sm:text-lg"
 					>
 						&lt;Kingdom Code/&gt;
 					</p>
-					<div className="mx-auto h-1 w-48 overflow-hidden rounded-sm bg-white/[0.06]">
-						<div
-							ref={progressRef}
-							className="matrix-progress-bar h-full w-0"
-						/>
+
+					<div className="intro-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-label="Boot progress">
+						<div className="intro-progress__meta">
+							<span className="intro-progress__tag">SYS · BOOT</span>
+							<span className="intro-progress__tag intro-progress__tag--dim">UPLINK</span>
+						</div>
+
+						<div className="intro-progress__rail">
+							<span className="intro-progress__bracket intro-progress__bracket--l" aria-hidden />
+							<span className="intro-progress__bracket intro-progress__bracket--r" aria-hidden />
+
+							<div className="intro-progress__track">
+								<div className="intro-progress__ticks" aria-hidden>
+									{Array.from({ length: 21 }).map((_, i) => (
+										<span
+											key={`tick-${i}`}
+											className={`intro-progress__tick ${i % 5 === 0 ? "is-major" : ""}`}
+										/>
+									))}
+								</div>
+								<div
+									ref={progressRef}
+									className="intro-progress__fill matrix-progress-bar w-0"
+								>
+									<span className="intro-progress__sheen" aria-hidden />
+									<span className="intro-progress__head" aria-hidden />
+								</div>
+							</div>
+						</div>
+
+						<div className="intro-progress__footer">
+							<span className="intro-progress__seg" aria-hidden>
+								▌▌▌▌▌░░░░░
+							</span>
+							<span className="intro-progress__hint">authenticating…</span>
+						</div>
 					</div>
 				</div>
 			</div>

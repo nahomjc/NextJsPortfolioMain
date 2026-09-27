@@ -161,10 +161,207 @@
 }
 
 .matrix-progress-bar {
-	background: linear-gradient(90deg, #22d3ee, #8b5cf6, #e879f9);
-	box-shadow: 0 0 14px rgba(34, 211, 238, 0.75), 0 0 32px
-		rgba(139, 92, 246, 0.35);
-	border-radius: 2px;
+	position: relative;
+	height: 100%;
+	border-radius: 1px;
+	background: #22d3ee;
+	box-shadow:
+		0 0 12px rgba(34, 211, 238, 0.7),
+		0 0 24px rgba(34, 211, 238, 0.35),
+		inset 0 0 6px rgba(255, 255, 255, 0.2);
+}
+
+/* Sci-fi intro progress rail */
+.intro-progress {
+	width: 100%;
+	margin-inline: auto;
+}
+
+.intro-progress__meta {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 0.45rem;
+	padding-inline: 0.15rem;
+}
+
+.intro-progress__tag {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.58rem;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: rgba(103, 232, 249, 0.75);
+	text-shadow: 0 0 10px rgba(34, 211, 238, 0.45);
+}
+
+.intro-progress__tag--dim {
+	color: rgba(167, 139, 250, 0.55);
+	text-shadow: none;
+}
+
+.intro-progress__rail {
+	position: relative;
+	padding: 0.55rem 0.85rem;
+	border: 1px solid rgba(34, 211, 238, 0.22);
+	background:
+		linear-gradient(180deg, rgba(34, 211, 238, 0.06), rgba(6, 3, 12, 0.55)),
+		rgba(6, 3, 12, 0.72);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+		0 0 24px -12px rgba(34, 211, 238, 0.45);
+	clip-path: polygon(
+		0 8px,
+		8px 0,
+		calc(100% - 8px) 0,
+		100% 8px,
+		100% calc(100% - 8px),
+		calc(100% - 8px) 100%,
+		8px 100%,
+		0 calc(100% - 8px)
+	);
+}
+
+.intro-progress__bracket {
+	position: absolute;
+	top: 50%;
+	width: 10px;
+	height: 18px;
+	border-color: rgba(34, 211, 238, 0.7);
+	border-style: solid;
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+.intro-progress__bracket--l {
+	left: 4px;
+	border-width: 1.5px 0 1.5px 1.5px;
+}
+
+.intro-progress__bracket--r {
+	right: 4px;
+	border-width: 1.5px 1.5px 1.5px 0;
+	border-color: rgba(232, 121, 249, 0.65);
+}
+
+.intro-progress__track {
+	position: relative;
+	height: 0.55rem;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background:
+		repeating-linear-gradient(
+			90deg,
+			rgba(34, 211, 238, 0.04) 0 2px,
+			transparent 2px 6px
+		),
+		rgba(0, 0, 0, 0.45);
+}
+
+.intro-progress__ticks {
+	pointer-events: none;
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: flex;
+	justify-content: space-between;
+	padding-inline: 1px;
+}
+
+.intro-progress__tick {
+	width: 1px;
+	height: 35%;
+	align-self: flex-end;
+	background: rgba(148, 163, 184, 0.28);
+}
+
+.intro-progress__tick.is-major {
+	height: 70%;
+	background: rgba(103, 232, 249, 0.45);
+}
+
+.intro-progress__fill {
+	z-index: 1;
+	min-width: 0;
+}
+
+.intro-progress__sheen {
+	pointer-events: none;
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		rgba(255, 255, 255, 0.35) 48%,
+		transparent 100%
+	);
+	background-size: 40% 100%;
+	animation: intro-progress-sheen 1.35s linear infinite;
+	mix-blend-mode: soft-light;
+}
+
+.intro-progress__head {
+	pointer-events: none;
+	position: absolute;
+	top: -3px;
+	right: -1px;
+	bottom: -3px;
+	width: 3px;
+	border-radius: 1px;
+	background: #ecfeff;
+	box-shadow:
+		0 0 8px 2px rgba(34, 211, 238, 0.95),
+		0 0 16px 3px rgba(34, 211, 238, 0.45);
+	animation: intro-progress-head 0.9s ease-in-out infinite;
+}
+
+.intro-progress__footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 0.45rem;
+	padding-inline: 0.15rem;
+}
+
+.intro-progress__seg {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.55rem;
+	letter-spacing: 0.08em;
+	color: rgba(34, 211, 238, 0.45);
+}
+
+.intro-progress__hint {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.58rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: rgba(148, 163, 184, 0.55);
+}
+
+@keyframes intro-progress-sheen {
+	0% {
+		background-position: -40% 0;
+	}
+	100% {
+		background-position: 140% 0;
+	}
+}
+
+@keyframes intro-progress-head {
+	0%,
+	100% {
+		opacity: 0.75;
+		transform: scaleY(0.85);
+	}
+	50% {
+		opacity: 1;
+		transform: scaleY(1.15);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.intro-progress__sheen,
+	.intro-progress__head {
+		animation: none;
+	}
 }
 
 /* Fingerprint scanner uses base .fingerprint-* styles (cyan / violet) */
@@ -215,7 +412,7 @@
 
 .scanner-progress {
 	box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
-	background: linear-gradient(90deg, #22d3ee, #a78bfa);
+	background: #22d3ee;
 }
 
 /* Intro loader — true viewport bleed (mobile browser chrome + safe areas) */
