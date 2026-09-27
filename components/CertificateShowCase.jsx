@@ -73,7 +73,7 @@ function CertificateModal({ certificate, onClose }) {
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md dark:bg-slate-950/80"
 			onClick={onClose}
 			role="presentation"
 		>
@@ -81,7 +81,7 @@ function CertificateModal({ certificate, onClose }) {
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				exit={{ opacity: 0, y: 16 }}
-				className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-slate-950 shadow-2xl"
+				className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-950"
 				onClick={(e) => e.stopPropagation()}
 				role="dialog"
 				aria-modal="true"
@@ -90,12 +90,12 @@ function CertificateModal({ certificate, onClose }) {
 				<button
 					type="button"
 					onClick={onClose}
-					className="absolute right-3 top-3 z-10 rounded-lg border border-white/15 bg-white/10 p-2 text-white transition hover:bg-white/15"
+					className="absolute right-3 top-3 z-10 rounded-lg border border-slate-200 bg-white/90 p-2 text-slate-700 transition hover:bg-slate-50 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
 					aria-label="Close"
 				>
 					<FaTimes aria-hidden />
 				</button>
-				<div className="relative aspect-[16/10] w-full bg-slate-900">
+				<div className="relative aspect-[16/10] w-full bg-slate-100 dark:bg-slate-900">
 					<Image
 						src={certificate.image}
 						alt={certificate.title}
@@ -105,24 +105,24 @@ function CertificateModal({ certificate, onClose }) {
 					/>
 				</div>
 				<div className="p-6 sm:p-8">
-					<p className={`${monoMetaClass} text-cyan-400`}>
+					<p className={`${monoMetaClass} text-cyan-700 dark:text-cyan-400`}>
 						{certificate.category} · {certificate.date}
 					</p>
 					<h3
 						id="cert-modal-title"
-						className="mt-2 text-xl font-semibold text-white sm:text-2xl"
+						className="mt-2 text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl"
 					>
 						{certificate.title}
 					</h3>
-					<p className="mt-1 text-sm text-slate-400">{certificate.issuer}</p>
-					<p className="mt-4 text-sm leading-relaxed text-slate-300">
+					<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{certificate.issuer}</p>
+					<p className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
 						{certificate.description}
 					</p>
 					<ul className="mt-4 flex flex-wrap gap-2">
 						{certificate.skills.map((skill) => (
 							<li
 								key={skill}
-								className="rounded-md border border-white/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-400"
+								className="rounded-md border border-slate-200 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-600 dark:border-white/10 dark:text-slate-400"
 							>
 								{skill}
 							</li>

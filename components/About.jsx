@@ -386,7 +386,7 @@ const About = () => {
 					</aside>
 
 					{/* Canvas well */}
-					<div className="about-desk-well relative min-h-[320px] bg-[#050a12]">
+					<div className="about-desk-well relative min-h-[320px]">
 						<div className="about-desk-well__vignette pointer-events-none absolute inset-0 z-[1]" aria-hidden />
 						<div className="about-desk-well__floor pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-1/3" aria-hidden />
 						{mountDesk ? (

@@ -178,7 +178,7 @@ const HeroRobotIntroModal = ({ open, onClose, anchor }) => {
 				>
 					{/* Tactical vignette */}
 					<div
-						className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(2,6,23,0.4)_55%,rgba(2,6,23,0.75)_100%)]"
+						className="hero-hud-vignette pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(2,6,23,0.4)_55%,rgba(2,6,23,0.75)_100%)]"
 						aria-hidden
 					/>
 					<motion.div
@@ -337,7 +337,7 @@ const HeroRobotIntroModal = ({ open, onClose, anchor }) => {
 							}}
 						>
 						<div
-							className="relative overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_0_100px_rgba(124,58,237,0.08),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+							className="hero-hud-shell relative overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_0_100px_rgba(124,58,237,0.08),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
 							style={{
 								clipPath:
 									"polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px))",
@@ -397,17 +397,19 @@ const HeroRobotIntroModal = ({ open, onClose, anchor }) => {
 									<div className="min-w-0">
 										<p
 											id="hero-robot-hud-title"
+											data-hud-title
 											className="font-mono text-[9px] font-semibold uppercase tracking-[0.32em] text-cyan-200 [text-shadow:0_0_12px_rgba(34,211,238,0.35)]"
 										>
 											{hud.title}
 										</p>
-										<p className="mt-0.5 font-mono text-[10px] leading-snug text-fuchsia-300/85">
+										<p className="mt-0.5 font-mono text-[10px] leading-snug text-fuchsia-600/90 dark:text-fuchsia-300/85">
 											{hud.subject}
 										</p>
 									</div>
 									<button
 										type="button"
 										onClick={onClose}
+										data-hud-close
 										className="shrink-0 rounded-sm border border-cyan-500/35 bg-cyan-950/40 p-1 text-cyan-200/90 shadow-[0_0_12px_rgba(34,211,238,0.15)] transition hover:border-fuchsia-400/50 hover:bg-fuchsia-950/30 hover:text-fuchsia-100 hover:shadow-[0_0_16px_rgba(217,70,239,0.25)]"
 										aria-label="Close"
 									>
@@ -417,6 +419,7 @@ const HeroRobotIntroModal = ({ open, onClose, anchor }) => {
 
 								<div
 									id="hero-robot-hud-body"
+									data-hud-body
 									className="relative max-h-[200px] overflow-y-auto rounded-sm border border-cyan-500/20 bg-black/55 px-2.5 py-2 font-mono text-[11px] leading-relaxed text-slate-100/95 shadow-[inset_0_0_24px_rgba(34,211,238,0.04)] sm:text-xs"
 								>
 									<div
@@ -438,7 +441,7 @@ const HeroRobotIntroModal = ({ open, onClose, anchor }) => {
 										className="unstyled inline-block"
 										onClick={onClose}
 									>
-										<span className="group relative inline-flex items-center overflow-hidden rounded-sm border border-fuchsia-500/50 bg-gradient-to-r from-fuchsia-950/50 to-violet-950/40 px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-fuchsia-100 shadow-[0_0_20px_rgba(217,70,239,0.2)] transition hover:border-fuchsia-400/80 hover:shadow-[0_0_28px_rgba(217,70,239,0.35)]">
+										<span className="group relative inline-flex items-center overflow-hidden rounded-sm border border-fuchsia-500/50 bg-fuchsia-100/80 px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-fuchsia-800 shadow-[0_0_20px_rgba(217,70,239,0.12)] transition hover:border-fuchsia-400/80 hover:shadow-[0_0_28px_rgba(217,70,239,0.25)] dark:bg-gradient-to-r dark:from-fuchsia-950/50 dark:to-violet-950/40 dark:text-fuchsia-100 dark:shadow-[0_0_20px_rgba(217,70,239,0.2)]">
 											<span
 												className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition duration-500 group-hover:translate-x-full"
 												aria-hidden
@@ -449,7 +452,7 @@ const HeroRobotIntroModal = ({ open, onClose, anchor }) => {
 									<button
 										type="button"
 										onClick={onClose}
-										className="rounded-sm border border-white/20 bg-white/[0.03] px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-slate-400 transition hover:border-cyan-400/40 hover:text-cyan-200/90"
+										className="rounded-sm border border-slate-300/80 bg-white/70 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-slate-600 transition hover:border-cyan-500/50 hover:text-cyan-700 dark:border-white/20 dark:bg-white/[0.03] dark:text-slate-400 dark:hover:border-cyan-400/40 dark:hover:text-cyan-200/90"
 									>
 										[ terminate ]
 									</button>

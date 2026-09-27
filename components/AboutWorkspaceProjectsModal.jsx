@@ -106,7 +106,7 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 						role="dialog"
 						aria-modal="true"
 						aria-labelledby="workspace-projects-modal-title"
-						className="relative z-10 flex w-full max-w-[min(100%,540px)] flex-col overflow-hidden border-2 border-cyan-500/55 bg-slate-950/92 shadow-[0_0_0_1px_rgba(217,70,239,0.2),0_0_60px_rgba(34,211,238,0.12),0_24px_64px_-12px_rgba(0,0,0,0.85)] backdrop-blur-md dark:border-cyan-400/45 dark:bg-slate-950/94 sm:max-w-xl md:max-w-2xl"
+						className="about-wsp-modal relative z-10 flex w-full max-w-[min(100%,540px)] flex-col overflow-hidden border-2 border-cyan-500/55 bg-slate-950/92 shadow-[0_0_0_1px_rgba(217,70,239,0.2),0_0_60px_rgba(34,211,238,0.12),0_24px_64px_-12px_rgba(0,0,0,0.85)] backdrop-blur-md dark:border-cyan-400/45 dark:bg-slate-950/94 sm:max-w-xl md:max-w-2xl"
 						initial={
 							reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 20 }
 						}
@@ -142,7 +142,7 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 						<RoboticCorners />
 
 						{/* Robotic status rail */}
-						<div className="relative z-[8] flex items-center justify-between gap-2 border-b border-cyan-500/35 bg-slate-950/80 px-3 py-2.5 font-mono dark:bg-black/50 sm:px-4">
+						<div className="about-wsp-modal__rail relative z-[8] flex items-center justify-between gap-2 border-b border-cyan-500/35 bg-slate-950/80 px-3 py-2.5 font-mono dark:bg-black/50 sm:px-4">
 							<div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
 								<span
 									className="relative flex h-2 w-2 shrink-0"
@@ -151,10 +151,10 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/50 opacity-60" />
 									<span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
 								</span>
-								<span className="truncate text-[9px] uppercase tracking-[0.22em] text-cyan-300/95 dark:text-cyan-400">
+								<span className="truncate text-[9px] uppercase tracking-[0.22em] text-cyan-700 dark:text-cyan-400">
 									SYS.PERSONAL.VAULT
 								</span>
-								<span className="hidden text-[9px] text-fuchsia-400/80 sm:inline">
+								<span className="hidden text-[9px] text-fuchsia-500/80 dark:text-fuchsia-400/80 sm:inline">
 									·
 								</span>
 								<span className="hidden text-[9px] uppercase tracking-[0.18em] text-slate-500 sm:inline">
@@ -162,13 +162,13 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 								</span>
 							</div>
 							<div className="flex shrink-0 items-center gap-2 sm:gap-3">
-								<span className="text-[9px] tabular-nums tracking-wider text-cyan-500/90 dark:text-cyan-400/90">
+								<span className="text-[9px] tabular-nums tracking-wider text-cyan-700 dark:text-cyan-400/90">
 									SEQ {idxLabel}/{totalLabel}
 								</span>
 								<button
 									type="button"
 									onClick={onClose}
-									className="unstyled flex h-9 w-9 shrink-0 items-center justify-center rounded border border-cyan-500/40 bg-slate-950/90 text-cyan-200 shadow-[inset_0_0_12px_rgba(34,211,238,0.08)] transition hover:border-fuchsia-400/55 hover:text-fuchsia-200 dark:border-cyan-400/35 dark:bg-black/60"
+									className="unstyled flex h-9 w-9 shrink-0 items-center justify-center rounded border border-cyan-500/40 bg-white/90 text-cyan-700 shadow-[inset_0_0_12px_rgba(34,211,238,0.08)] transition hover:border-fuchsia-400/55 hover:text-fuchsia-600 dark:border-cyan-400/35 dark:bg-black/60 dark:text-cyan-200 dark:hover:text-fuchsia-200"
 									aria-label="Close"
 								>
 									<AiOutlineClose className="text-lg" />
@@ -179,11 +179,12 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 						<div className="relative z-[8] border-b border-cyan-500/25 px-4 py-3 sm:px-5 sm:py-4">
 							<p
 								id="workspace-projects-modal-title"
-								className="font-display text-lg tracking-wide text-white sm:text-xl"
+								data-hud-title
+								className="font-display text-lg tracking-wide text-slate-900 dark:text-white sm:text-xl"
 							>
 								<span className="text-gradient-future">DOSSIER</span>
 								<span className="text-slate-400"> :: </span>
-								<span className="text-slate-100">Personal builds</span>
+								<span className="text-slate-800 dark:text-slate-100">Personal builds</span>
 							</p>
 							<p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
 								Carousel view · arrow keys · swipe
@@ -191,7 +192,7 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 						</div>
 
 						<div className="relative z-[8] px-2 pb-4 pt-2 sm:px-4 sm:pb-5 sm:pt-3">
-							<div className="relative border border-cyan-500/30 bg-black/40 shadow-[inset_0_0_40px_rgba(34,211,238,0.04)] dark:border-cyan-400/25">
+							<div className="about-wsp-modal__feed relative border border-cyan-500/30 bg-black/40 shadow-[inset_0_0_40px_rgba(34,211,238,0.04)] dark:border-cyan-400/25">
 								<div
 									className="pointer-events-none absolute left-2 top-2 z-[5] font-mono text-[9px] uppercase tracking-[0.2em] text-cyan-500/70"
 									aria-hidden
@@ -234,7 +235,7 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 														</p>
 													</div>
 												</div>
-												<p className="mt-3 px-2 font-mono text-xs leading-relaxed text-slate-400">
+												<p className="mt-3 px-2 font-mono text-xs leading-relaxed text-slate-600 dark:text-slate-400">
 													{p.tech}
 												</p>
 											</div>
@@ -247,10 +248,10 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 								<Link
 									href={current.href}
 									onClick={onClose}
-									className="unstyled group inline-flex border border-cyan-500/50 bg-cyan-500/10 px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.12)] transition hover:border-fuchsia-400/55 hover:bg-fuchsia-500/10 hover:text-fuchsia-100 sm:text-[11px]"
+									className="unstyled group inline-flex border border-cyan-600/45 bg-cyan-50 px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.18em] text-cyan-800 shadow-[0_0_24px_rgba(34,211,238,0.1)] transition hover:border-fuchsia-400/55 hover:bg-fuchsia-50 hover:text-fuchsia-800 dark:border-cyan-500/50 dark:bg-cyan-500/10 dark:text-cyan-200 dark:hover:bg-fuchsia-500/10 dark:hover:text-fuchsia-100 sm:text-[11px]"
 								>
 									<span className="inline-flex items-center justify-center gap-2">
-										<span className="text-cyan-400 transition group-hover:text-fuchsia-300">
+										<span className="text-cyan-600 transition group-hover:text-fuchsia-600 dark:text-cyan-400 dark:group-hover:text-fuchsia-300">
 											▶
 										</span>
 										Open dossier
@@ -259,7 +260,7 @@ function AboutWorkspaceProjectsModal({ open, onClose }) {
 								<Link
 									href="/#projects"
 									onClick={onClose}
-									className="unstyled text-center font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 underline-offset-4 hover:text-cyan-400 hover:underline sm:text-right"
+									className="unstyled text-center font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 underline-offset-4 hover:text-cyan-700 hover:underline dark:hover:text-cyan-400 sm:text-right"
 								>
 									Full project index → #projects
 								</Link>

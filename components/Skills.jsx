@@ -25,7 +25,7 @@ import Tailwind from "../public/assets/skills/tailwind.png";
 import Github from "../public/assets/skills/github1.png";
 import Firebase from "../public/assets/skills/firebase.png";
 import NextJS from "../public/assets/skills/nextjs.png";
-import SectionShell, { monoMetaClass, btnChipOnDark } from "./section/SectionShell";
+import SectionShell, { monoMetaClass, btnChip } from "./section/SectionShell";
 
 const LANES = [
 	{ id: "all", label: "All", code: "00" },
@@ -149,7 +149,7 @@ function RingMeter({ value, reduceMotion, active }) {
 	const offset = c - (value / 100) * c;
 
 	return (
-		<svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100" aria-hidden>
+		<svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
 			<circle
 				cx="50"
 				cy="50"
@@ -157,7 +157,7 @@ function RingMeter({ value, reduceMotion, active }) {
 				fill="none"
 				stroke="currentColor"
 				strokeWidth="6"
-				className="text-white/10"
+				className="text-slate-200 dark:text-white/10"
 			/>
 			<circle
 				cx="50"
@@ -235,24 +235,24 @@ const Skills = () => {
 			description="Interfaces, APIs, and data layers picked for speed, clarity, and maintainability."
 			wide
 		>
-			<div className="stack-matrix relative overflow-hidden rounded-[1.35rem] border border-cyan-500/20 bg-[#050a12] shadow-[0_0_0_1px_rgba(34,211,238,0.06),0_40px_100px_-40px_rgba(0,0,0,0.85)]">
+			<div className="stack-matrix relative overflow-hidden rounded-[1.35rem] border border-cyan-600/25 bg-gradient-to-br from-white via-slate-50 to-cyan-50/40 shadow-[0_1px_0_rgba(15,23,42,0.04),0_24px_48px_-28px_rgba(15,23,42,0.18)] dark:border-cyan-500/20 dark:bg-[#050a12] dark:from-transparent dark:via-transparent dark:to-transparent dark:shadow-[0_0_0_1px_rgba(34,211,238,0.06),0_40px_100px_-40px_rgba(0,0,0,0.85)]">
 				<div className="stack-matrix__grid" aria-hidden />
 				<div
 					className="stack-matrix__spot"
 					style={{
-						background: `radial-gradient(520px circle at ${spotlight.x}% ${spotlight.y}%, rgba(34,211,238,0.16), transparent 55%)`,
+						background: `radial-gradient(520px circle at ${spotlight.x}% ${spotlight.y}%, rgba(34,211,238,0.14), transparent 55%)`,
 					}}
 					aria-hidden
 				/>
 
 				{/* Top bar */}
-				<div className="relative z-[1] flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
+				<div className="relative z-[1] flex flex-wrap items-center justify-between gap-3 border-b border-slate-900/10 px-4 py-3 dark:border-white/10 sm:px-6">
 					<div className="flex items-center gap-2">
 						<span className="relative flex h-2 w-2" aria-hidden>
 							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400/45" />
-							<span className="relative h-2 w-2 rounded-full bg-cyan-400" />
+							<span className="relative h-2 w-2 rounded-full bg-cyan-500 dark:bg-cyan-400" />
 						</span>
-						<span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-300/90">
+						<span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-300/90">
 							stack.matrix · live
 						</span>
 					</div>
@@ -266,7 +266,7 @@ const Skills = () => {
 					<div
 						ref={matrixRef}
 						onMouseMove={onMatrixMove}
-						className="border-b border-white/10 p-4 sm:p-6 lg:border-b-0 lg:border-r"
+						className="border-b border-slate-900/10 p-4 sm:p-6 dark:border-white/10 lg:border-b-0 lg:border-r"
 					>
 						<div
 							className="mb-5 flex flex-wrap gap-1.5"
@@ -282,9 +282,11 @@ const Skills = () => {
 										role="tab"
 										aria-selected={on}
 										onClick={() => setLane(item.id)}
-										className={`${btnChipOnDark} font-mono text-[10px] uppercase tracking-[0.14em]`}
+										className={`${btnChip} font-mono text-[10px] uppercase tracking-[0.14em]`}
 									>
-										<span className="text-cyan-500/70">{item.code}</span>
+										<span className="text-cyan-600/80 dark:text-cyan-500/70">
+											{item.code}
+										</span>
 										{item.label}
 									</button>
 								);
@@ -314,21 +316,21 @@ const Skills = () => {
 												onMouseEnter={() => setActiveTitle(item.title)}
 												className={`stack-node unstyled group relative w-full overflow-hidden rounded-xl border p-3 text-left transition sm:p-3.5 ${
 													selected
-														? "border-cyan-400/55 bg-cyan-400/10 shadow-[0_0_28px_-10px_rgba(34,211,238,0.75)]"
-														: "border-white/10 bg-white/[0.03] hover:border-cyan-400/35 hover:bg-white/[0.06]"
+														? "border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_28px_-10px_rgba(34,211,238,0.45)] dark:border-cyan-400/55 dark:bg-cyan-400/10 dark:shadow-[0_0_28px_-10px_rgba(34,211,238,0.75)]"
+														: "border-slate-900/10 bg-white/80 hover:border-cyan-500/35 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-cyan-400/35 dark:hover:bg-white/[0.06]"
 												}`}
 												aria-pressed={selected}
 											>
 												<span
-													className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent opacity-0 transition group-hover:opacity-100"
+													className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent opacity-0 transition group-hover:opacity-100"
 													aria-hidden
 												/>
 												<span className="flex items-center gap-3">
-													<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-slate-950/60">
+													<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-900/10 bg-slate-50 dark:border-white/10 dark:bg-slate-950/60">
 														<SkillIcon item={item} size={28} />
 													</span>
 													<span className="min-w-0">
-														<span className="block truncate text-sm font-semibold text-white">
+														<span className="block truncate text-sm font-semibold text-slate-900 dark:text-white">
 															{item.title}
 														</span>
 														<span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
@@ -337,14 +339,14 @@ const Skills = () => {
 													</span>
 												</span>
 												<span className="mt-3 flex items-center justify-between gap-2">
-													<span className="font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-400/80">
+													<span className="font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-700 dark:text-cyan-400/80">
 														{item.tag}
 													</span>
-													<span className="font-mono text-[11px] tabular-nums text-cyan-300">
+													<span className="font-mono text-[11px] tabular-nums text-cyan-700 dark:text-cyan-300">
 														{item.level}
 													</span>
 												</span>
-												<span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/10">
+												<span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
 													<span
 														className="block h-full rounded-full bg-gradient-to-r from-cyan-500 to-sky-400 transition-[width] duration-700"
 														style={{
@@ -363,7 +365,7 @@ const Skills = () => {
 					{/* Focus readout */}
 					<aside className="flex flex-col justify-between gap-6 p-5 sm:p-6">
 						<div>
-							<p className={`${monoMetaClass} text-cyan-400`}>Active node</p>
+							<p className={`${monoMetaClass} text-cyan-700 dark:text-cyan-400`}>Active node</p>
 							<AnimatePresence mode="wait">
 								<motion.div
 									key={active.title}
@@ -381,7 +383,7 @@ const Skills = () => {
 												active={barsLive || Boolean(active)}
 											/>
 											<div className="absolute inset-0 flex flex-col items-center justify-center">
-												<span className="font-mono text-2xl font-semibold tabular-nums text-white">
+												<span className="font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">
 													{active.level}
 												</span>
 												<span className="font-mono text-[8px] uppercase tracking-[0.16em] text-slate-500">
@@ -390,16 +392,16 @@ const Skills = () => {
 											</div>
 										</div>
 										<div className="min-w-0 pt-2">
-											<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-400/25 bg-cyan-400/10">
+											<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-500/25 bg-cyan-500/10">
 												<SkillIcon item={active} size={32} />
 											</div>
-											<h3 className="text-xl font-semibold tracking-tight text-white">
+											<h3 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
 												{active.title}
 											</h3>
-											<p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+											<p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
 												{active.category} · {active.tag}
 											</p>
-											<p className="mt-3 text-sm leading-relaxed text-slate-400">
+											<p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
 												Hover or tap a node to inspect. Filters remap the matrix
 												without leaving the console.
 											</p>
@@ -409,7 +411,7 @@ const Skills = () => {
 							</AnimatePresence>
 						</div>
 
-						<div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+						<div className="rounded-xl border border-slate-900/10 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
 							<p className={`${monoMetaClass} mb-3 text-slate-500`}>Signal map</p>
 							<ul className="space-y-2">
 								{LANES.filter((l) => l.id !== "all").map((l) => {
@@ -427,17 +429,17 @@ const Skills = () => {
 												onClick={() => setLane(l.id)}
 												className={`unstyled flex w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left transition ${
 													lane === l.id
-														? "bg-cyan-400/10 text-cyan-200"
-														: "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+														? "bg-cyan-500/10 text-cyan-800 dark:bg-cyan-400/10 dark:text-cyan-200"
+														: "text-slate-500 hover:bg-slate-900/[0.04] hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.04] dark:hover:text-slate-200"
 												}`}
 											>
 												<span className="font-mono text-[11px] uppercase tracking-[0.12em]">
 													{l.label}
 												</span>
 												<span className="flex items-center gap-2">
-													<span className="h-1 w-16 overflow-hidden rounded-full bg-white/10">
+													<span className="h-1 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
 														<span
-															className="block h-full rounded-full bg-cyan-400/80 transition-[width] duration-700"
+															className="block h-full rounded-full bg-cyan-500/80 transition-[width] duration-700 dark:bg-cyan-400/80"
 															style={{ width: on && barsLive ? `${avg}%` : "0%" }}
 														/>
 													</span>

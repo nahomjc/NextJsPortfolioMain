@@ -14,8 +14,357 @@ import {
 	shouldCapIdleFps,
 } from "../lib/animationControl";
 import { createWebGLRendererSafe } from "../lib/webgl";
+import { useTheme } from "./ThemeProvider";
 
 const CHAT_CTA_DISMISS_KEY = "hero-chat-cta-dismissed";
+
+const LIGHT_BODY_HEX = 0xc5d0de; /* pearl slate — white chassis that still holds form */
+const LIGHT_STRIP_HEX = 0x071018;
+const LIGHT_OUTLINE_INK = 0x0b1220;
+const LIGHT_OUTLINE_SOFT = 0x64748b;
+const STRIP_NAME_RE = /strip|accent|trim|band|line|edge|chrome|neon|led|glow/i;
+const BODY_NAME_RE = /body|chassis|shell|armor|torso|leg|arm|head|base|dark|panel|mesh/i;
+
+function colorLuminance(c) {
+	return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+}
+
+/**
+ * Body = chassis (→ light grey with map detail in light mode).
+ * Strip = accents (→ dark in light mode).
+ */
+function classifyThemeRole(material, meshName = "", matName = "") {
+	const label = `${meshName} ${matName}`;
+	if (STRIP_NAME_RE.test(label)) return "strip";
+	if (BODY_NAME_RE.test(label)) return "body";
+
+	const lum = colorLuminance(material.color);
+	const hasAlbedoMap = Boolean(material.map);
+	const emissiveLum =
+		material.emissive && typeof material.emissive.r === "number"
+			? colorLuminance(material.emissive)
+			: 0;
+
+	if (emissiveLum >= 0.25) return "strip";
+	/* Solid bright, no map → accent strip */
+	if (!hasAlbedoMap && lum >= 0.55) return "strip";
+	return "body";
+}
+
+/** Snapshot + classify materials for theme recolor (skips outline/circuit shells). */
+function prepareHeroThemeMaterials(root) {
+	root.traverse((child) => {
+		if (!child.isMesh || child.userData._isOutlineShell) return;
+		const mats = Array.isArray(child.material)
+			? child.material
+			: [child.material];
+		for (const m of mats) {
+			if (!m || !m.color) continue;
+			if (
+				!(
+					m.isMeshStandardMaterial ||
+					m.isMeshPhysicalMaterial ||
+					m.isMeshLambertMaterial ||
+					m.isMeshPhongMaterial ||
+					m.isMeshBasicMaterial
+				)
+			) {
+				continue;
+			}
+			if (!m.userData._themeBaseColor) {
+				m.userData._themeBaseColor = m.color.clone();
+				m.userData._themeBaseMap = m.map || null;
+				m.userData._themeBaseRoughness =
+					typeof m.roughness === "number" ? m.roughness : null;
+				m.userData._themeBaseMetalness =
+					typeof m.metalness === "number" ? m.metalness : null;
+				m.userData._themeBaseEnvMapIntensity =
+					typeof m.envMapIntensity === "number" ? m.envMapIntensity : null;
+				m.userData._themeBaseEmissive = m.emissive ? m.emissive.clone() : null;
+				m.userData._themeBaseEmissiveInt =
+					typeof m.emissiveIntensity === "number" ? m.emissiveIntensity : null;
+				m.userData._themeRole = classifyThemeRole(
+					m,
+					child.name || "",
+					m.name || "",
+				);
+			}
+		}
+	});
+}
+
+function refreshIntroEmissiveBaselines(root) {
+	root.traverse((child) => {
+		if (!child.isMesh || child.userData._isOutlineShell) return;
+		const mats = Array.isArray(child.material)
+			? child.material
+			: [child.material];
+		for (const m of mats) {
+			if (m && (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial)) {
+				m.userData._introEmissive = m.emissive.clone();
+				m.userData._introEmissiveInt = m.emissiveIntensity ?? 1;
+			}
+		}
+	});
+}
+
+function restoreThemeMaterial(m) {
+	m.color.copy(m.userData._themeBaseColor);
+	m.map = m.userData._themeBaseMap || null;
+	if (m.userData._themeBaseRoughness != null && typeof m.roughness === "number") {
+		m.roughness = m.userData._themeBaseRoughness;
+	}
+	if (m.userData._themeBaseMetalness != null && typeof m.metalness === "number") {
+		m.metalness = m.userData._themeBaseMetalness;
+	}
+	if (
+		m.userData._themeBaseEnvMapIntensity != null &&
+		typeof m.envMapIntensity === "number"
+	) {
+		m.envMapIntensity = m.userData._themeBaseEnvMapIntensity;
+	}
+	if (m.userData._themeBaseEmissive && m.emissive) {
+		m.emissive.copy(m.userData._themeBaseEmissive);
+	}
+	if (
+		m.userData._themeBaseEmissiveInt != null &&
+		typeof m.emissiveIntensity === "number"
+	) {
+		m.emissiveIntensity = m.userData._themeBaseEmissiveInt;
+	}
+	m.needsUpdate = true;
+}
+
+function makeOutlineShell(geo, color, opacity, scale, frustumCulled) {
+	const mat = new THREE.MeshBasicMaterial({
+		color,
+		side: THREE.BackSide,
+		transparent: true,
+		opacity,
+		depthWrite: false,
+	});
+	const shell = new THREE.Mesh(geo, mat);
+	shell.scale.setScalar(scale);
+	shell.renderOrder = -1;
+	shell.frustumCulled = frustumCulled;
+	shell.visible = false;
+	shell.userData._isOutlineShell = true;
+	shell.userData._sharedGeometry = true;
+	shell.userData._lightModeOutline = true;
+	return { mesh: shell, mat };
+}
+
+/** Dual silhouette: soft outer halo + crisp ink edge for light backgrounds */
+function attachLightModeOutlines(root) {
+	root.traverse((child) => {
+		if (!child.isMesh || child.userData._isOutlineShell) return;
+		const existing = child.userData._lightOutline;
+		if (existing?.ink && existing?.soft) return;
+		/* Upgrade legacy single outline to dual-edge */
+		if (existing?.mesh) {
+			child.remove(existing.mesh);
+			existing.mat?.dispose?.();
+			child.userData._lightOutline = null;
+		}
+		const geo = child.geometry;
+		if (!geo) return;
+
+		const soft = makeOutlineShell(
+			geo,
+			LIGHT_OUTLINE_SOFT,
+			0.28,
+			1.065,
+			child.frustumCulled,
+		);
+		const ink = makeOutlineShell(
+			geo,
+			LIGHT_OUTLINE_INK,
+			0.88,
+			1.028,
+			child.frustumCulled,
+		);
+		child.add(soft.mesh);
+		child.add(ink.mesh);
+		child.userData._lightOutline = { soft, ink };
+	});
+}
+
+function setLightModeOutlinesVisible(root, visible) {
+	if (!root) return;
+	root.traverse((child) => {
+		const outline = child.userData._lightOutline;
+		if (!outline) return;
+		if (outline.soft) {
+			outline.soft.mesh.visible = visible;
+			outline.soft.mat.opacity = visible ? 0.28 : 0;
+		}
+		if (outline.ink) {
+			outline.ink.mesh.visible = visible;
+			outline.ink.mat.opacity = visible ? 0.88 : 0;
+		}
+		/* Legacy single-shell shape from earlier passes */
+		if (outline.mesh && outline.mat) {
+			outline.mesh.visible = visible;
+			outline.mat.opacity = visible ? 0.8 : 0;
+		}
+	});
+}
+
+/** Dark = original GLB; light = pearl body + map detail + dark strips + dual outline */
+function applyHeroThemeMaterials(root, isDark) {
+	if (!root) return;
+	const bodyColor = new THREE.Color(LIGHT_BODY_HEX);
+	const stripColor = new THREE.Color(LIGHT_STRIP_HEX);
+
+	root.traverse((child) => {
+		if (!child.isMesh || child.userData._isOutlineShell) return;
+		const mats = Array.isArray(child.material)
+			? child.material
+			: [child.material];
+		for (const m of mats) {
+			if (!m?.userData?._themeBaseColor) continue;
+			const role = m.userData._themeRole;
+			const baseMap = m.userData._themeBaseMap;
+
+			if (isDark) {
+				restoreThemeMaterial(m);
+				continue;
+			}
+
+			if (role === "strip") {
+				m.map = null;
+				m.color.copy(stripColor);
+				if (typeof m.metalness === "number") m.metalness = 0.55;
+				if (typeof m.roughness === "number") m.roughness = 0.32;
+				if (typeof m.envMapIntensity === "number") m.envMapIntensity = 0.45;
+				if (m.emissive) m.emissive.setHex(0x000000);
+				if (typeof m.emissiveIntensity === "number") m.emissiveIntensity = 0;
+			} else {
+				/* Keep albedo map for panel/edge detail; lift into pearl range */
+				m.map = baseMap || null;
+				if (baseMap) {
+					m.color.setRGB(1.55, 1.62, 1.78);
+				} else {
+					m.color.copy(bodyColor);
+				}
+				if (typeof m.metalness === "number") m.metalness = 0.28;
+				if (typeof m.roughness === "number") {
+					const base = m.userData._themeBaseRoughness;
+					m.roughness =
+						base != null ? Math.min(0.72, Math.max(0.32, base * 0.85 + 0.08)) : 0.42;
+				}
+				if (typeof m.envMapIntensity === "number") {
+					const base = m.userData._themeBaseEnvMapIntensity;
+					m.envMapIntensity =
+						base != null ? Math.min(0.7, Math.max(0.35, base * 0.5)) : 0.5;
+				}
+				/* Kill wash-out glow so lighting can sculpt the chassis */
+				if (m.emissive) m.emissive.setRGB(0.02, 0.03, 0.045);
+				if (typeof m.emissiveIntensity === "number") m.emissiveIntensity = 0.12;
+				if (m.isMeshPhysicalMaterial) {
+					if (typeof m.clearcoat === "number") m.clearcoat = 0.35;
+					if (typeof m.clearcoatRoughness === "number") {
+						m.clearcoatRoughness = 0.28;
+					}
+				}
+			}
+			m.needsUpdate = true;
+		}
+	});
+
+	if (!isDark) {
+		attachLightModeOutlines(root);
+	}
+	setLightModeOutlinesVisible(root, !isDark);
+	refreshIntroEmissiveBaselines(root);
+}
+
+function applyHeroThemeLighting(bundle, isDark) {
+	if (!bundle) return;
+	const {
+		renderer,
+		baseExposure,
+		hemi,
+		baseHemiI,
+		amb,
+		baseAmbI,
+		key,
+		baseKeyI,
+		fillDir,
+		baseFillDirI,
+		front,
+		baseFrontI,
+		rim,
+		baseRimI,
+		bounce,
+		baseBounceI,
+		magenta,
+		baseMagentaI,
+		fill,
+		baseFillPtI,
+	} = bundle;
+
+	if (isDark) {
+		bundle.live = {
+			exposure: baseExposure,
+			hemi: baseHemiI,
+			amb: baseAmbI,
+			key: baseKeyI,
+			fillDir: baseFillDirI,
+			front: baseFrontI,
+			rim: baseRimI,
+			bounce: baseBounceI,
+			magenta: baseMagentaI,
+			fill: baseFillPtI,
+		};
+		hemi.color.setHex(0xffffff);
+		hemi.groundColor.setHex(0x6b6288);
+		amb.color.setHex(0xf8f6ff);
+		fill.color.setHex(0xc8eeff);
+		magenta.color.setHex(0xf472f6);
+		rim.color.setHex(0xf5d0fe);
+		key.color.setHex(0xffffff);
+		fillDir.color.setHex(0xf8f9ff);
+		front.color.setHex(0xffffff);
+		bounce.color.setHex(0xe8f0ff);
+	} else {
+		/* Studio contrast: bright key, cool fill, dark slate rim — sculpts pearl chassis */
+		bundle.live = {
+			exposure: baseExposure * 0.96,
+			hemi: baseHemiI * 0.55,
+			amb: baseAmbI * 0.42,
+			key: baseKeyI * 1.55,
+			fillDir: baseFillDirI * 0.48,
+			front: baseFrontI * 0.72,
+			rim: baseRimI * 1.35,
+			bounce: baseBounceI * 0.35,
+			magenta: baseMagentaI * 0.12,
+			fill: baseFillPtI * 0.28,
+		};
+		hemi.color.setHex(0xf1f5f9);
+		hemi.groundColor.setHex(0x64748b);
+		amb.color.setHex(0xe2e8f0);
+		fill.color.setHex(0xcbd5e1);
+		magenta.color.setHex(0xc4b5fd);
+		rim.color.setHex(0x334155);
+		key.color.setHex(0xfff8f0);
+		fillDir.color.setHex(0xdbeafe);
+		front.color.setHex(0xf8fafc);
+		bounce.color.setHex(0x94a3b8);
+	}
+
+	const live = bundle.live;
+	renderer.toneMappingExposure = live.exposure;
+	hemi.intensity = live.hemi;
+	amb.intensity = live.amb;
+	key.intensity = live.key;
+	fillDir.intensity = live.fillDir;
+	front.intensity = live.front;
+	rim.intensity = live.rim;
+	bounce.intensity = live.bounce;
+	magenta.intensity = live.magenta;
+	fill.intensity = live.fill;
+}
 
 function useRobotScreenAnchor(ref, enabled) {
 	const [anchor, setAnchor] = useState(null);
@@ -479,6 +828,13 @@ function cameraDistanceToFit(halfW, halfH, fovDeg, aspect, margin = 1.24) {
 }
 
 const HeroGltfRobot = ({ compact = false }) => {
+	const { theme } = useTheme();
+	const themeRef = useRef(theme);
+	themeRef.current = theme;
+	const modelRootRef = useRef(null);
+	const themeLightsRef = useRef(null);
+	const applyThemeVisualsRef = useRef(() => {});
+
 	const wrapRef = useRef(null);
 	const pivotRef = useRef(null);
 	const [loaded, setLoaded] = useState(false);
@@ -970,6 +1326,38 @@ const HeroGltfRobot = ({ compact = false }) => {
 			fill.position.set(-2, 0.3, 2);
 			scene.add(fill);
 
+			themeLightsRef.current = {
+				renderer,
+				baseExposure,
+				hemi,
+				baseHemiI,
+				amb,
+				baseAmbI,
+				key,
+				baseKeyI,
+				fillDir,
+				baseFillDirI,
+				front,
+				baseFrontI,
+				rim,
+				baseRimI,
+				bounce,
+				baseBounceI,
+				magenta,
+				baseMagentaI,
+				fill,
+				baseFillPtI,
+			};
+
+			const syncThemeVisuals = () => {
+				const isDark = themeRef.current !== "light";
+				applyHeroThemeMaterials(modelRootRef.current, isDark);
+				applyHeroThemeLighting(themeLightsRef.current, isDark);
+			};
+			applyThemeVisualsRef.current = syncThemeVisuals;
+			/* Initial lighting for current theme (model applies after load) */
+			applyHeroThemeLighting(themeLightsRef.current, themeRef.current !== "light");
+
 			const boltLight = new THREE.PointLight(0xcffafe, 0, 26, 2);
 			boltLight.position.set(0.9, 2.1, 1.6);
 			scene.add(boltLight);
@@ -1051,12 +1439,14 @@ const HeroGltfRobot = ({ compact = false }) => {
 							if (m && "envMapIntensity" in m) {
 								m.envMapIntensity = (m.envMapIntensity ?? 1) * 1.25;
 							}
-							if (m && (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial)) {
-								m.userData._introEmissive = m.emissive.clone();
-								m.userData._introEmissiveInt = m.emissiveIntensity ?? 1;
-							}
 						}
 					});
+
+					prepareHeroThemeMaterials(model);
+					attachLightModeOutlines(model);
+					modelRootRef.current = model;
+					syncThemeVisuals();
+
 					if (!preferPerformance) {
 						attachCircuitTraces(model);
 						attachVoiceHudShells(model);
@@ -1157,6 +1547,18 @@ const HeroGltfRobot = ({ compact = false }) => {
 				let introShake = 0;
 				const voiceIce = tmpColorA.setRGB(0.08, 0.82, 1.0);
 				const cyanElectric = tmpColorB.setRGB(0.22, 0.98, 0.78);
+				const live = themeLightsRef.current?.live || {
+					exposure: baseExposure,
+					hemi: baseHemiI,
+					amb: baseAmbI,
+					key: baseKeyI,
+					fillDir: baseFillDirI,
+					front: baseFrontI,
+					rim: baseRimI,
+					bounce: baseBounceI,
+					magenta: baseMagentaI,
+					fill: baseFillPtI,
+				};
 
 				if (inHeroReveal) {
 					introMaterialsNeedRestore = true;
@@ -1165,17 +1567,17 @@ const HeroGltfRobot = ({ compact = false }) => {
 					const flick = Math.abs(buzz);
 
 					renderer.toneMappingExposure =
-						baseExposure + thunder * 1.45 + flick * 0.32;
+						live.exposure + thunder * 1.45 + flick * 0.32;
 
-					amb.intensity = baseAmbI * (1 + thunder * 0.28);
-					hemi.intensity = baseHemiI * (1 + thunder * 0.5);
-					key.intensity = baseKeyI * (1 + thunder * 0.45);
-					fillDir.intensity = baseFillDirI * (1 + thunder * 0.25);
-					front.intensity = baseFrontI * (1 + thunder * 0.35);
-					rim.intensity = baseRimI * (1 + thunder * 0.2);
-					bounce.intensity = baseBounceI * (1 + thunder * 0.15);
-					magenta.intensity = baseMagentaI * (1 + thunder * 0.85 + flick * 2.2);
-					fill.intensity = baseFillPtI * (1 + thunder * 0.55 + flick);
+					amb.intensity = live.amb * (1 + thunder * 0.28);
+					hemi.intensity = live.hemi * (1 + thunder * 0.5);
+					key.intensity = live.key * (1 + thunder * 0.45);
+					fillDir.intensity = live.fillDir * (1 + thunder * 0.25);
+					front.intensity = live.front * (1 + thunder * 0.35);
+					rim.intensity = live.rim * (1 + thunder * 0.2);
+					bounce.intensity = live.bounce * (1 + thunder * 0.15);
+					magenta.intensity = live.magenta * (1 + thunder * 0.85 + flick * 2.2);
+					fill.intensity = live.fill * (1 + thunder * 0.55 + flick);
 
 					boltLight.intensity = thunder * 56 + flick * 22;
 					arcLight.intensity =
@@ -1233,8 +1635,8 @@ const HeroGltfRobot = ({ compact = false }) => {
 					clickMaterialsNeedRestore = true;
 
 					renderer.toneMappingExposure =
-						baseExposure + circuitFade * 0.12;
-					rim.intensity = baseRimI * (1 + circuitFade * 0.08);
+						live.exposure + circuitFade * 0.12;
+					rim.intensity = live.rim * (1 + circuitFade * 0.08);
 
 					const root = rayPickCtx.modelRoot;
 					if (root) {
@@ -1254,12 +1656,12 @@ const HeroGltfRobot = ({ compact = false }) => {
 					const energy = voiceSpeechEnergy(t);
 					const pulse = 0.58 + energy * 0.42;
 
-					renderer.toneMappingExposure = baseExposure + fade * pulse * 0.1;
+					renderer.toneMappingExposure = live.exposure + fade * pulse * 0.1;
 					rim.color.setHex(0x7dd3fc);
-					rim.intensity = baseRimI * (1 + fade * pulse * 0.38);
-					magenta.intensity = baseMagentaI * (1 + fade * pulse * 0.06);
+					rim.intensity = live.rim * (1 + fade * pulse * 0.38);
+					magenta.intensity = live.magenta * (1 + fade * pulse * 0.06);
 					fill.color.setHex(0x38bdf8);
-					fill.intensity = baseFillPtI * (1 + fade * pulse * 0.22);
+					fill.intensity = live.fill * (1 + fade * pulse * 0.22);
 					arcLight.color.setHex(0x22d3ee);
 					arcLight.intensity = fade * pulse * 26;
 					arcLight.position.set(
@@ -1326,18 +1728,10 @@ const HeroGltfRobot = ({ compact = false }) => {
 						scan.style.opacity = String(fade * (0.35 + energy * 0.45));
 					}
 				} else {
-					renderer.toneMappingExposure = baseExposure;
-					amb.intensity = baseAmbI;
-					hemi.intensity = baseHemiI;
-					key.intensity = baseKeyI;
-					fillDir.intensity = baseFillDirI;
-					front.intensity = baseFrontI;
-					rim.color.setHex(0xf5d0fe);
-					rim.intensity = baseRimI;
-					bounce.intensity = baseBounceI;
-					magenta.intensity = baseMagentaI;
-					fill.color.setHex(0xc8eeff);
-					fill.intensity = baseFillPtI;
+					applyHeroThemeLighting(
+						themeLightsRef.current,
+						themeRef.current !== "light",
+					);
 					arcLight.color.setHex(0xf0abfc);
 					boltLight.color.setHex(0xcffafe);
 					boltMat.color.setHex(0xa5f3fc);
@@ -1708,9 +2102,19 @@ const HeroGltfRobot = ({ compact = false }) => {
 				window.cancelIdleCallback(idleId);
 			}
 			cancelAnimationFrame(bootRaf);
+			modelRootRef.current = null;
+			themeLightsRef.current = null;
+			applyThemeVisualsRef.current = () => {};
 			teardown();
 		};
 	}, []);
+
+	const isLightTheme = theme === "light";
+	useEffect(() => {
+		applyHeroThemeMaterials(modelRootRef.current, !isLightTheme);
+		applyHeroThemeLighting(themeLightsRef.current, !isLightTheme);
+		// Re-apply when site theme flips so chassis/strip colors stay in sync.
+	}, [isLightTheme]);
 
 	const showChatCta =
 		!introOpen &&
@@ -1767,7 +2171,7 @@ const HeroGltfRobot = ({ compact = false }) => {
 							setIntroOpen(true);
 						}
 					}}
-					className="h-full w-full cursor-grab touch-none outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06030c] active:cursor-grabbing"
+					className="h-full w-full cursor-grab touch-none outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:cursor-grabbing dark:focus-visible:ring-offset-[#06030c]"
 				/>
 				<div
 					ref={clickRingRef}

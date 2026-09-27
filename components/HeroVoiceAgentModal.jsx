@@ -174,7 +174,7 @@ function StatusOrb({ state, reduceMotion }) {
 function TranscriptBubble({ label, accentBar, labelClass, borderClass, bgClass, children }) {
 	return (
 		<div
-			className={`relative rounded-sm border px-2.5 py-2 pl-3.5 text-slate-100/95 ${borderClass} ${bgClass}`}
+			className={`relative rounded-sm border px-2.5 py-2 pl-3.5 text-slate-800 dark:text-slate-100/95 ${borderClass} ${bgClass}`}
 		>
 			<span
 				className={`absolute bottom-2 left-1.5 top-2 w-0.5 rounded-full ${accentBar}`}
@@ -196,19 +196,19 @@ function BookingPanel({ snapshot }) {
 	const pct = Math.round((progress.step / progress.total) * 100);
 
 	return (
-		<div className="rounded-sm border border-violet-500/30 bg-violet-950/25 px-2.5 py-2.5">
+		<div className="rounded-sm border border-violet-400/35 bg-violet-50/90 px-2.5 py-2.5 dark:border-violet-500/30 dark:bg-violet-950/25">
 			<div className="flex items-center justify-between gap-2">
-				<p className="text-[9px] font-semibold uppercase tracking-wider text-violet-300/90">
+				<p className="text-[9px] font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-300/90">
 					Booking · step {progress.step}/{progress.total}
 				</p>
 				{progress.label ? (
-					<span className="truncate font-mono text-[9px] text-violet-400/75">
+					<span className="truncate font-mono text-[9px] text-violet-600/80 dark:text-violet-400/75">
 						{progress.label}
 					</span>
 				) : null}
 			</div>
 			<div
-				className="mt-2 h-1 overflow-hidden rounded-full bg-violet-950/80"
+				className="mt-2 h-1 overflow-hidden rounded-full bg-violet-200/80 dark:bg-violet-950/80"
 				role="progressbar"
 				aria-valuenow={progress.step}
 				aria-valuemin={1}
@@ -219,41 +219,41 @@ function BookingPanel({ snapshot }) {
 					style={{ width: `${pct}%` }}
 				/>
 			</div>
-			<dl className="mt-2 space-y-1 text-[10px] text-slate-300">
+			<dl className="mt-2 space-y-1 text-[10px] text-slate-600 dark:text-slate-300">
 				{name ? (
 					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Name</dt>
-						<dd className="break-words text-slate-100">{name}</dd>
+						<dd className="break-words text-slate-800 dark:text-slate-100">{name}</dd>
 					</div>
 				) : null}
 				{email ? (
 					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Email</dt>
-						<dd className="break-all text-cyan-200/95">{email}</dd>
+						<dd className="break-all text-cyan-700 dark:text-cyan-200/95">{email}</dd>
 					</div>
 				) : null}
 				{phone ? (
 					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Phone</dt>
-						<dd className="break-words text-slate-100">{phone}</dd>
+						<dd className="break-words text-slate-800 dark:text-slate-100">{phone}</dd>
 					</div>
 				) : null}
 				{day ? (
 					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Day</dt>
-						<dd className="break-words text-slate-100">{day}</dd>
+						<dd className="break-words text-slate-800 dark:text-slate-100">{day}</dd>
 					</div>
 				) : null}
 				{timeWindow ? (
 					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Time</dt>
-						<dd className="break-words text-slate-100">{timeWindow}</dd>
+						<dd className="break-words text-slate-800 dark:text-slate-100">{timeWindow}</dd>
 					</div>
 				) : null}
 				{topic ? (
 					<div className="grid grid-cols-[3.5rem_1fr] gap-2">
 						<dt className="text-slate-500">Topic</dt>
-						<dd className="break-words text-slate-100">{topic}</dd>
+						<dd className="break-words text-slate-800 dark:text-slate-100">{topic}</dd>
 					</div>
 				) : null}
 			</dl>
@@ -309,9 +309,9 @@ function ScheduleTypedInput({ step, onSubmit, onSkip, onFocus, onBlur }) {
 		<form
 			onSubmit={handleSubmit}
 			noValidate
-			className="voice-schedule-typed rounded-sm border border-cyan-500/30 bg-cyan-950/20 px-2.5 py-2.5"
+			className="voice-schedule-typed rounded-sm border border-cyan-500/40 bg-cyan-50/90 px-2.5 py-2.5 dark:border-cyan-500/30 dark:bg-cyan-950/20"
 		>
-			<p className="font-mono text-[9px] font-semibold uppercase tracking-wider text-cyan-400/80">
+			<p className="font-mono text-[9px] font-semibold uppercase tracking-wider text-cyan-700 dark:text-cyan-400/80">
 				Or type it
 			</p>
 			<label className="mt-2 block">
@@ -329,7 +329,7 @@ function ScheduleTypedInput({ step, onSubmit, onSkip, onFocus, onBlur }) {
 					autoCorrect={step === "email" ? "off" : undefined}
 					spellCheck={step === "email" ? false : undefined}
 					placeholder={config.placeholder}
-					className="voice-schedule-typed__input mt-1 w-full rounded-sm border border-cyan-500/25 bg-black/50 px-2.5 py-2 font-mono text-base text-cyan-50 placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+					className="voice-schedule-typed__input mt-1 w-full rounded-sm border border-cyan-500/30 bg-white px-2.5 py-2 font-mono text-base text-slate-800 placeholder:text-slate-400 focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 dark:border-cyan-500/25 dark:bg-black/50 dark:text-cyan-50 dark:placeholder:text-slate-500 dark:focus:border-cyan-400/60 dark:focus:ring-cyan-400/30"
 				/>
 			</label>
 			<div className="mt-2 flex flex-wrap items-center gap-2">
@@ -337,7 +337,7 @@ function ScheduleTypedInput({ step, onSubmit, onSkip, onFocus, onBlur }) {
 					type="button"
 					onClick={submitDraft}
 					disabled={!draft.trim()}
-					className="rounded-sm border border-cyan-500/45 bg-cyan-950/50 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-100 transition enabled:hover:border-cyan-400/70 disabled:cursor-not-allowed disabled:opacity-40"
+					className="rounded-sm border border-cyan-600/45 bg-cyan-100 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-cyan-800 transition enabled:hover:border-cyan-500/70 dark:border-cyan-500/45 dark:bg-cyan-950/50 dark:text-cyan-100 dark:enabled:hover:border-cyan-400/70 disabled:cursor-not-allowed disabled:opacity-40"
 				>
 					Continue
 				</button>
@@ -345,7 +345,7 @@ function ScheduleTypedInput({ step, onSubmit, onSkip, onFocus, onBlur }) {
 					<button
 						type="button"
 						onClick={onSkip}
-						className="rounded-sm border border-white/15 bg-white/[0.03] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-400 transition hover:border-slate-400/40 hover:text-slate-200"
+						className="rounded-sm border border-slate-300/80 bg-white/80 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-600 transition hover:border-slate-400/60 hover:text-slate-800 dark:border-white/15 dark:bg-white/[0.03] dark:text-slate-400 dark:hover:border-slate-400/40 dark:hover:text-slate-200"
 					>
 						Skip
 					</button>
@@ -839,7 +839,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 					transition={{ duration: reduceMotion ? 0.12 : 0.28 }}
 				>
 					<div
-						className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(2,6,23,0.4)_55%,rgba(2,6,23,0.75)_100%)]"
+						className="hero-hud-vignette pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(2,6,23,0.4)_55%,rgba(2,6,23,0.75)_100%)]"
 						aria-hidden
 					/>
 					<motion.div
@@ -933,7 +933,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 							}}
 						>
 								<div
-									className="relative flex max-h-[min(85vh,42rem)] min-h-[min(52vh,28rem)] flex-col overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+									className="hero-hud-shell relative flex max-h-[min(85vh,42rem)] min-h-[min(52vh,28rem)] flex-col overflow-hidden rounded-[2px] border border-cyan-400/45 bg-[#030712]/95 shadow-[0_0_0_1px_rgba(217,70,239,0.25),0_0_60px_rgba(34,211,238,0.14),0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
 									style={{
 										clipPath: `polygon(0 ${HUD_CLIP_INSET}px, ${HUD_CLIP_INSET}px 0, calc(100% - ${HUD_CLIP_INSET}px) 0, 100% ${HUD_CLIP_INSET}px, 100% calc(100% - ${HUD_CLIP_INSET}px), calc(100% - ${HUD_CLIP_INSET}px) 100%, ${HUD_CLIP_INSET}px 100%, 0 calc(100% - ${HUD_CLIP_INSET}px))`,
 									}}
@@ -967,11 +967,12 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 											<div className="min-w-0">
 												<p
 													id="hero-voice-hud-title"
+													data-hud-title
 													className="font-mono text-[9px] font-semibold uppercase tracking-[0.28em] text-cyan-200"
 												>
 													Voice link
 												</p>
-												<p className="mt-0.5 font-mono text-[10px] text-emerald-400/90">
+												<p className="mt-0.5 font-mono text-[10px] text-emerald-600 dark:text-emerald-400/90">
 													{statusLabel}
 												</p>
 											</div>
@@ -979,6 +980,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 										<button
 											type="button"
 											onClick={onClose}
+											data-hud-close
 											className="ml-1 shrink-0 rounded-sm border border-cyan-500/35 bg-cyan-950/40 p-1.5 text-cyan-200/90 transition hover:border-fuchsia-400/50 hover:text-fuchsia-100"
 											aria-label="Close voice session"
 										>
@@ -1015,9 +1017,9 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 											<TranscriptBubble
 												label="You"
 												accentBar="bg-fuchsia-400/80"
-												labelClass="text-fuchsia-400/80"
-												borderClass="border-fuchsia-500/25"
-												bgClass="bg-fuchsia-950/25"
+												labelClass="text-fuchsia-600 dark:text-fuchsia-400/80"
+												borderClass="border-fuchsia-400/40 dark:border-fuchsia-500/25"
+												bgClass="bg-fuchsia-50/95 dark:bg-fuchsia-950/25"
 											>
 												{lastUserText}
 											</TranscriptBubble>
@@ -1025,9 +1027,9 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 										<TranscriptBubble
 											label="Assistant"
 											accentBar="bg-cyan-400/80"
-											labelClass="text-cyan-400/80"
-											borderClass="border-cyan-500/25"
-											bgClass="bg-black/55 shadow-[inset_0_0_24px_rgba(34,211,238,0.04)]"
+											labelClass="text-cyan-700 dark:text-cyan-400/80"
+											borderClass="border-cyan-400/40 dark:border-cyan-500/25"
+											bgClass="bg-cyan-50/95 shadow-[inset_0_0_16px_rgba(8,145,178,0.06)] dark:bg-black/55 dark:shadow-[inset_0_0_24px_rgba(34,211,238,0.04)]"
 										>
 											<span className="text-cyan-500/70">&gt; </span>
 											{lastAssistantText}
@@ -1051,7 +1053,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 													onClose();
 													openChat();
 												}}
-												className="rounded-sm border border-fuchsia-500/50 bg-fuchsia-950/40 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-fuchsia-100 transition hover:border-fuchsia-400/80"
+												className="rounded-sm border border-fuchsia-500/50 bg-fuchsia-100/90 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-fuchsia-800 transition hover:border-fuchsia-400/80 dark:bg-fuchsia-950/40 dark:text-fuchsia-100"
 											>
 												Open text chat
 											</button>
@@ -1059,7 +1061,7 @@ const HeroVoiceAgentModal = ({ open, onClose, anchor, onVoiceSpeakingChange }) =
 										<button
 											type="button"
 											onClick={onClose}
-											className="rounded-sm border border-white/20 bg-white/[0.03] px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-slate-400 transition hover:border-cyan-400/40 hover:text-cyan-200/90"
+											className="rounded-sm border border-slate-300/80 bg-white/70 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-slate-600 transition hover:border-cyan-500/50 hover:text-cyan-700 dark:border-white/20 dark:bg-white/[0.03] dark:text-slate-400 dark:hover:border-cyan-400/40 dark:hover:text-cyan-200/90"
 										>
 											[ terminate ]
 										</button>
