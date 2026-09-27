@@ -165,7 +165,7 @@ export default function Home() {
 				<LazySection minHeight="40rem">
 					<Timeline />
 				</LazySection>
-				<LazySection minHeight="48rem" forceMount={hashId === "projects"}>
+				<LazySection minHeight="64rem" forceMount={hashId === "projects"}>
 					<Projects />
 				</LazySection>
 				<LazySection minHeight="28rem">

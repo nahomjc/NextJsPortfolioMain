@@ -1,97 +1,383 @@
-import React from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import {
 	productionProjects,
 	personalProjects,
 	PROJECTS_HERO_DESC,
 } from "./projects/projectsData";
-import SectionShell, { monoMetaClass } from "./section/SectionShell";
+import SectionShell, { btnPrimary, monoMetaClass } from "./section/SectionShell";
 
-function techTags(tech) {
+function techTags(tech, limit = 4) {
 	return String(tech)
 		.split("·")
 		.map((t) => t.trim())
 		.filter(Boolean)
-		.slice(0, 5);
+		.slice(0, limit);
 }
 
-function ProjectCard({ project, featured = false }) {
-	const tags = techTags(project.tech);
+function Billboard({ projects }) {
+	const items = projects?.length ? projects : [];
+	const [index, setIndex] = useState(0);
+	const [paused, setPaused] = useState(false);
+	const [reduceMotion, setReduceMotion] = useState(false);
+
+	useEffect(() => {
+		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const sync = () => setReduceMotion(mq.matches);
+		sync();
+		mq.addEventListener("change", sync);
+		return () => mq.removeEventListener("change", sync);
+	}, []);
+
+	useEffect(() => {
+		if (items.length < 2 || paused || reduceMotion) return undefined;
+		const id = window.setInterval(() => {
+			if (document.hidden) return;
+			setIndex((i) => (i + 1) % items.length);
+		}, 5500);
+		return () => window.clearInterval(id);
+	}, [items.length, paused, reduceMotion]);
+
+	const project = items[index];
+	if (!project) return null;
+	const tags = techTags(project.tech, 5);
+
+	const go = (dir) => {
+		setIndex((i) => (i + dir + items.length) % items.length);
+	};
+
+	return (
+		<div
+			className="nw-billboard group relative overflow-hidden"
+			onMouseEnter={() => setPaused(true)}
+			onMouseLeave={() => setPaused(false)}
+			onFocusCapture={() => setPaused(true)}
+			onBlurCapture={(e) => {
+				if (!e.currentTarget.contains(e.relatedTarget)) setPaused(false);
+			}}
+		>
+			<div className="nw-billboard__media absolute inset-0" aria-hidden>
+				{items.map((item, i) => (
+					<div
+						key={item.projectUrl}
+						className={`nw-billboard__slide ${i === index ? "is-active" : ""}`}
+					>
+						<Image
+							src={item.backgroundImg}
+							alt=""
+							fill
+							priority={i === 0}
+							className="nw-billboard__img object-cover object-top"
+							sizes="100vw"
+						/>
+					</div>
+				))}
+				<div className="nw-billboard__shade" />
+				<div className="nw-billboard__vignette" />
+			</div>
+
+			<div className="nw-billboard__content relative z-[2] flex min-h-[min(88vw,520px)] flex-col justify-end px-5 pb-12 pt-28 sm:min-h-[480px] sm:px-8 sm:pb-14 md:min-h-[560px] md:px-10 lg:min-h-[640px] lg:pb-16 xl:min-h-[720px]">
+				<div className="nw-billboard__mark mb-3 inline-flex items-center gap-2">
+					<span className="nw-billboard__n" aria-hidden>
+						N
+					</span>
+					<span className={`${monoMetaClass} text-slate-300`}>
+						Featured · {index + 1}/{items.length}
+					</span>
+				</div>
+
+				<div key={project.projectUrl} className="nw-billboard__copy">
+					<h3 className="nw-billboard__title max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+						{project.title}
+					</h3>
+					<p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base md:text-lg">
+						{project.tech}
+					</p>
+					<ul className="mt-4 flex flex-wrap gap-1.5">
+						{tags.map((tag) => (
+							<li key={tag} className="nw-poster__chip">
+								{tag}
+							</li>
+						))}
+					</ul>
+					<div className="mt-7 flex flex-wrap items-center gap-3">
+						<Link href={project.projectUrl} className={btnPrimary}>
+							Open case study
+						</Link>
+						<span className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+							case → {project.projectUrl}
+						</span>
+					</div>
+				</div>
+
+				<div className="nw-billboard__controls mt-8 flex flex-wrap items-center gap-3">
+					<button
+						type="button"
+						className="nw-billboard__nav unstyled"
+						aria-label="Previous featured project"
+						onClick={() => go(-1)}
+					>
+						<FaChevronLeft aria-hidden />
+					</button>
+					<button
+						type="button"
+						className="nw-billboard__nav unstyled"
+						aria-label="Next featured project"
+						onClick={() => go(1)}
+					>
+						<FaChevronRight aria-hidden />
+					</button>
+					<ol className="nw-billboard__dots" aria-label="Featured projects">
+						{items.map((item, i) => (
+							<li key={item.projectUrl}>
+								<button
+									type="button"
+									className={`nw-billboard__dot unstyled ${i === index ? "is-active" : ""}`}
+									aria-label={`Show ${item.title}`}
+									aria-current={i === index ? "true" : undefined}
+									onClick={() => setIndex(i)}
+								/>
+							</li>
+						))}
+					</ol>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function PosterCard({ project, index }) {
+	const tags = techTags(project.tech, 3);
 
 	return (
 		<Link
 			href={project.projectUrl}
-			className={`eng-project-card group ${featured ? "eng-project-card--featured" : ""}`}
+			className="nw-poster group"
+			style={{ "--nw-i": index }}
+			aria-label={`${project.title} case study`}
 		>
-			<div className="eng-project-card__media">
+			<div className="nw-poster__frame">
 				<Image
 					src={project.backgroundImg}
 					alt={project.title}
 					fill
-					className="object-cover object-top"
-					sizes={
-						featured
-							? "(max-width: 768px) 100vw, 66vw"
-							: "(max-width: 768px) 100vw, 33vw"
-					}
+					className="nw-poster__img object-cover object-top"
+					sizes="(max-width: 640px) 70vw, (max-width: 1024px) 40vw, 280px"
 				/>
-				<div className="eng-project-card__shade" aria-hidden />
-				{featured ? (
-					<div className="absolute inset-x-0 bottom-0 z-[2] p-6 sm:p-8 md:p-10">
-						<div className="flex flex-wrap items-center gap-3">
-							<span className="rounded-md border border-cyan-300/30 bg-cyan-400/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan-200">
-								Featured
-							</span>
-							<span className={`${monoMetaClass} text-slate-300`}>
-								Production
-							</span>
-						</div>
-						<h3 className="mt-3 max-w-xl text-2xl font-semibold tracking-tight text-white sm:text-3xl md:text-4xl">
-							{project.title}
-						</h3>
-						<p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-300 sm:text-base">
-							{project.tech}
-						</p>
-						<span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition group-hover:gap-3">
-							Open case study
-							<span aria-hidden>→</span>
-						</span>
-					</div>
-				) : null}
-			</div>
-			{!featured ? (
-				<div className="p-5">
-					<div className="flex items-start justify-between gap-3">
-						<h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
-							{project.title}
-						</h3>
-						<span
-							className="mt-1 font-mono text-cyan-600 opacity-0 transition group-hover:opacity-100 dark:text-cyan-400"
-							aria-hidden
-						>
-							→
-						</span>
-					</div>
-					<div className="mt-3 flex flex-wrap gap-1.5">
+				<div className="nw-poster__shade" aria-hidden />
+				<div className="nw-poster__meta">
+					<h4 className="nw-poster__title">{project.title}</h4>
+					<ul className="nw-poster__chips">
 						{tags.map((tag) => (
-							<span
-								key={tag}
-								className="rounded-md border border-slate-900/10 px-2 py-0.5 font-mono text-[10px] text-slate-600 dark:border-white/10 dark:text-slate-400"
-							>
+							<li key={tag} className="nw-poster__chip">
 								{tag}
-							</span>
+							</li>
 						))}
-					</div>
+					</ul>
+					<span className="nw-poster__cta">
+						Open case
+						<span aria-hidden>→</span>
+					</span>
 				</div>
-			) : null}
+			</div>
 		</Link>
 	);
 }
 
-const Projects = () => {
-	const [featured, ...rest] = productionProjects;
+function ProjectRow({ title, subtitle, projects, rowId, reverse = false }) {
+	const trackRef = useRef(null);
+	const pausedRef = useRef(false);
+	const manualPauseRef = useRef(0);
+	const [canPrev, setCanPrev] = useState(true);
+	const [canNext, setCanNext] = useState(true);
+	const [reduceMotion, setReduceMotion] = useState(false);
 
+	// Two copies for seamless wrap
+	const loopProjects = useMemo(
+		() => [...projects, ...projects],
+		[projects],
+	);
+
+	const updateArrows = useCallback(() => {
+		const el = trackRef.current;
+		if (!el) return;
+		// Infinite loop always allows both directions
+		setCanPrev(el.scrollWidth > el.clientWidth);
+		setCanNext(el.scrollWidth > el.clientWidth);
+	}, []);
+
+	useEffect(() => {
+		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const sync = () => setReduceMotion(mq.matches);
+		sync();
+		mq.addEventListener("change", sync);
+		return () => mq.removeEventListener("change", sync);
+	}, []);
+
+	useEffect(() => {
+		const el = trackRef.current;
+		if (!el) return undefined;
+		updateArrows();
+		el.addEventListener("scroll", updateArrows, { passive: true });
+		window.addEventListener("resize", updateArrows);
+		return () => {
+			el.removeEventListener("scroll", updateArrows);
+			window.removeEventListener("resize", updateArrows);
+		};
+	}, [updateArrows]);
+
+	// Continuous infinite scroll loop
+	useEffect(() => {
+		const el = trackRef.current;
+		if (!el || reduceMotion || projects.length < 2) return undefined;
+
+		let raf = 0;
+		let last = performance.now();
+		const speed = reverse ? -0.08 : 0.08; // px per ms (~80px/s)
+
+		const wrap = () => {
+			const half = el.scrollWidth / 2;
+			if (half <= 0) return;
+			if (el.scrollLeft >= half) {
+				el.scrollLeft -= half;
+			} else if (el.scrollLeft <= 0 && reverse) {
+				el.scrollLeft += half;
+			}
+		};
+
+		// Start mid-set so reverse wrap works immediately
+		if (reverse && el.scrollLeft === 0) {
+			el.scrollLeft = el.scrollWidth / 4;
+		}
+
+		const tick = (now) => {
+			const dt = Math.min(now - last, 32);
+			last = now;
+
+			const hovering = pausedRef.current;
+			const manualUntil = manualPauseRef.current;
+			if (!hovering && now > manualUntil && !document.hidden) {
+				el.scrollLeft += speed * dt;
+				wrap();
+			}
+
+			raf = requestAnimationFrame(tick);
+		};
+
+		raf = requestAnimationFrame(tick);
+
+		const onVis = () => {
+			last = performance.now();
+		};
+		document.addEventListener("visibilitychange", onVis);
+
+		return () => {
+			cancelAnimationFrame(raf);
+			document.removeEventListener("visibilitychange", onVis);
+		};
+	}, [reduceMotion, projects.length, reverse]);
+
+	const pauseManual = (ms = 2800) => {
+		manualPauseRef.current = performance.now() + ms;
+	};
+
+	const scrollByDir = (dir) => {
+		const el = trackRef.current;
+		if (!el) return;
+		pauseManual();
+		const amount = Math.min(el.clientWidth * 0.78, 560);
+		el.scrollBy({ left: dir * amount, behavior: "smooth" });
+		// After smooth scroll, keep loop seam clean
+		window.setTimeout(() => {
+			const half = el.scrollWidth / 2;
+			if (el.scrollLeft >= half) el.scrollLeft -= half;
+			if (el.scrollLeft < 0) el.scrollLeft += half;
+		}, 450);
+	};
+
+	return (
+		<section className="nw-row" aria-labelledby={rowId}>
+			<div className="nw-row__head">
+				<div>
+					<h3 id={rowId} className="nw-row__title">
+						{title}
+						<span className="nw-row__chevron" aria-hidden>
+							›
+						</span>
+					</h3>
+					{subtitle ? <p className="nw-row__sub">{subtitle}</p> : null}
+				</div>
+				<p className="nw-row__count">{projects.length}</p>
+			</div>
+
+			<div
+				className="nw-row__rail"
+				onMouseEnter={() => {
+					pausedRef.current = true;
+				}}
+				onMouseLeave={() => {
+					pausedRef.current = false;
+				}}
+				onFocusCapture={() => {
+					pausedRef.current = true;
+				}}
+				onBlurCapture={(e) => {
+					if (!e.currentTarget.contains(e.relatedTarget)) {
+						pausedRef.current = false;
+					}
+				}}
+				onPointerDown={() => {
+					pausedRef.current = true;
+					pauseManual(3200);
+				}}
+				onPointerUp={() => {
+					pausedRef.current = false;
+				}}
+			>
+				<button
+					type="button"
+					className="nw-row__arrow nw-row__arrow--prev unstyled"
+					aria-label={`Scroll ${title} left`}
+					disabled={!canPrev}
+					onClick={() => scrollByDir(-1)}
+				>
+					<FaChevronLeft aria-hidden />
+				</button>
+				<button
+					type="button"
+					className="nw-row__arrow nw-row__arrow--next unstyled"
+					aria-label={`Scroll ${title} right`}
+					disabled={!canNext}
+					onClick={() => scrollByDir(1)}
+				>
+					<FaChevronRight aria-hidden />
+				</button>
+
+				<div className="nw-row__fade nw-row__fade--left" aria-hidden />
+				<div className="nw-row__fade nw-row__fade--right" aria-hidden />
+
+				<ul
+					ref={trackRef}
+					className="nw-row__track nw-row__track--loop"
+					aria-live="off"
+				>
+					{loopProjects.map((project, i) => (
+						<li
+							key={`${rowId}-${project.projectUrl}-${i}`}
+							className="nw-row__item"
+						>
+							<PosterCard project={project} index={i % projects.length} />
+						</li>
+					))}
+				</ul>
+			</div>
+		</section>
+	);
+}
+
+const Projects = () => {
 	return (
 		<SectionShell
 			id="projects"
@@ -100,38 +386,27 @@ const Projects = () => {
 			title="Selected work"
 			description={PROJECTS_HERO_DESC}
 			wide
+			className="nw-browse"
+			headerClassName="nw-browse__header"
 		>
-			<div className="mb-6 flex items-baseline justify-between gap-4">
-				<p className={monoMetaClass}>Production · shipped</p>
-				<p className="font-mono text-[11px] tabular-nums text-slate-500">
-					{productionProjects.length}
-				</p>
+			<div className="nw-browse__bleed">
+				<Billboard projects={productionProjects} />
 			</div>
 
-			<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-				{featured ? <ProjectCard project={featured} featured /> : null}
-				{rest.map((project) => (
-					<ProjectCard key={project.projectUrl} project={project} />
-				))}
-			</div>
-
-			<div className="mt-20">
-				<div className="mb-6 flex items-end justify-between gap-4 border-b border-slate-900/10 pb-4 dark:border-white/10">
-					<div>
-						<p className={monoMetaClass}>Sandbox</p>
-						<p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-							Experiments and learning builds
-						</p>
-					</div>
-					<p className="font-mono text-[11px] tabular-nums text-slate-500">
-						{personalProjects.length}
-					</p>
-				</div>
-				<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-					{personalProjects.map((project) => (
-						<ProjectCard key={project.projectUrl} project={project} />
-					))}
-				</div>
+			<div className="nw-browse__bleed nw-browse__rows mt-10 space-y-10 md:mt-14 md:space-y-12">
+				<ProjectRow
+					rowId="nw-row-production"
+					title="Production · shipped"
+					subtitle="Live platforms and client deliveries"
+					projects={productionProjects}
+				/>
+				<ProjectRow
+					rowId="nw-row-sandbox"
+					title="Sandbox"
+					subtitle="Experiments and learning builds"
+					projects={personalProjects}
+					reverse
+				/>
 			</div>
 		</SectionShell>
 	);
