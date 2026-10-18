@@ -168,7 +168,7 @@ export default function Home() {
 				<LazySection minHeight="64rem" forceMount={hashId === "projects"}>
 					<Projects />
 				</LazySection>
-				<LazySection minHeight="28rem">
+				<LazySection minHeight="48rem" forceMount={hashId === "ai-agents"}>
 					<AISection />
 				</LazySection>
 				<LazySection minHeight="28rem">

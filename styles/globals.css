@@ -7292,3 +7292,368 @@ html:not(.dark) .about-wsp-swiper .swiper-button-next:hover {
 	border-color: rgba(8, 145, 178, 0.7);
 	background: rgba(236, 254, 255, 0.98);
 }
+
+/* —— AI agent robots (showcase) — no cards, flat solids —— */
+.agent-robot-bay__grid {
+	display: grid;
+	gap: 2rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+	.agent-robot-bay__grid {
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2.5rem 2rem;
+	}
+}
+
+.agent-robot-unit {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: transparent !important;
+	border: none;
+	box-shadow: none !important;
+	padding: 0;
+	color: inherit;
+	font-weight: inherit;
+	text-transform: none;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition: transform 0.25s ease;
+}
+
+.agent-robot-unit:hover {
+	transform: translateY(-2px);
+}
+
+.agent-robot-unit--active {
+	transform: translateY(-4px);
+}
+
+.agent-robot-unit__meta {
+	margin-top: 1rem;
+	max-width: 16rem;
+	text-align: center;
+}
+
+.agent-robot {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-height: 11.5rem;
+	padding-top: 0.5rem;
+}
+
+.agent-robot__hud-ring {
+	position: absolute;
+	top: 0.25rem;
+	left: 50%;
+	width: 7.5rem;
+	height: 7.5rem;
+	margin-left: -3.75rem;
+	border-radius: 50%;
+	border: 1px dashed rgba(148, 163, 184, 0.45);
+	animation: agent-robot-ring 12s linear infinite;
+	pointer-events: none;
+}
+
+.agent-robot--active .agent-robot__hud-ring {
+	border-style: solid;
+	border-color: rgba(34, 211, 238, 0.55);
+}
+
+.agent-robot__unit-label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	justify-content: space-between;
+	padding: 0 0.25rem;
+	font-family: var(--font-mono);
+	font-size: 9px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #64748b;
+	z-index: 2;
+}
+
+html.dark .agent-robot__unit-label {
+	color: #94a3b8;
+}
+
+.agent-robot--active .agent-robot__unit-label {
+	color: #0891b2;
+}
+
+html.dark .agent-robot--active .agent-robot__unit-label {
+	color: #22d3ee;
+}
+
+.agent-robot__figure {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	animation: agent-robot-float 4s ease-in-out infinite;
+}
+
+.agent-robot--active .agent-robot__figure {
+	animation-duration: 3s;
+}
+
+.agent-robot__antenna {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 2px;
+}
+
+.agent-robot__antenna-rod {
+	width: 2px;
+	height: 10px;
+	background: #64748b;
+	border-radius: 1px;
+}
+
+.agent-robot__antenna-tip {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #22d3ee;
+	animation: agent-robot-pulse 2s ease-in-out infinite;
+}
+
+.agent-robot__head {
+	width: 3.25rem;
+	height: 2.5rem;
+	border-radius: 0.65rem 0.65rem 0.45rem 0.45rem;
+	background: #1e293b;
+	border: 1px solid #334155;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	position: relative;
+}
+
+.agent-robot--active .agent-robot__head {
+	border-color: #22d3ee;
+}
+
+.agent-robot__head-brow {
+	position: absolute;
+	top: 6px;
+	left: 8px;
+	right: 8px;
+	height: 3px;
+	border-radius: 2px;
+	background: #334155;
+}
+
+.agent-robot__eyes {
+	display: flex;
+	justify-content: center;
+	gap: 0.65rem;
+	margin-top: 0.85rem;
+}
+
+.agent-robot__eye {
+	width: 0.55rem;
+	height: 0.55rem;
+	border-radius: 2px;
+	background: #22d3ee;
+	box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+	animation: agent-robot-blink 4.5s step-end infinite;
+}
+
+.agent-robot--active .agent-robot__eye {
+	animation: agent-robot-blink 3s step-end infinite;
+}
+
+.agent-robot__mouth {
+	display: block;
+	width: 1.1rem;
+	height: 3px;
+	margin: 0.35rem auto 0;
+	border-radius: 2px;
+	background: #475569;
+}
+
+.agent-robot__neck {
+	width: 1rem;
+	height: 5px;
+	background: #334155;
+	border-radius: 1px;
+}
+
+.agent-robot__torso {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	margin-top: 2px;
+}
+
+.agent-robot__arm {
+	width: 0.45rem;
+	height: 2rem;
+	border-radius: 3px;
+	background: #475569;
+	border: 1px solid #334155;
+}
+
+.agent-robot--active .agent-robot__arm--left {
+	animation: agent-robot-arm-left 2.5s ease-in-out infinite;
+}
+
+.agent-robot--active .agent-robot__arm--right {
+	animation: agent-robot-arm-right 2.5s ease-in-out infinite;
+}
+
+.agent-robot__chest {
+	position: relative;
+	width: 3.5rem;
+	height: 3rem;
+	border-radius: 0.5rem;
+	background: #0f172a;
+	border: 1px solid #334155;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #22d3ee;
+}
+
+.agent-robot--active .agent-robot__chest {
+	border-color: #22d3ee;
+}
+
+.agent-robot__chest-icon {
+	position: relative;
+	z-index: 1;
+}
+
+.agent-robot__hips {
+	display: flex;
+	gap: 0.5rem;
+	margin-top: 3px;
+}
+
+.agent-robot__leg {
+	width: 0.9rem;
+	height: 0.55rem;
+	border-radius: 0 0 4px 4px;
+	background: #1e293b;
+	border: 1px solid #334155;
+}
+
+.agent-robot__pad {
+	width: 5rem;
+	height: 0.35rem;
+	margin-top: 0.35rem;
+	border-radius: 999px;
+	background: #cbd5e1;
+}
+
+html.dark .agent-robot__pad {
+	background: #334155;
+}
+
+.agent-robot__status {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	margin-top: 0.5rem;
+	font-family: var(--font-mono);
+	font-size: 9px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+.agent-robot__led {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #94a3b8;
+}
+
+.agent-robot__led--live {
+	background: #34d399;
+	animation: agent-robot-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes agent-robot-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-5px);
+	}
+}
+
+@keyframes agent-robot-ring {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes agent-robot-pulse {
+	0%,
+	100% {
+		opacity: 0.65;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.08);
+	}
+}
+
+@keyframes agent-robot-blink {
+	0%,
+	92%,
+	100% {
+		transform: scaleY(1);
+		opacity: 1;
+	}
+	94% {
+		transform: scaleY(0.12);
+		opacity: 0.7;
+	}
+}
+
+@keyframes agent-robot-arm-left {
+	0%,
+	100% {
+		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(-12deg);
+	}
+}
+
+@keyframes agent-robot-arm-right {
+	0%,
+	100% {
+		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(12deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.agent-robot__figure,
+	.agent-robot__hud-ring,
+	.agent-robot__eye,
+	.agent-robot__antenna-tip,
+	.agent-robot__led--live,
+	.agent-robot--active .agent-robot__arm--left,
+	.agent-robot--active .agent-robot__arm--right {
+		animation: none !important;
+	}
+}

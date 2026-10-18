@@ -9,6 +9,7 @@ import SectionShell, {
 	monoMetaClass,
 	linkAccentClass,
 } from "./section/SectionShell";
+import AIAgentsShowcase from "./AIAgentsShowcase";
 
 const capabilities = [
 	{
@@ -35,7 +36,7 @@ const AISection = () => {
 			index="05"
 			eyebrow="ai.agents"
 			title="AI that ships in product"
-			description="Agents, bots, and model-backed features. Keys stay on the server."
+			description="Custom agents, bots, and model-backed features. Keys stay on the server."
 		>
 			<div className="mb-10 flex flex-wrap gap-3">
 				<span
@@ -116,6 +117,10 @@ const AISection = () => {
 						);
 					})}
 				</ul>
+			</div>
+
+			<div className="mt-20 border-t border-slate-900/10 pt-16 dark:border-white/10 md:mt-24 md:pt-20">
+				<AIAgentsShowcase />
 			</div>
 		</SectionShell>
 	);
