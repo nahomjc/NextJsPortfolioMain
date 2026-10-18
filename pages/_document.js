@@ -3,12 +3,12 @@ import { SITE_NAME } from "../lib/seo";
 
 export default function Document() {
 	return (
-		<Html lang="en-ET" className="dark">
+		<Html lang="en-ET">
 			<Head>
 				<meta charSet="utf-8" />
 				<meta name="application-name" content={SITE_NAME} />
 				<meta httpEquiv="x-ua-compatible" content="ie=edge" />
-				<meta name="theme-color" content="#000000" />
+				<meta name="theme-color" content="#f8fafc" />
 				<meta name="apple-mobile-web-app-capable" content="yes" />
 				<meta
 					name="apple-mobile-web-app-status-bar-style"
