@@ -827,7 +827,7 @@ function cameraDistanceToFit(halfW, halfH, fovDeg, aspect, margin = 1.24) {
 	return Math.max(distH, distW);
 }
 
-const HeroGltfRobot = ({ compact = false }) => {
+const HeroGltfRobot = ({ compact = false, centered = true }) => {
 	const { theme } = useTheme();
 	const themeRef = useRef(theme);
 	themeRef.current = theme;
@@ -2135,7 +2135,9 @@ const HeroGltfRobot = ({ compact = false }) => {
 				className={`relative z-20 transition-opacity duration-500 ${
 					compact
 						? "h-[min(168px,38vw)] w-[min(168px,38vw)] sm:h-[190px] sm:w-[190px]"
-						: "mx-auto h-[min(280px,62vw)] w-full max-w-[min(100%,20rem)] sm:h-[min(360px,58vw)] sm:max-w-md md:h-[min(500px,76vw)] md:max-w-3xl lg:h-[min(620px,60vh)]"
+						: centered
+							? "mx-auto h-[min(320px,72vw)] w-full max-w-[min(100%,24rem)] sm:h-[min(400px,65vw)] sm:max-w-lg md:h-[min(520px,58vh)] md:max-w-2xl lg:h-[min(580px,62vh)] lg:max-w-3xl"
+							: "mx-auto h-[min(280px,62vw)] w-full max-w-[min(100%,20rem)] sm:h-[min(360px,58vw)] sm:max-w-md md:h-[min(500px,76vw)] md:max-w-3xl lg:h-[min(620px,60vh)]"
 				} ${loaded ? "opacity-100" : "opacity-40"}`}
 				onPointerEnter={() => setHoverRobot(true)}
 				onPointerLeave={() => setHoverRobot(false)}

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import React, { useEffect, useRef, useState } from "react";
-import { PERSON } from "../lib/seo";
-import { AiOutlineMail } from "react-icons/ai";
+import { PERSON, CV_PATH, CV_DOWNLOAD_NAME } from "../lib/seo";
+import { AiOutlineMail, AiOutlineDownload } from "react-icons/ai";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
+import { HiOutlineArrowRight } from "react-icons/hi";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { isLowPowerDevice, bindVisibilityPause, getCanvasDpr, shouldCapIdleFps } from "../lib/animationControl";
@@ -16,28 +17,23 @@ const HeroInteractiveLayer = dynamic(() => import("./HeroInteractiveLayer"), {
 	ssr: false,
 });
 
-const TERMINAL_LINES = [
-	"nahom@dev ~ react · next · typescript",
-	"wire → apis · postgres · supabase",
-	"ship → perf · seo · clean ux",
-	"status → open to collaborate",
-];
-
 const HERO_STATS = [
-	{ label: "Building", value: 6, suffix: "+ yrs" },
-	{ label: "Delivered", value: 15, suffix: "+ apps" },
+	{ label: "Building since", value: 2019, suffix: "", static: "2019" },
+	{ label: "Apps shipped", value: 15, suffix: "+" },
 	{ label: "CS degree", value: 3.9, suffix: " GPA", decimals: 1 },
 ];
 
-const HERO_TRAITS = [
-	"UI engineering",
-	"API integration",
-	"Performance",
-	"Scalable architecture",
+const STACK_HIGHLIGHTS = [
+	"TypeScript",
+	"Next.js",
+	"TanStack Start",
+	"Hono",
+	"PostgreSQL",
+	"AI/LLM",
 ];
 
 const HERO_ROBOT_PLACEHOLDER_CLASS =
-	"relative z-20 mx-auto h-[min(280px,62vw)] w-full max-w-[min(100%,20rem)] opacity-40 sm:h-[min(360px,58vw)] sm:max-w-md md:h-[min(500px,76vw)] md:max-w-3xl lg:h-[min(620px,60vh)]";
+	"relative z-20 mx-auto h-[min(320px,72vw)] w-full max-w-[min(100%,24rem)] opacity-40 sm:h-[min(400px,65vw)] sm:max-w-lg md:h-[min(520px,58vh)] md:max-w-2xl lg:h-[min(580px,62vh)] lg:max-w-3xl";
 
 const sparklePositions = [
 	[12, 8],
@@ -100,183 +96,6 @@ function HeroSparkles({ offsetX = 0, offsetY = 0 }) {
 	);
 }
 
-const HERO_MATRIX_SUB_LINES = [
-	"decrypt operator manifest · classified",
-	"neural uplink ready · AES-256 active",
-	"press F7 or click to initialize →",
-];
-
-function HeroMatrixResumeCta({ reduceMotion }) {
-	const rainRef = useRef(null);
-	const [subIndex, setSubIndex] = useState(0);
-
-	useEffect(() => {
-		if (reduceMotion) return undefined;
-		const id = window.setInterval(() => {
-			setSubIndex((i) => (i + 1) % HERO_MATRIX_SUB_LINES.length);
-		}, 2800);
-		return () => window.clearInterval(id);
-	}, [reduceMotion]);
-
-	useEffect(() => {
-		if (reduceMotion || isLowPowerDevice()) return undefined;
-		const canvas = rainRef.current;
-		if (!canvas) return undefined;
-
-		const ctx = canvas.getContext("2d");
-		if (!ctx) return undefined;
-
-		const glyphs = "01アイウエオカキ";
-		let w = 0;
-		let h = 0;
-		let cols = [];
-		let raf = 0;
-
-		const resize = () => {
-			const rect = canvas.getBoundingClientRect();
-			const dpr = getCanvasDpr(1.5);
-			w = Math.max(1, Math.floor(rect.width));
-			h = Math.max(1, Math.floor(rect.height));
-			canvas.width = w * dpr;
-			canvas.height = h * dpr;
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			ctx.font = "600 10px ui-monospace, Consolas, monospace";
-			const count = Math.ceil(w / 11);
-			cols = Array.from({ length: count }, () => ({
-				y: Math.random() * h,
-				speed: 0.35 + Math.random() * 0.9,
-				chars: Array.from({ length: 8 + Math.floor(Math.random() * 10) }, () =>
-					glyphs[Math.floor(Math.random() * glyphs.length)]
-				),
-			}));
-		};
-
-		resize();
-		const ro = new ResizeObserver(resize);
-		ro.observe(canvas.parentElement ?? canvas);
-
-		let paused = false;
-		let running = true;
-		let lastFrameAt = 0;
-		let lastActivityAt = performance.now();
-
-		const pingActivity = () => {
-			lastActivityAt = performance.now();
-		};
-
-		const tick = (now = performance.now()) => {
-			if (!running || paused) return;
-
-			const capFps = shouldCapIdleFps(lastActivityAt);
-			const frameGap = capFps ? 33 : 0;
-			if (frameGap > 0 && now - lastFrameAt < frameGap) {
-				raf = requestAnimationFrame(tick);
-				return;
-			}
-			lastFrameAt = now;
-
-			ctx.clearRect(0, 0, w, h);
-			for (let i = 0; i < cols.length; i++) {
-				const col = cols[i];
-				const x = i * 11;
-				col.y += col.speed;
-				if (col.y > h + 40) col.y = -40;
-				for (let j = 0; j < col.chars.length; j++) {
-					const y = col.y - j * 11;
-					if (y < -11 || y > h) continue;
-					ctx.fillStyle =
-						j === 0
-							? "rgba(167,243,247,0.55)"
-							: `rgba(34,211,238,${Math.max(0, 0.28 - j * 0.03)})`;
-					ctx.fillText(col.chars[j], x, y);
-				}
-			}
-			raf = requestAnimationFrame(tick);
-		};
-
-		const parent = canvas.parentElement ?? canvas;
-		parent.addEventListener("pointermove", pingActivity, { passive: true });
-		parent.addEventListener("pointerenter", pingActivity, { passive: true });
-
-		const unbindVisibility = bindVisibilityPause(parent, {
-			onPause: () => {
-				paused = true;
-				cancelAnimationFrame(raf);
-			},
-			onResume: () => {
-				paused = false;
-				lastFrameAt = 0;
-				raf = requestAnimationFrame(tick);
-			},
-		});
-
-		raf = requestAnimationFrame(tick);
-		return () => {
-			running = false;
-			unbindVisibility();
-			parent.removeEventListener("pointermove", pingActivity);
-			parent.removeEventListener("pointerenter", pingActivity);
-			ro.disconnect();
-			cancelAnimationFrame(raf);
-		};
-	}, [reduceMotion]);
-
-	return (
-		<div
-			data-hero-intro
-			data-hero-exit="mid"
-			className="mx-auto mt-5 flex w-full max-w-md justify-center lg:mx-0 lg:justify-start"
-		>
-			<MagneticWrap reduceMotion={reduceMotion} className="w-full max-w-[17.5rem]">
-				<Link
-					href="/resume"
-					className="hero-matrix-resume-btn group"
-					aria-label="Open matrix terminal resume"
-				>
-						<span className="hero-matrix-resume-btn__border" aria-hidden />
-						<span className="hero-matrix-resume-btn__glow" aria-hidden />
-
-						<span className="hero-matrix-resume-btn__body">
-							<canvas
-								ref={rainRef}
-								className="hero-matrix-resume-btn__rain"
-								aria-hidden
-							/>
-							<span className="hero-matrix-resume-btn__scan" aria-hidden />
-							<span className="hero-matrix-resume-btn__shine" aria-hidden />
-
-							<span className="hero-matrix-resume-btn__content">
-								<span className="hero-matrix-resume-btn__key">
-									<span className="hero-matrix-resume-btn__key-label">F7</span>
-								</span>
-								<span className="hero-matrix-resume-btn__text">
-									<span className="hero-matrix-resume-btn__label-wrap">
-										<span className="hero-matrix-resume-btn__label">
-											&gt;&gt; Access resume.sys
-										</span>
-										<span
-											className="hero-matrix-resume-btn__label hero-matrix-resume-btn__label--glitch"
-											aria-hidden
-										>
-											&gt;&gt; Access resume.sys
-										</span>
-									</span>
-									<span className="hero-matrix-resume-btn__sub" key={subIndex}>
-										{HERO_MATRIX_SUB_LINES[subIndex]}
-									</span>
-								</span>
-								<span className="hero-matrix-resume-btn__enter" aria-hidden>
-									<span className="hero-matrix-resume-btn__enter-ring" />
-									<span className="hero-matrix-resume-btn__enter-icon">↵</span>
-								</span>
-							</span>
-						</span>
-				</Link>
-			</MagneticWrap>
-		</div>
-	);
-}
-
 function MagneticWrap({ children, reduceMotion, className = "" }) {
 	const ref = useRef(null);
 
@@ -326,7 +145,6 @@ const Main = () => {
 	const reduceMotion = useReducedMotion();
 	const heroRef = useRef(null);
 	const heroInnerRef = useRef(null);
-	const contentRef = useRef(null);
 	const robotColRef = useRef(null);
 	const bootFlashRef = useRef(null);
 	const scanLineRef = useRef(null);
@@ -334,19 +152,20 @@ const Main = () => {
 	const orbFuchsiaRef = useRef(null);
 	const gridRef = useRef(null);
 	const vignetteRef = useRef(null);
-	const terminalRef = useRef(null);
 	const scrollCueRef = useRef(null);
 	const scrollExitRef = useRef(null);
 	const heroPortalRef = useRef(null);
 	const heroExitVeilRef = useRef(null);
 	const heroFractureRef = useRef(null);
+	const headlineRef = useRef(null);
+	const subheadRef = useRef(null);
+	const ctaRowRef = useRef(null);
 	const statRefs = useRef([]);
 	const statValueRefs = useRef([]);
 	const pointerRafRef = useRef(0);
 	const pendingPointerRef = useRef(null);
 
 	const [sparkleOffset, setSparkleOffset] = useState({ x: 0, y: 0 });
-	const [terminalText, setTerminalText] = useState("");
 	const [bootComplete, setBootComplete] = useState(false);
 	const [mountHeavyHero, setMountHeavyHero] = useState(false);
 
@@ -418,38 +237,43 @@ const Main = () => {
 				0.25,
 			);
 
-			intro.from(
-				"[data-hero-intro]",
-				{
-					y: 36,
-					opacity: 0,
-					duration: 0.75,
-					stagger: 0.07,
-					ease: "power3.out",
-				},
-				0.45,
-			);
+			if (headlineRef.current) {
+				intro.fromTo(
+					headlineRef.current,
+					{ y: 48, opacity: 0, scale: 0.96 },
+					{ y: 0, opacity: 1, scale: 1, duration: 0.9, ease: "power3.out" },
+					0.35,
+				);
+			}
+
+			if (subheadRef.current) {
+				intro.fromTo(
+					subheadRef.current,
+					{ y: 32, opacity: 0 },
+					{ y: 0, opacity: 1, duration: 0.75, ease: "power3.out" },
+					0.5,
+				);
+			}
 
 			if (robotColRef.current) {
 				intro.fromTo(
 					robotColRef.current,
-					{ x: 72, opacity: 0, scale: 0.88, rotateY: -12 },
+					{ y: 72, opacity: 0, scale: 0.88 },
 					{
-						x: 0,
+						y: 0,
 						opacity: 1,
 						scale: 1,
-						rotateY: 0,
 						duration: 1.15,
 						ease: "power3.out",
 					},
-					0.42,
+					0.55,
 				);
 			}
 
 			statRefs.current.filter(Boolean).forEach((el, i) => {
 				const stat = HERO_STATS[i];
 				if (stat.static) {
-					intro.from(el, { y: 20, opacity: 0, duration: 0.55 }, 0.7 + i * 0.1);
+					intro.from(el, { y: 20, opacity: 0, duration: 0.55 }, 0.85 + i * 0.08);
 					return;
 				}
 				const target = stat.value;
@@ -469,16 +293,25 @@ const Main = () => {
 									: String(Math.round(obj.val));
 						},
 					},
-					0.75 + i * 0.1,
+					0.9 + i * 0.08,
 				);
-				intro.from(el, { y: 20, opacity: 0, duration: 0.55 }, 0.7 + i * 0.1);
+				intro.from(el, { y: 20, opacity: 0, duration: 0.55 }, 0.85 + i * 0.08);
 			});
+
+			if (ctaRowRef.current) {
+				intro.fromTo(
+					ctaRowRef.current,
+					{ y: 28, opacity: 0 },
+					{ y: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
+					1.0,
+				);
+			}
 
 			if (scrollCueRef.current) {
 				intro.from(
 					scrollCueRef.current,
 					{ opacity: 0, y: 16, duration: 0.6 },
-					1.15,
+					1.25,
 				);
 				gsap.to(scrollCueRef.current, {
 					y: 8,
@@ -494,205 +327,166 @@ const Main = () => {
 			const mm = gsap.matchMedia();
 
 			mm.add("(min-width: 1024px)", () => {
-			if (heroInnerRef.current && heroRef.current) {
-				const exitTl = gsap.timeline({
-					scrollTrigger: scrollTriggerBase({
-						trigger: heroRef.current,
-						start: "top top",
-						end: "bottom top",
-						scrub: 0.85,
-					}),
-				});
-
-				exitTl.to(
-					"[data-hero-exit='fast']",
-					{
-						y: -72,
-						opacity: 0,
-						stagger: 0.04,
-						ease: "power2.in",
-					},
-					0,
-				);
-
-				exitTl.to(
-					"[data-hero-exit='headline']",
-					{
-						y: -96,
-						rotateX: -14,
-						opacity: 0,
-						transformOrigin: "50% 100%",
-						ease: "power2.in",
-					},
-					0.06,
-				);
-
-				exitTl.to(
-					"[data-hero-exit='mid']",
-					{
-						y: -64,
-						x: -32,
-						opacity: 0,
-						stagger: 0.05,
-						ease: "power2.in",
-					},
-					0.1,
-				);
-
-				exitTl.to(
-					"[data-hero-exit='cta']",
-					{
-						y: 48,
-						opacity: 0,
-						stagger: 0.03,
-						ease: "power2.in",
-					},
-					0.14,
-				);
-
-				if (robotColRef.current) {
-					exitTl.to(
-						robotColRef.current,
-						{
-							x: 140,
-							y: -24,
-							scale: 0.72,
-							rotateY: -22,
-							opacity: 0,
-							ease: "power2.inOut",
-						},
-						0,
-					);
-				}
-
-				if (gridRef.current) {
-					exitTl.to(
-						gridRef.current,
-						{ scale: 1.65, opacity: 0, ease: "power1.in" },
-						0.12,
-					);
-				}
-
-				if (orbCyanRef.current) {
-					exitTl.to(
-						orbCyanRef.current,
-						{ x: -90, y: -50, opacity: 0, ease: "power1.in" },
-						0.08,
-					);
-				}
-
-				if (orbFuchsiaRef.current) {
-					exitTl.to(
-						orbFuchsiaRef.current,
-						{ x: 100, opacity: 0, ease: "power1.in" },
-						0.08,
-					);
-				}
-
-				if (heroFractureRef.current) {
-					exitTl.fromTo(
-						heroFractureRef.current,
-						{ opacity: 0.55 },
-						{ opacity: 0, ease: "power2.in" },
-						0.22,
-					);
-					exitTl.to(
-						".hero-fracture-line",
-						{
-							scaleY: 6,
-							opacity: 0,
-							stagger: { each: 0.02, from: "center" },
-							ease: "power3.in",
-						},
-						0.18,
-					);
-				}
-
-				if (heroPortalRef.current) {
-					exitTl.fromTo(
-						heroPortalRef.current,
-						{ scale: 0.35, opacity: 0.85 },
-						{ scale: 2.8, opacity: 0, ease: "power2.out" },
-						0.28,
-					);
-				}
-
-				if (heroExitVeilRef.current) {
-					exitTl.fromTo(
-						heroExitVeilRef.current,
-						{ yPercent: 100 },
-						{ yPercent: 0, ease: "power2.inOut" },
-						0.42,
-					);
-				}
-
-				if (heroInnerRef.current) {
-					exitTl.fromTo(
-						heroInnerRef.current,
-						{ filter: "brightness(1)" },
-						{ filter: "brightness(0.55)", ease: "power1.in" },
-						0.35,
-					);
-				}
-			}
-
-			if (scrollExitRef.current && heroRef.current) {
-				gsap.fromTo(
-					scrollExitRef.current,
-					{ scaleX: 0 },
-					{
-						scaleX: 1,
-						ease: "none",
+				if (heroInnerRef.current && heroRef.current) {
+					const exitTl = gsap.timeline({
 						scrollTrigger: scrollTriggerBase({
 							trigger: heroRef.current,
 							start: "top top",
 							end: "bottom top",
-							scrub: 0.35,
+							scrub: 0.85,
 						}),
-					},
-				);
-			}
+					});
+
+					exitTl.to(
+						"[data-hero-exit='fast']",
+						{
+							y: -72,
+							opacity: 0,
+							stagger: 0.04,
+							ease: "power2.in",
+						},
+						0,
+					);
+
+					exitTl.to(
+						"[data-hero-exit='headline']",
+						{
+							y: -96,
+							rotateX: -14,
+							opacity: 0,
+							transformOrigin: "50% 100%",
+							ease: "power2.in",
+						},
+						0.06,
+					);
+
+					exitTl.to(
+						"[data-hero-exit='mid']",
+						{
+							y: -64,
+							opacity: 0,
+							stagger: 0.05,
+							ease: "power2.in",
+						},
+						0.1,
+					);
+
+					exitTl.to(
+						"[data-hero-exit='cta']",
+						{
+							y: 48,
+							opacity: 0,
+							stagger: 0.03,
+							ease: "power2.in",
+						},
+						0.14,
+					);
+
+					if (robotColRef.current) {
+						exitTl.to(
+							robotColRef.current,
+							{
+								y: -80,
+								scale: 0.72,
+								opacity: 0,
+								ease: "power2.inOut",
+							},
+							0,
+						);
+					}
+
+					if (gridRef.current) {
+						exitTl.to(
+							gridRef.current,
+							{ scale: 1.65, opacity: 0, ease: "power1.in" },
+							0.12,
+						);
+					}
+
+					if (orbCyanRef.current) {
+						exitTl.to(
+							orbCyanRef.current,
+							{ x: -90, y: -50, opacity: 0, ease: "power1.in" },
+							0.08,
+						);
+					}
+
+					if (orbFuchsiaRef.current) {
+						exitTl.to(
+							orbFuchsiaRef.current,
+							{ x: 100, opacity: 0, ease: "power1.in" },
+							0.08,
+						);
+					}
+
+					if (heroFractureRef.current) {
+						exitTl.fromTo(
+							heroFractureRef.current,
+							{ opacity: 0.55 },
+							{ opacity: 0, ease: "power2.in" },
+							0.22,
+						);
+						exitTl.to(
+							".hero-fracture-line",
+							{
+								scaleY: 6,
+								opacity: 0,
+								stagger: { each: 0.02, from: "center" },
+								ease: "power3.in",
+							},
+							0.18,
+						);
+					}
+
+					if (heroPortalRef.current) {
+						exitTl.fromTo(
+							heroPortalRef.current,
+							{ scale: 0.35, opacity: 0.85 },
+							{ scale: 2.8, opacity: 0, ease: "power2.out" },
+							0.28,
+						);
+					}
+
+					if (heroExitVeilRef.current) {
+						exitTl.fromTo(
+							heroExitVeilRef.current,
+							{ yPercent: 100 },
+							{ yPercent: 0, ease: "power2.inOut" },
+							0.42,
+						);
+					}
+
+					if (heroInnerRef.current) {
+						exitTl.fromTo(
+							heroInnerRef.current,
+							{ filter: "brightness(1)" },
+							{ filter: "brightness(0.55)", ease: "power1.in" },
+							0.35,
+						);
+					}
+				}
+
+				if (scrollExitRef.current && heroRef.current) {
+					gsap.fromTo(
+						scrollExitRef.current,
+						{ scaleX: 0 },
+						{
+							scaleX: 1,
+							ease: "none",
+							scrollTrigger: scrollTriggerBase({
+								trigger: heroRef.current,
+								start: "top top",
+								end: "bottom top",
+								scrub: 0.35,
+							}),
+						},
+					);
+				}
 			});
 		}, heroRef);
 
 		return () => ctx.revert();
 	}, [reduceMotion]);
-
-	useEffect(() => {
-		if (reduceMotion || typeof window === "undefined") {
-			setTerminalText(TERMINAL_LINES[0]);
-			return;
-		}
-		if (!bootComplete) return;
-
-		let lineIdx = 0;
-		let charIdx = 0;
-		let cancelled = false;
-		let timeoutId;
-
-		const type = () => {
-			if (cancelled) return;
-			const line = TERMINAL_LINES[lineIdx];
-			if (charIdx <= line.length) {
-				setTerminalText(line.slice(0, charIdx));
-				charIdx += 1;
-				timeoutId = window.setTimeout(type, 28 + Math.random() * 22);
-			} else {
-				timeoutId = window.setTimeout(() => {
-					lineIdx = (lineIdx + 1) % TERMINAL_LINES.length;
-					charIdx = 0;
-					setTerminalText("");
-					type();
-				}, 2200);
-			}
-		};
-
-		type();
-		return () => {
-			cancelled = true;
-			window.clearTimeout(timeoutId);
-		};
-	}, [reduceMotion, bootComplete]);
 
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") return;
@@ -716,8 +510,7 @@ const Main = () => {
 					rotateX: ny * -5,
 					rotateY: nx * 5,
 				},
-				{ ref: contentRef, x: nx * -10, y: ny * -6 },
-				{ ref: robotColRef, x: nx * 14, y: ny * 8, rotateY: nx * -6 },
+				{ ref: robotColRef, x: nx * 10, y: ny * 6 },
 			];
 
 			for (const t of targets) {
@@ -757,7 +550,7 @@ const Main = () => {
 		<div
 			id="home"
 			ref={heroRef}
-			className="hero-section hero-theatre relative flex w-full items-center overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 px-2 pb-6 pt-12 text-slate-900 max-lg:min-h-0 sm:px-3 md:pb-12 md:pt-16 lg:h-[100dvh] lg:max-h-[100dvh] lg:min-h-0 lg:overflow-hidden lg:px-4 dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
+			className="hero-section hero-theatre relative flex w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 pb-8 pt-16 text-slate-900 sm:px-6 md:pb-12 md:pt-20 lg:min-h-[100dvh] lg:px-8 dark:from-[#06030c] dark:via-[#07040f] dark:to-[#06030c] dark:text-slate-100"
 		>
 			<HeroInteractiveLayer
 				containerRef={heroRef}
@@ -843,192 +636,284 @@ const Main = () => {
 						<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-40" />
 						<span className="relative h-1.5 w-1.5 rounded-full bg-emerald-500" />
 					</span>
-					Sys online
+					Available
 				</span>
 				<span className="hidden text-cyan-600/80 sm:inline dark:text-cyan-400/70">
-					React · Next.js · TypeScript
+					CMC, Addis Ababa
 				</span>
 				<span className="text-fuchsia-600/75 dark:text-fuchsia-400/70">
-					Uplink ready
+					Full Stack · AI
 				</span>
 			</div>
 
 			<div
 				ref={heroInnerRef}
-				className="hero-inner relative z-10 mx-auto w-full min-h-0 max-h-full max-w-[96rem] will-change-transform"
+				className="hero-inner relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center will-change-transform"
 			>
-				<div className="grid w-full min-h-0 max-h-full gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:items-center lg:gap-6 lg:py-0 xl:gap-8">
-					<div
-						ref={contentRef}
-						className="relative order-2 flex min-h-0 flex-col text-center [perspective:1200px] lg:order-1 lg:min-h-0 lg:text-left"
-						style={{ transformStyle: "preserve-3d" }}
+				{/* Headline Section */}
+				<header
+					ref={headlineRef}
+					data-hero-exit="headline"
+					className="mb-4 text-center opacity-0 sm:mb-6"
+				>
+					<p className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-600/80 sm:text-xs dark:text-cyan-400/70">
+						{PERSON.name}
+					</p>
+					<h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-6xl dark:text-white">
+						Full Stack Engineer
+					</h1>
+					<p
+						ref={subheadRef}
+						data-hero-exit="mid"
+						className="mx-auto mt-3 max-w-xl text-sm font-medium leading-relaxed text-slate-600 opacity-0 sm:mt-4 sm:text-base md:text-lg dark:text-slate-400"
 					>
-						<div
-							className="pointer-events-none absolute -inset-x-6 -inset-y-4 -z-10 rounded-[2rem] bg-gradient-to-br from-cyan-500/[0.07] via-transparent to-fuchsia-600/[0.08] opacity-90 blur-xl motion-reduce:opacity-0 lg:block"
-							aria-hidden
-						/>
+						Building production web, mobile &amp; desktop software since 2019.
+						<br className="hidden sm:block" />
+						<span className="text-slate-500 dark:text-slate-500">
+							TypeScript · Next.js · PostgreSQL · AI/LLM integration
+						</span>
+					</p>
+				</header>
 
-						<header
-							data-hero-intro
+				{/* Centered 3D Robot */}
+				<div
+					ref={robotColRef}
+					className="hero-robot-col relative flex w-full items-center justify-center opacity-0"
+					style={{ transformStyle: "preserve-3d", perspective: 1200 }}
+				>
+					<HeroRobotHalo />
+					<div className="relative z-10 w-full">
+						{mountHeavyHero ? (
+							<HeroGltfRobot />
+						) : (
+							<div className={HERO_ROBOT_PLACEHOLDER_CLASS} aria-hidden />
+						)}
+					</div>
+
+					{/* Floating stats overlays */}
+					<div className="pointer-events-none absolute inset-0 z-20">
+						{/* Left floating stat */}
+						<div
+							ref={(el) => { statRefs.current[0] = el; }}
 							data-hero-exit="fast"
-							className="mx-auto mb-4 w-full max-w-md text-center lg:mx-0 lg:text-left"
+							className="absolute left-[2%] top-[18%] hidden opacity-0 lg:block"
 						>
-							<p className="font-mono text-[9px] uppercase tracking-[0.22em] text-cyan-600/80 dark:text-cyan-400/70">
-								{PERSON.city} · {PERSON.country}
-							</p>
-							<h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-								{PERSON.name}
-							</h1>
-							<p className="mt-1 text-sm font-medium leading-snug text-slate-600 dark:text-slate-400">
-								ERP · HCM · CRM · portfolio sites. React, Next.js &amp; TypeScript
-							</p>
-						</header>
-
-						<div
-							data-hero-intro
-							data-hero-exit="fast"
-							className="mx-auto flex w-full max-w-md flex-wrap justify-center gap-2 lg:mx-0 lg:justify-start"
-						>
-							{HERO_STATS.map((stat, i) => (
-								<div
-									key={stat.label}
-									ref={(el) => {
-										statRefs.current[i] = el;
-									}}
-									className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04]"
-								>
-									<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
-										{stat.label}
-									</p>
-									<p className="mt-0.5 font-display text-sm font-bold text-slate-900 dark:text-white">
-										{stat.static ?? (
-											<>
-												<span
-													ref={(el) => {
-														statValueRefs.current[i] = el;
-													}}
-												>
-													0
-												</span>
-												<span className="text-xs font-semibold text-cyan-600 dark:text-cyan-300/90">
-													{stat.suffix}
-												</span>
-											</>
-										)}
-									</p>
-								</div>
-							))}
-						</div>
-
-						<div
-							data-hero-intro
-							data-hero-exit="mid"
-							className="mx-auto mt-5 w-full max-w-md lg:mx-0"
-						>
-							<div className="hero-signal-panel rounded-xl border border-cyan-400/25 bg-white/85 px-4 py-3 shadow-sm backdrop-blur-md dark:border-cyan-400/20 dark:bg-[#080512]/75">
-								<p className="font-mono text-[9px] uppercase tracking-[0.22em] text-cyan-600/80 dark:text-cyan-400/70">
-									Core focus
+							<div className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]">
+								<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
+									{HERO_STATS[0].label}
 								</p>
-								<div className="mt-2 flex flex-wrap gap-1.5">
-									{HERO_TRAITS.map((trait) => (
-										<span
-											key={trait}
-											className="hero-tech-chip rounded-md border border-slate-200/80 bg-slate-50 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400"
-										>
-											{trait}
-										</span>
-									))}
-								</div>
-								<div className="mt-3 rounded-md border border-slate-200/80 bg-slate-100/90 px-2.5 py-2 font-mono text-[10px] leading-relaxed text-slate-600 dark:border-white/8 dark:bg-black/35 dark:text-slate-400">
-									<span className="text-cyan-600 dark:text-cyan-400">&gt;</span>{" "}
-									<span ref={terminalRef}>{terminalText}</span>
-									<span className="hero-terminal-cursor ml-0.5 inline-block w-[6px] text-cyan-600 dark:text-cyan-400">
-										_
-									</span>
-								</div>
+								<p className="mt-0.5 font-display text-lg font-bold text-slate-900 dark:text-white">
+									{HERO_STATS[0].static}
+								</p>
 							</div>
 						</div>
 
-						<HeroMatrixResumeCta reduceMotion={reduceMotion} />
-
+						{/* Right floating stats */}
 						<div
-							data-hero-intro
+							ref={(el) => { statRefs.current[1] = el; }}
 							data-hero-exit="fast"
-							className="mt-5 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start"
+							className="absolute right-[2%] top-[22%] hidden opacity-0 lg:block"
 						>
-							{[
-								{
-									href: "https://www.linkedin.com/in/nahom-tesfaye-35b97420b/",
-									label: "LinkedIn",
-									icon: FaLinkedinIn,
-									external: true,
-								},
-								{
-									href: "https://github.com/nahomjc",
-									label: "GitHub",
-									icon: FaGithub,
-									external: true,
-								},
-								{ href: "/#contact", label: "Email", icon: AiOutlineMail },
-							].map(({ href, label, icon: Icon, external }) => (
-								<MagneticWrap key={label} reduceMotion={reduceMotion}>
-									{external ? (
-										<a
-											href={href}
-											target="_blank"
-											rel="noreferrer"
-											className={`hero-social-btn ${btnIconSm}`}
-											aria-label={label}
-										>
-											<Icon className="text-lg" />
-										</a>
-									) : (
-										<Link
-											href={href}
-											className={`hero-social-btn ${btnIconSm}`}
-											aria-label={label}
-										>
-											<Icon className="text-lg" />
-										</Link>
-									)}
-								</MagneticWrap>
-							))}
+							<div className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]">
+								<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
+									{HERO_STATS[1].label}
+								</p>
+								<p className="mt-0.5 font-display text-lg font-bold text-slate-900 dark:text-white">
+									<span ref={(el) => { statValueRefs.current[1] = el; }}>0</span>
+									<span className="text-sm font-semibold text-cyan-600 dark:text-cyan-300/90">
+										{HERO_STATS[1].suffix}
+									</span>
+								</p>
+							</div>
 						</div>
 
+						{/* Bottom right stat */}
 						<div
-							ref={scrollCueRef}
+							ref={(el) => { statRefs.current[2] = el; }}
 							data-hero-exit="fast"
-							className="mt-7 flex flex-col items-center gap-1.5 opacity-0 lg:mt-8 lg:items-start"
+							className="absolute bottom-[15%] right-[5%] hidden opacity-0 lg:block"
 						>
-							<span className="font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500">
-								Scroll to explore
-							</span>
-							<span className="flex flex-col items-center gap-1 lg:items-start">
-								<span className="h-8 w-px bg-gradient-to-b from-cyan-400/80 via-fuchsia-400/60 to-transparent" />
-								<span className="text-cyan-600/80 dark:text-cyan-400/80">
-									↓
-								</span>
-							</span>
+							<div className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]">
+								<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
+									{HERO_STATS[2].label}
+								</p>
+								<p className="mt-0.5 font-display text-lg font-bold text-slate-900 dark:text-white">
+									<span ref={(el) => { statValueRefs.current[2] = el; }}>0</span>
+									<span className="text-sm font-semibold text-cyan-600 dark:text-cyan-300/90">
+										{HERO_STATS[2].suffix}
+									</span>
+								</p>
+							</div>
 						</div>
 					</div>
 
+					{/* Mobile stats row */}
 					<div
-						ref={robotColRef}
-						className="hero-robot-col relative order-1 flex min-h-0 items-center justify-center pt-4 opacity-0 max-lg:min-h-0 sm:pt-6 lg:order-2 lg:min-h-0 lg:pt-8"
-						style={{ transformStyle: "preserve-3d", perspective: 1200 }}
+						data-hero-exit="fast"
+						className="absolute -bottom-2 left-1/2 z-20 flex -translate-x-1/2 gap-2 lg:hidden"
 					>
-						<HeroRobotHalo />
-						<div className="relative z-10 w-full">
-							{mountHeavyHero ? (
-								<HeroGltfRobot />
-							) : (
-								<div className={HERO_ROBOT_PLACEHOLDER_CLASS} aria-hidden />
-							)}
-						</div>
-						<p className="pointer-events-none absolute -bottom-1 left-1/2 z-10 hidden -translate-x-1/2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500 lg:block">
-							Interactive · drag · tap
-						</p>
+						{HERO_STATS.map((stat, i) => (
+							<div
+								key={stat.label}
+								ref={(el) => {
+									if (!statRefs.current[i]) statRefs.current[i] = el;
+								}}
+								className="hero-stat-pill rounded-md border border-slate-200/80 bg-white/90 px-2 py-1.5 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]"
+							>
+								<p className="font-mono text-[7px] uppercase tracking-[0.15em] text-slate-500">
+									{stat.label}
+								</p>
+								<p className="font-display text-xs font-bold text-slate-900 dark:text-white">
+									{stat.static ?? (
+										<>
+											<span
+												ref={(el) => {
+													statValueRefs.current[i] = el;
+												}}
+											>
+												0
+											</span>
+											<span className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-300/90">
+												{stat.suffix}
+											</span>
+										</>
+									)}
+								</p>
+							</div>
+						))}
 					</div>
+
+					<p className="pointer-events-none absolute -bottom-6 left-1/2 z-10 hidden -translate-x-1/2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500 lg:block">
+						Click robot to chat · AI voice assistant
+					</p>
+				</div>
+
+				{/* Stack highlights */}
+				<div
+					data-hero-exit="mid"
+					className="mt-6 flex flex-wrap justify-center gap-1.5 sm:mt-8 sm:gap-2"
+				>
+					{STACK_HIGHLIGHTS.map((tech) => (
+						<span
+							key={tech}
+							className="rounded-md border border-slate-200/80 bg-white/80 px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-slate-600 shadow-sm backdrop-blur-sm sm:px-2.5 sm:py-1.5 sm:text-[10px] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400"
+						>
+							{tech}
+						</span>
+					))}
+				</div>
+
+				{/* CTA Row */}
+				<div
+					ref={ctaRowRef}
+					data-hero-exit="cta"
+					className="mt-6 flex flex-wrap items-center justify-center gap-3 opacity-0 sm:mt-8 sm:gap-4"
+				>
+					<MagneticWrap reduceMotion={reduceMotion}>
+						<Link
+							href="/#projects"
+							className="hero-cta-btn group inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-5 py-2.5 font-semibold text-slate-900 shadow-lg shadow-cyan-500/25 transition-all hover:bg-cyan-400 hover:shadow-cyan-400/30 sm:px-6 sm:py-3"
+						>
+							View Work
+							<HiOutlineArrowRight className="transition-transform group-hover:translate-x-0.5" />
+						</Link>
+					</MagneticWrap>
+					<MagneticWrap reduceMotion={reduceMotion}>
+						<Link
+							href="/#contact"
+							className="hero-cta-btn inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white/80 px-5 py-2.5 font-semibold text-slate-700 shadow-sm backdrop-blur-sm transition-all hover:border-slate-400 hover:bg-white sm:px-6 sm:py-3 dark:border-white/15 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/25 dark:hover:bg-white/[0.1]"
+						>
+							<AiOutlineMail className="text-lg" />
+							Contact
+						</Link>
+					</MagneticWrap>
+					<MagneticWrap reduceMotion={reduceMotion}>
+						<a
+							href={CV_PATH}
+							download={CV_DOWNLOAD_NAME}
+							className="hero-cta-btn inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white/80 px-5 py-2.5 font-semibold text-slate-700 shadow-sm backdrop-blur-sm transition-all hover:border-slate-400 hover:bg-white sm:px-6 sm:py-3 dark:border-white/15 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:border-white/25 dark:hover:bg-white/[0.1]"
+						>
+							<AiOutlineDownload className="text-lg" />
+							Download CV
+						</a>
+					</MagneticWrap>
+				</div>
+
+				{/* Social links */}
+				<div
+					data-hero-exit="fast"
+					className="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:mt-6"
+				>
+					{[
+						{
+							href: "https://www.linkedin.com/in/nahom-tesfaye-35b97420b/",
+							label: "LinkedIn",
+							icon: FaLinkedinIn,
+							external: true,
+						},
+						{
+							href: "https://github.com/nahomjc",
+							label: "GitHub",
+							icon: FaGithub,
+							external: true,
+						},
+					].map(({ href, label, icon: Icon, external }) => (
+						<MagneticWrap key={label} reduceMotion={reduceMotion}>
+							{external ? (
+								<a
+									href={href}
+									target="_blank"
+									rel="noreferrer"
+									className={`hero-social-btn ${btnIconSm}`}
+									aria-label={label}
+								>
+									<Icon className="text-lg" />
+								</a>
+							) : (
+								<Link
+									href={href}
+									className={`hero-social-btn ${btnIconSm}`}
+									aria-label={label}
+								>
+									<Icon className="text-lg" />
+								</Link>
+							)}
+						</MagneticWrap>
+					))}
+					<span className="ml-2 font-mono text-[9px] text-slate-500 sm:text-[10px]">
+						<a
+							href="https://build-with-nahom.com"
+							target="_blank"
+							rel="noreferrer"
+							className="transition-colors hover:text-cyan-600 dark:hover:text-cyan-400"
+						>
+							build-with-nahom.com
+						</a>
+						{" · "}
+						<a
+							href="https://github.com/nahomjc"
+							target="_blank"
+							rel="noreferrer"
+							className="transition-colors hover:text-cyan-600 dark:hover:text-cyan-400"
+						>
+							github.com/nahomjc
+						</a>
+					</span>
+				</div>
+
+				{/* Scroll cue */}
+				<div
+					ref={scrollCueRef}
+					data-hero-exit="fast"
+					className="mt-8 flex flex-col items-center gap-1.5 opacity-0 sm:mt-10"
+				>
+					<span className="font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500">
+						Scroll to explore
+					</span>
+					<span className="flex flex-col items-center gap-1">
+						<span className="h-8 w-px bg-gradient-to-b from-cyan-400/80 via-fuchsia-400/60 to-transparent" />
+						<span className="text-cyan-600/80 dark:text-cyan-400/80">↓</span>
+					</span>
 				</div>
 			</div>
 

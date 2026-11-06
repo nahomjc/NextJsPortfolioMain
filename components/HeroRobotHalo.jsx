@@ -52,7 +52,7 @@ function HaloDefs({ idPrefix }) {
 export default function HeroRobotHalo() {
 	return (
 		<div
-			className="hero-halo pointer-events-none absolute left-1/2 top-[46%] z-0 aspect-square w-[min(96%,36rem)] -translate-x-1/2 -translate-y-1/2"
+			className="hero-halo pointer-events-none absolute left-1/2 top-1/2 z-0 aspect-square w-[min(100%,40rem)] -translate-x-1/2 -translate-y-1/2"
 			aria-hidden
 		>
 			<div className="hero-halo__well hero-halo__well--cyan" />
