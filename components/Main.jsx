@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { PERSON, CV_PATH, CV_DOWNLOAD_NAME } from "../lib/seo";
 import { AiOutlineMail, AiOutlineDownload } from "react-icons/ai";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
@@ -16,12 +17,11 @@ const HeroGltfRobot = dynamic(() => import("./HeroGltfRobot"), { ssr: false });
 const HeroInteractiveLayer = dynamic(() => import("./HeroInteractiveLayer"), {
 	ssr: false,
 });
+const HeroProjectCarousel = dynamic(() => import("./HeroProjectCarousel"), {
+	ssr: false,
+});
 
-const HERO_STATS = [
-	{ label: "Building since", value: 2019, suffix: "", static: "2019" },
-	{ label: "Apps shipped", value: 15, suffix: "+" },
-	{ label: "CS degree", value: 3.9, suffix: " GPA", decimals: 1 },
-];
+const HERO_STAT = { label: "Building since", value: 2019, suffix: "", static: "2019" };
 
 const STACK_HIGHLIGHTS = [
 	"TypeScript",
@@ -142,6 +142,7 @@ function MagneticWrap({ children, reduceMotion, className = "" }) {
 }
 
 const Main = () => {
+	const router = useRouter();
 	const reduceMotion = useReducedMotion();
 	const heroRef = useRef(null);
 	const heroInnerRef = useRef(null);
@@ -160,14 +161,19 @@ const Main = () => {
 	const headlineRef = useRef(null);
 	const subheadRef = useRef(null);
 	const ctaRowRef = useRef(null);
-	const statRefs = useRef([]);
-	const statValueRefs = useRef([]);
+	const statRef = useRef(null);
 	const pointerRafRef = useRef(0);
 	const pendingPointerRef = useRef(null);
 
 	const [sparkleOffset, setSparkleOffset] = useState({ x: 0, y: 0 });
 	const [bootComplete, setBootComplete] = useState(false);
 	const [mountHeavyHero, setMountHeavyHero] = useState(false);
+
+	const handleCarouselPanelClick = useCallback((panelData) => {
+		if (panelData?.href) {
+			router.push(panelData.href);
+		}
+	}, [router]);
 
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") {
@@ -188,14 +194,6 @@ const Main = () => {
 	useEffect(() => {
 		if (reduceMotion || typeof window === "undefined") {
 			setBootComplete(true);
-			HERO_STATS.forEach((stat, i) => {
-				const el = statValueRefs.current[i];
-				if (!el || stat.static) return;
-				el.textContent =
-					stat.decimals != null
-						? stat.value.toFixed(stat.decimals)
-						: String(Math.round(stat.value));
-			});
 			return;
 		}
 
@@ -270,33 +268,9 @@ const Main = () => {
 				);
 			}
 
-			statRefs.current.filter(Boolean).forEach((el, i) => {
-				const stat = HERO_STATS[i];
-				if (stat.static) {
-					intro.from(el, { y: 20, opacity: 0, duration: 0.55 }, 0.85 + i * 0.08);
-					return;
-				}
-				const target = stat.value;
-				const obj = { val: 0 };
-				intro.to(
-					obj,
-					{
-						val: target,
-						duration: 1.4,
-						ease: "power2.out",
-						onUpdate: () => {
-							const el = statValueRefs.current[i];
-							if (!el) return;
-							el.textContent =
-								stat.decimals != null
-									? obj.val.toFixed(stat.decimals)
-									: String(Math.round(obj.val));
-						},
-					},
-					0.9 + i * 0.08,
-				);
-				intro.from(el, { y: 20, opacity: 0, duration: 0.55 }, 0.85 + i * 0.08);
-			});
+			if (statRef.current) {
+				intro.from(statRef.current, { y: 20, opacity: 0, duration: 0.55 }, 0.85);
+			}
 
 			if (ctaRowRef.current) {
 				intro.fromTo(
@@ -675,12 +649,22 @@ const Main = () => {
 					</p>
 				</header>
 
-				{/* Centered 3D Robot */}
+				{/* Centered 3D Robot with Project Carousel */}
 				<div
 					ref={robotColRef}
 					className="hero-robot-col relative flex w-full items-center justify-center opacity-0"
 					style={{ transformStyle: "preserve-3d", perspective: 1200 }}
 				>
+					{/* 3D Project Carousel - behind robot */}
+					<div className="absolute inset-0 -inset-x-[20%] z-0 md:-inset-x-[30%] lg:-inset-x-[40%]">
+						{mountHeavyHero && (
+							<HeroProjectCarousel
+								active={bootComplete}
+								onPanelClick={handleCarouselPanelClick}
+							/>
+						)}
+					</div>
+
 					<HeroRobotHalo />
 					<div className="relative z-10 w-full">
 						{mountHeavyHero ? (
@@ -690,100 +674,23 @@ const Main = () => {
 						)}
 					</div>
 
-					{/* Floating stats overlays */}
-					<div className="pointer-events-none absolute inset-0 z-20">
-						{/* Left floating stat */}
-						<div
-							ref={(el) => { statRefs.current[0] = el; }}
-							data-hero-exit="fast"
-							className="absolute left-[2%] top-[18%] hidden opacity-0 lg:block"
-						>
-							<div className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]">
-								<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
-									{HERO_STATS[0].label}
-								</p>
-								<p className="mt-0.5 font-display text-lg font-bold text-slate-900 dark:text-white">
-									{HERO_STATS[0].static}
-								</p>
-							</div>
-						</div>
-
-						{/* Right floating stats */}
-						<div
-							ref={(el) => { statRefs.current[1] = el; }}
-							data-hero-exit="fast"
-							className="absolute right-[2%] top-[22%] hidden opacity-0 lg:block"
-						>
-							<div className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]">
-								<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
-									{HERO_STATS[1].label}
-								</p>
-								<p className="mt-0.5 font-display text-lg font-bold text-slate-900 dark:text-white">
-									<span ref={(el) => { statValueRefs.current[1] = el; }}>0</span>
-									<span className="text-sm font-semibold text-cyan-600 dark:text-cyan-300/90">
-										{HERO_STATS[1].suffix}
-									</span>
-								</p>
-							</div>
-						</div>
-
-						{/* Bottom right stat */}
-						<div
-							ref={(el) => { statRefs.current[2] = el; }}
-							data-hero-exit="fast"
-							className="absolute bottom-[15%] right-[5%] hidden opacity-0 lg:block"
-						>
-							<div className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]">
-								<p className="font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500">
-									{HERO_STATS[2].label}
-								</p>
-								<p className="mt-0.5 font-display text-lg font-bold text-slate-900 dark:text-white">
-									<span ref={(el) => { statValueRefs.current[2] = el; }}>0</span>
-									<span className="text-sm font-semibold text-cyan-600 dark:text-cyan-300/90">
-										{HERO_STATS[2].suffix}
-									</span>
-								</p>
-							</div>
-						</div>
-					</div>
-
-					{/* Mobile stats row */}
+					{/* Building since stat */}
 					<div
+						ref={statRef}
 						data-hero-exit="fast"
-						className="absolute -bottom-2 left-1/2 z-20 flex -translate-x-1/2 gap-2 lg:hidden"
+						className="absolute -bottom-2 left-1/2 z-20 -translate-x-1/2"
 					>
-						{HERO_STATS.map((stat, i) => (
-							<div
-								key={stat.label}
-								ref={(el) => {
-									if (!statRefs.current[i]) statRefs.current[i] = el;
-								}}
-								className="hero-stat-pill rounded-md border border-slate-200/80 bg-white/90 px-2 py-1.5 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]"
-							>
-								<p className="font-mono text-[7px] uppercase tracking-[0.15em] text-slate-500">
-									{stat.label}
-								</p>
-								<p className="font-display text-xs font-bold text-slate-900 dark:text-white">
-									{stat.static ?? (
-										<>
-											<span
-												ref={(el) => {
-													statValueRefs.current[i] = el;
-												}}
-											>
-												0
-											</span>
-											<span className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-300/90">
-												{stat.suffix}
-											</span>
-										</>
-									)}
-								</p>
-							</div>
-						))}
+						<div className="hero-stat-pill rounded-lg border border-slate-200/80 bg-white/90 px-4 py-2 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06]">
+							<p className="text-center font-mono text-[8px] uppercase tracking-[0.18em] text-slate-500 sm:text-[9px]">
+								{HERO_STAT.label}
+							</p>
+							<p className="mt-0.5 text-center font-display text-xl font-bold text-slate-900 sm:text-2xl dark:text-white">
+								{HERO_STAT.static}
+							</p>
+						</div>
 					</div>
 
-					<p className="pointer-events-none absolute -bottom-6 left-1/2 z-10 hidden -translate-x-1/2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500 lg:block">
+					<p className="pointer-events-none absolute -bottom-8 left-1/2 z-10 hidden -translate-x-1/2 font-mono text-[9px] uppercase tracking-[0.2em] text-slate-500 lg:block">
 						Click robot to chat · AI voice assistant
 					</p>
 				</div>
