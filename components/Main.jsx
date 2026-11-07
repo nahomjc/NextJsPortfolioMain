@@ -633,7 +633,7 @@ const Main = () => {
 					<p className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-600/80 sm:text-xs dark:text-cyan-400/70">
 						{PERSON.name}
 					</p>
-					<h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-6xl dark:text-white">
+					<h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl md:text-4xl lg:text-5xl dark:text-white">
 						Full Stack Engineer
 					</h1>
 					<p
@@ -641,11 +641,7 @@ const Main = () => {
 						data-hero-exit="mid"
 						className="mx-auto mt-3 max-w-xl text-sm font-medium leading-relaxed text-slate-600 opacity-0 sm:mt-4 sm:text-base md:text-lg dark:text-slate-400"
 					>
-						Building production web, mobile &amp; desktop software since 2019.
-						<br className="hidden sm:block" />
-						<span className="text-slate-500 dark:text-slate-500">
-							TypeScript · Next.js · PostgreSQL · AI/LLM integration
-						</span>
+						Building the web since 2019.
 					</p>
 				</header>
 
