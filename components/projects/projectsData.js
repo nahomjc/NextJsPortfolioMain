@@ -9,6 +9,7 @@ import conflictReporterImg from "../../public/assets/global-conflict.vercel.app_
 import greenbagImg from "../../public/assets/Screenshot 2026-03-28 023643.png";
 import arSolutionsImg from "../../public/assets/Screenshot 2026-03-28 024007.png";
 import afrocadoImg from "../../public/assets/Screenshot 2026-03-28 024200.png";
+import studioWaliyaImg from "../../public/assets/projects/studio-waliya.png";
 
 export const productionProjects = [
 	{
@@ -17,6 +18,13 @@ export const productionProjects = [
 		projectUrl: "/sourcepin",
 		tech: "Multi-tenant procurement · Ethiopia & Malawi · Next.js · Hono · Drizzle · TypeScript",
 		featured: true,
+	},
+	{
+		title: "Studio Waliya",
+		backgroundImg: studioWaliyaImg,
+		projectUrl: "https://waliya.dev.peragosystems.com/",
+		tech: "Software factory platform · Perago Systems · Product-to-delivery alignment",
+		external: true,
 	},
 	{
 		title: "Jiret",
@@ -29,6 +37,13 @@ export const productionProjects = [
 		backgroundImg: hcmImg,
 		projectUrl: "/hcm",
 		tech: "HCM / HR operations · Next.js · Hono · Neon · PostgreSQL · Drizzle",
+	},
+	{
+		title: "Mesob UI",
+		backgroundImg: "/assets/projects/mesob-ui.svg",
+		projectUrl: "https://www.npmjs.com/package/@mesob/ui",
+		tech: "React UI component library · npm · Muyalogy",
+		external: true,
 	},
 	{
 		title: "Green Bag Ethiopia",

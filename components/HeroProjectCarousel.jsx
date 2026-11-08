@@ -6,8 +6,10 @@ import { createWebGLRendererSafe } from "../lib/webgl";
 
 const CAROUSEL_IMAGES = [
 	{ src: "/assets/projects/jiret.png", href: "/jiret", title: "Jiret LMS" },
+	{ src: "/assets/projects/studio-waliya.png", href: "https://waliya.dev.peragosystems.com/", title: "Studio Waliya", external: true },
 	{ src: "/assets/projects/muyaloyg.png", href: "/muyalogy", title: "Muyalogy" },
 	{ src: "/assets/Screenshot 2026-03-28 023643.png", href: "/greenbag", title: "Green Bag Ethiopia" },
+	{ src: "/assets/projects/mesob-ui.svg", href: "https://www.npmjs.com/package/@mesob/ui", title: "Mesob UI", external: true },
 	{ src: "/assets/projects/afriwork.png", href: "/afriwork", title: "Afriwork" },
 	{ src: "/assets/projects/loop-state.png", href: "/loopState", title: "Loop State" },
 	{ src: "/assets/projects/prime-bank.png", href: "/prime", title: "Prime Bank" },
