@@ -171,7 +171,11 @@ const Main = () => {
 
 	const handleCarouselPanelClick = useCallback((panelData) => {
 		if (panelData?.href) {
-			router.push(panelData.href);
+			if (panelData.external || panelData.href.startsWith("http")) {
+				window.open(panelData.href, "_blank", "noopener,noreferrer");
+			} else {
+				router.push(panelData.href);
+			}
 		}
 	}, [router]);
 
